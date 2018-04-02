@@ -1,0 +1,266 @@
+#!/bin/bash
+shopt -s extglob  # sets extended pattern matching options in the bash shell
+
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+ynh_clean_setup () {
+# Nettoyage des résidus d'installation non pris en charge par le script remove.
+	ynh_clean_check_starting_systemd
+}
+ynh_abort_if_errors	# Stop script if an error is detected
+
+#=================================================
+# RETRIEVE ARGUMENTS FROM THE MANIFEST
+#=================================================
+
+# Retrieve app id
+app=$YNH_APP_INSTANCE_NAME
+
+# Retrieve arguments
+domain=$YNH_APP_ARG_DOMAIN
+path_url=$YNH_APP_ARG_PATH
+admin=$YNH_APP_ARG_ADMIN
+is_public=$YNH_APP_ARG_IS_PUBLIC
+
+#=================================================
+# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
+#=================================================
+
+path_url=$(ynh_normalize_url_path $path_url)	# Check and normalize path
+
+final_path=/var/www/$app
+test ! -e "$final_path" || ynh_die "This path already contains a folder"
+
+# Check web path availability
+ynh_webpath_available $domain $path_url
+# Register (book) web path
+ynh_webpath_register $app $domain $path_url
+
+#=================================================
+# STORE SETTINGS FROM MANIFEST
+#=================================================
+
+ynh_app_setting_set $app domain "$domain"
+ynh_app_setting_set $app path_url "$path_url"
+ynh_app_setting_set $app admin "$admin"
+ynh_app_setting_set $app is_public "$is_public"
+
+#=================================================
+# STANDARD MODIFICATIONS
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+
+ynh_install_app_dependencies "$pkg_dependencies"
+
+#=================================================
+# CREATE A POSTGRES DATABASE
+#=================================================
+
+db_name=$(ynh_sanitize_dbid $app)
+db_pwd=$(ynh_string_random)
+ynh_app_setting_set $app db_name $db_name
+ynh_app_setting_set $app psqlpwd $db_pwd
+ynh_psql_test_if_first_run
+ynh_psql_create_db $db_name $db_name $db_pwd
+# Set extensions
+ynh_psql_execute_as_root "\connect $db_name
+CREATE EXTENSION IF NOT EXISTS hstore; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+ynh_app_setting_set $app final_path $final_path
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source "$final_path"
+# Install LDAP plugin
+mkdir -p "$final_path/plugins/discourse-ldap-auth"
+ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+# Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
+if [ "$path_url" != "/" ] ; then
+  # ynh_replace_string 'proxy_pass http://unix:__FINALPATH__/tmp/sockets/puma.sock;' 'rewrite ^/(.*)$ __PATH__/$1 break; proxy_pass http://unix:__FINALPATH__/tmp/sockets/puma.sock;' ../conf/nginx.conf
+  # ynh_replace_string 'etag off;' 'etag off; location __PATH__ { rewrite ^__PATH__/?(.*)$ /$1; }' ../conf/nginx.conf
+  ynh_replace_string '$proxy_add_x_forwarded_for' '$http_your_original_ip_header' ../conf/nginx.conf
+fi
+
+# Create a dedicated nginx config
+ynh_add_nginx_config
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+
+# Create a system user
+ynh_system_user_create $app "$final_path"
+
+#=================================================
+# SPECIFIC SETUP
+#=================================================
+
+#=================================================
+# CONFIGURE DISCOURSE
+#=================================================
+
+# Configure database
+cp $final_path/config/discourse_defaults.conf $final_path/config/discourse.conf
+#ynh_replace_string "db_host =" "db_host = localhost" "$final_path/config/discourse.conf"
+ynh_replace_string "db_name = discourse" "db_name = $db_name" "$final_path/config/discourse.conf"
+ynh_replace_string "db_username = discourse" "db_username = $db_name" "$final_path/config/discourse.conf"
+ynh_replace_string "db_password =" "db_password = $db_pwd" "$final_path/config/discourse.conf"
+
+# Configure hostname
+ynh_replace_string "hostname = \"www.example.com\"" "hostname = \"$domain\"" "$final_path/config/discourse.conf"
+ynh_replace_string "relative_url_root =" "relative_url_root = ${path_url%/}" "$final_path/config/discourse.conf"
+# Serve static assets (i.e. images, js, etc.)
+ynh_replace_string "serve_static_assets = false" "serve_static_assets = true" "$final_path/config/discourse.conf"
+
+# Configure e-mail server
+admin_mail=$(ynh_user_get_info "$admin" mail)
+ynh_replace_string "developer_emails =" "developer_emails = $admin_mail" "$final_path/config/discourse.conf"
+ynh_replace_string "smtp_address =" "smtp_address = localhost" "$final_path/config/discourse.conf"
+ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$final_path/config/discourse.conf"
+ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$final_path/config/discourse.conf"
+
+# Calculate and store the config file checksum
+ynh_store_file_checksum "$final_path/config/discourse.conf"
+
+# Configure LDAP plugins
+ynh_replace_string "adfs.example.com" "localhost" "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+ynh_replace_string "sAMAccountName" "uid" "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+
+#=================================================
+# SETUP PUMA, A RUBY SERVER
+#=================================================
+
+ynh_replace_string "#{APP_ROOT}/log/puma" "/var/log/$app/puma" "$final_path/config/puma.rb"
+ynh_replace_string "/home/discourse" "/var/www" "$final_path/config/puma.rb"
+ynh_replace_string "daemonize true" "daemonize false" "$final_path/config/puma.rb"
+# Calculate and store the config file checksum
+ynh_store_file_checksum "$final_path/config/puma.rb"
+
+# Set a secret value
+cp ../conf/secrets.yml "$final_path/config/secrets.yml"
+ynh_replace_string "__SECRET__" "$(ynh_string_random)" "$final_path/config/secrets.yml"
+# Calculate and store the config file checksum
+ynh_store_file_checksum "$final_path/config/secrets.yml"
+
+# Set permissions to app files
+chown -R $app: $final_path
+
+
+# # Install puma with gem
+(cd "$final_path"
+# # Install bundler, a gems installer
+gem install bundler
+# # Install without documentation
+exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+# # Install dependencies
+exec_as $app bundle install --path vendor/bundle --without development test postgresql)
+
+#=================================================
+# SETUP SIDEKIQ
+#=================================================
+cp ../conf/sidekiq.yml "$final_path/config/sidekiq.yml"
+
+#=================================================
+# PREPARE THE DATABASE
+#=================================================
+
+(cd "$final_path"
+rake_exec="exec_as $app bin/rake RAILS_ENV=production"
+$rake_exec db:migrate
+$rake_exec assets:precompile)
+
+#=================================================
+# INSTALL PLUGINS
+#=================================================
+
+# # Install LDAP plugin
+# ynh_setup_source "$final_path/plugins" ldap-auth
+# # Set permissions to app files
+# chown -R $app: $final_path/plugins
+# # TODO install all in one shot?
+# (cd "$final_path"
+# exec_as $app bin/rake RAILS_ENV=production assets:precompile)
+
+# TODO setup
+
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+
+ynh_add_systemd_config $app-puma discourse-puma.service
+ynh_add_systemd_config $app-sidekiq discourse-sidekiq.service
+
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+
+# Add a pids and socket directory for the systemd script.
+mkdir -p "$final_path/tmp/pids"
+mkdir "$final_path/tmp/sockets"
+
+# Set permissions to app files
+chown -R $app: $final_path
+
+#=================================================
+# SETUP LOGROTATE
+#=================================================
+
+mkdir -p /var/log/$app
+chown -R $app: /var/log/$app
+
+# Use logrotate to manage application logfile(s)
+ynh_use_logrotate
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+yunohost service add $app-puma --log "/var/log/$app/puma.stderr.log"
+yunohost service add $app-sidekiq --log "/var/www/$app/log/production.log"
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
+# If app is public, add url to SSOWat conf as skipped_uris
+if [ $is_public -eq 1 ]; then
+  # unprotected_uris allows SSO credentials to be passed anyway.
+  ynh_app_setting_set "$app" unprotected_uris "/"
+fi
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+
+systemctl reload nginx
+
+#=================================================
+# START PUMA AND SIDEKIQ
+#=================================================
+
+# Wait for discourse-puma to be fully started
+# As discourse-sidekiq is a dependency, it is automatically started before
+ynh_check_starting_systemd "Use Ctrl-C to stop" "$app-puma" "120"

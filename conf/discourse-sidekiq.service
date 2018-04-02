@@ -1,0 +1,15 @@
+[Unit]
+Description=__APP__ sidekiq service
+After=network.target
+
+[Service]
+User=__APP__
+Group=__APP__
+WorkingDirectory=__FINALPATH__
+Environment=RAILS_ENV=production
+ExecStart=__FINALPATH__/bin/bundle exec sidekiq -C config/sidekiq.yml
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

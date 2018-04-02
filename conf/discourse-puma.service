@@ -1,0 +1,22 @@
+[Unit]
+Description=__APP__ puma service
+Wants=postgresql.service
+Wants=redis-server.service
+After=redis-server.service
+After=postgresql.service
+After=discourse-sidekiq.service
+Requires=discourse-sidekiq.service
+
+[Service]
+User=__APP__
+Group=__APP__
+WorkingDirectory=__FINALPATH__
+Environment=RAILS_ENV=production
+ExecStart=__FINALPATH__/bin/bundle exec puma --config config/puma.rb -e production
+ExecStop=__FINALPATH__/bin/bundle exec pumactl stop
+RemainAfterExit=true
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
