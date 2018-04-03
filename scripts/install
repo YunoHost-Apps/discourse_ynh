@@ -190,16 +190,17 @@ $rake_exec db:migrate
 $rake_exec assets:precompile)
 
 #=================================================
-# INSTALL PLUGINS
+# CREATE ADMIN USER
 #=================================================
 
-# # Install LDAP plugin
-# ynh_setup_source "$final_path/plugins" ldap-auth
-# # Set permissions to app files
-# chown -R $app: $final_path/plugins
-# # TODO install all in one shot?
-# (cd "$final_path"
-# exec_as $app bin/rake RAILS_ENV=production assets:precompile)
+# Create a random password
+admin_pwd=$(ynh_string_random)
+(cd "$final_path"
+sudo -u discourse bin/rake RAILS_ENV=production admin:create <<< "$admin_mail
+$admin_pwd
+$admin_pwd
+y
+")
 
 #=================================================
 # CONFIGURE PLUGINS
