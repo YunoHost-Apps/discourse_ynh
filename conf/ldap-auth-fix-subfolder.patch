@@ -1,0 +1,12 @@
+--- discourse-ldap-auth.orig/gems/2.3.3/gems/omniauth-ldap-1.0.5/lib/omniauth/strategies/ldap.rb        2018-04-02 17:58:36.830909997 +0200
++++ discourse-ldap-auth/gems/2.3.3/gems/omniauth-ldap-1.0.5/lib/omniauth/strategies/ldap.rb     2018-04-02 19:17:51.903732202 +0200
+@@ -27,7 +27,8 @@
+
+       def request_phase
+         OmniAuth::LDAP::Adaptor.validate @options
+-        f = OmniAuth::Form.new(:title => (options[:title] || "LDAP Authentication"), :url => callback_path)
++       #Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
++        f = OmniAuth::Form.new(:title => (options[:title] || "LDAP Authentication"), :url => callback_url)
+         f.text_field 'Login', 'username'
+         f.password_field 'Password', 'password'
+         f.button "Sign In"

@@ -201,7 +201,14 @@ $rake_exec assets:precompile)
 # (cd "$final_path"
 # exec_as $app bin/rake RAILS_ENV=production assets:precompile)
 
-# TODO setup
+#=================================================
+# CONFIGURE PLUGINS
+#=================================================
+
+# Patch ldap-auth plugin to fix it when using domain subfolder
+# (Can only do that now because we are patching dependencies which have just been downloaded)
+(cd $final_path/plugins/discourse-ldap-auth
+patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
 
 #=================================================
 # SETUP SYSTEMD
