@@ -128,6 +128,8 @@ ynh_replace_string "hostname = \"www.example.com\"" "hostname = \"$domain\"" "$d
 ynh_replace_string "relative_url_root =" "relative_url_root = ${path_url%/}" "$discourse_config_file"
 # Serve static assets (i.e. images, js, etc.)
 ynh_replace_string "serve_static_assets = false" "serve_static_assets = true" "$discourse_config_file"
+# Don't show miniprofiler
+ynh_replace_string "load_mini_profiler = true" "load_mini_profiler = false" "$discourse_config_file"
 
 # Configure e-mail server
 admin_mail=$(ynh_user_get_info "$admin" mail)
