@@ -1,0 +1,126 @@
+#!/bin/bash
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+if [ ! -e _common.sh ]; then
+	# Fetch helpers file if not in current directory
+	cp ../settings/scripts/_common.sh ./_common.sh
+	chmod a+rx _common.sh
+fi
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
+domain=$(ynh_app_setting_get $app domain)
+path_url=$(ynh_app_setting_get $app path)
+is_public=$(ynh_app_setting_get $app is_public)
+final_path=$(ynh_app_setting_get $app final_path)
+db_name=$(ynh_app_setting_get $app db_name)
+db_pwd=$(ynh_app_setting_get $app db_pwd)
+
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
+
+ynh_webpath_available $domain $path_url \
+	|| ynh_die "Path not available: ${domain}${path_url}"
+test ! -d $final_path \
+	|| ynh_die "There is already a directory: $final_path "
+
+#=================================================
+# STANDARD RESTORATION STEPS
+#=================================================
+# RESTORE ALL FILES
+#=================================================
+
+# Restore all config and data
+ynh_restore
+
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+
+ynh_install_app_dependencies "$pkg_dependencies"
+
+#=================================================
+# REINSTALL BUNDLE GEM
+#=================================================
+
+(cd "$final_path"
+gem install bundler)
+
+#=================================================
+# RESTORE THE POSTGRESQL DATABASE
+#=================================================
+
+ynh_psql_test_if_first_run
+ynh_psql_test_if_first_run
+ynh_psql_setup_db "$db_name" "$db_name" "$db_pwd"
+# Set extensions
+ynh_psql_execute_as_root "\connect $db_name
+CREATE EXTENSION IF NOT EXISTS hstore; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+# Restore dump
+ynh_psql_execute_file_as_root ./db.sql "$db_name"
+
+#=================================================
+# RESTORE SYSTEMD
+#=================================================
+
+systemctl daemon-reload
+systemctl enable $app-puma.service
+systemctl enable $app-sidekiq.service
+
+#=================================================
+# SETUP LOGROTATE
+#=================================================
+
+ynh_use_logrotate
+
+#=================================================
+# RECREATE OF THE DEDICATED USER
+#=================================================
+
+ynh_system_user_create $app	# Recreate the dedicated user, if not existing
+
+#=================================================
+# RESTORE USER RIGHTS
+#=================================================
+
+chown -R $app: $final_path
+chown -R $app: /var/log/$app
+
+#=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+yunohost service add $app-puma --log "/var/log/$app/puma.stderr.log"
+yunohost service add $app-sidekiq --log "/var/www/$app/log/production.log"
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# RELOAD NGINX AND DISCOURSE
+#=================================================
+
+# Wait for discourse-puma to be fully started
+# As discourse-sidekiq is a dependency, it is automatically started before
+ynh_check_starting_systemd "Use Ctrl-C to stop" "$app-puma" "120"
+
+systemctl reload nginx
+
+# Additional pause to avoid 502 errors in package_check after reinstall...
+sleep 120s

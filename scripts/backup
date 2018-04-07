@@ -1,0 +1,64 @@
+#!/bin/bash
+
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+if [ ! -e _common.sh ]; then
+	# Fetch helpers file if not in current directory
+	cp ../settings/scripts/_common.sh ./_common.sh
+	chmod a+rx _common.sh
+fi
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
+domain=$(ynh_app_setting_get $app domain)
+final_path=$(ynh_app_setting_get "$app" final_path)
+db_name=$(ynh_app_setting_get $app db_name)
+
+#=================================================
+# STANDARD BACKUP STEPS
+#=================================================
+# BACKUP APP MAIN DIR
+#=================================================
+
+ynh_backup "$final_path"
+
+#=================================================
+# BACKUP NGINX CONFIGURATION
+#=================================================
+
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# BACKUP SYSTEMD
+#=================================================
+
+ynh_backup "/etc/systemd/system/$app-puma.service"
+ynh_backup "/etc/systemd/system/$app-sidekiq.service"
+
+#=================================================
+# BACKUP THE POSTGRESQL DATABASE
+#=================================================
+
+ynh_psql_dump_db "$db_name" > ${YNH_CWD}/db.sql
+
+#=================================================
+# BACKUP LOG FILE
+#=================================================
+
+ynh_backup "/var/log/$app"
