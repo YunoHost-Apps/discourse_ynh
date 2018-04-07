@@ -192,6 +192,39 @@ $rake_exec db:migrate
 $rake_exec assets:precompile)
 
 #=================================================
+# POPULATE THE DATABASE
+#=================================================
+#Set default data (especially to have correct image URLs for subfolder install)
+ynh_psql_connect_as $db_name $db_pwd $db_name <<< "INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('title', 1, 'YunoHost Forum', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('site_description', 1, 'YunoHost Forum', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('contact_email', 14, '$admin_mail', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('contact_url', 1, '$domain$path_rul', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('site_contact_username', 15, '$admin', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('logo_url', 1, '${path_url%/}/images/d-logo-sketch.png', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('long_polling_base_url', 1, '${path_url%/}/', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('logo_small_url', 1, '${path_url%/}/images/d-logo-sketch-small.png', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('favicon_url', 1, '${path_url%/}/images/default-favicon.ico', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('apple_touch_icon_url', 1, '${path_url%/}/images/default-apple-touch-icon.png', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('wizard_enabled', 5, 'f', 'NOW()', 'NOW()');
+"
+
+toto="INSERT INTO site_settings (name, value) VALUES ('title', 1, 'YunoHost Forum');
+INSERT INTO site_settings (name, data_type, value) VALUES ('site_description', 1, 'YunoHost Forum');
+INSERT INTO site_settings (name, data_type, value) VALUES ('contact_email', 14, '$admin_mail');
+INSERT INTO site_settings (name, data_type, value) VALUES ('contact_url', 1, '$domain$path_url');
+INSERT INTO site_settings (name, data_type, value) VALUES ('site_contact_username', 15, '$admin');
+INSERT INTO site_settings (name, data_type, value) VALUES ('logo_url', 1, '${path_url%/}/images/d-logo-sketch.png');
+INSERT INTO site_settings (name, data_type, value) VALUES ('long_polling_base_url', 1, 	'${path_url%/}/');"
+
+#=================================================
+# FIX INITIAL POSTS LINKS FOR SUBFOLDER INSTALL
+#=================================================
+if [ "$path_url" != "/" ] ; then
+  (cd /$final_path ; RAILS_ENV=production sudo -H -E -u discourse bundle exec script/discourse remap /images/welcome/ $path_url/images/welcome/ <<< "YES
+	")
+fi
+
+#=================================================
 # CREATE ADMIN USER
 #=================================================
 
