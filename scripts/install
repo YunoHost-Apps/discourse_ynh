@@ -175,7 +175,7 @@ gem install bundler
 # Install without documentation
 exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
 # Install dependencies
-exec_as $app bundle install --path vendor/bundle --without development test postgresql)
+exec_as $app bundle install --path vendor/bundle --with development)
 
 #=================================================
 # SETUP SIDEKIQ
