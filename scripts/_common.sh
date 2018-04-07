@@ -244,7 +244,12 @@ ynh_delete_file_checksum () {
 	ynh_app_setting_delete $app $checksum_setting_name
 }
 
-#!/bin/bash
+
+ynh_clean_check_starting_systemd () {
+  # Stop the execution of tail.
+  kill -s 15 $pid_tail 2>&1
+  ynh_secure_remove "$templog" 2>&1
+}
 
 # Start or restart a service and follow its booting
 #
@@ -258,11 +263,7 @@ ynh_check_starting_systemd () {
 	local service_name="${2:-$app}"
 	local timeout=${3:-300}
 
-	ynh_clean_check_starting_systemd () {
-		# Stop the execution of tail.
-		kill -s 15 $pid_tail 2>&1
-		ynh_secure_remove "$templog" 2>&1
-	}
+
 
 	echo "Starting of $service_name" >&2
 	systemctl stop $service_name

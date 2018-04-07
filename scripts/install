@@ -71,7 +71,7 @@ ynh_install_app_dependencies "$pkg_dependencies"
 db_name=$(ynh_sanitize_dbid $app)
 db_pwd=$(ynh_string_random)
 ynh_app_setting_set $app db_name $db_name
-ynh_app_setting_set $app psqlpwd $db_pwd
+ynh_app_setting_set $app db_pwd $db_pwd
 ynh_psql_test_if_first_run
 ynh_psql_create_db $db_name $db_name $db_pwd
 # Set extensions
@@ -95,8 +95,6 @@ ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
 
 # Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
 if [ "$path_url" != "/" ] ; then
-  # ynh_replace_string 'proxy_pass http://unix:__FINALPATH__/tmp/sockets/puma.sock;' 'rewrite ^/(.*)$ __PATH__/$1 break; proxy_pass http://unix:__FINALPATH__/tmp/sockets/puma.sock;' ../conf/nginx.conf
-  # ynh_replace_string 'etag off;' 'etag off; location __PATH__ { rewrite ^__PATH__/?(.*)$ /$1; }' ../conf/nginx.conf
   ynh_replace_string '$proxy_add_x_forwarded_for' '$http_your_original_ip_header' ../conf/nginx.conf
 fi
 
@@ -119,42 +117,44 @@ ynh_system_user_create $app "$final_path"
 #=================================================
 
 # Configure database
-cp $final_path/config/discourse_defaults.conf $final_path/config/discourse.conf
-#ynh_replace_string "db_host =" "db_host = localhost" "$final_path/config/discourse.conf"
-ynh_replace_string "db_name = discourse" "db_name = $db_name" "$final_path/config/discourse.conf"
-ynh_replace_string "db_username = discourse" "db_username = $db_name" "$final_path/config/discourse.conf"
-ynh_replace_string "db_password =" "db_password = $db_pwd" "$final_path/config/discourse.conf"
+discourse_config_file="$final_path/config/discourse.conf"
+cp $final_path/config/discourse_defaults.conf $discourse_config_file
+ynh_replace_string "db_name = discourse" "db_name = $db_name" "$discourse_config_file"
+ynh_replace_string "db_username = discourse" "db_username = $db_name" "$discourse_config_file"
+ynh_replace_string "db_password =" "db_password = $db_pwd" "$discourse_config_file"
 
 # Configure hostname
-ynh_replace_string "hostname = \"www.example.com\"" "hostname = \"$domain\"" "$final_path/config/discourse.conf"
-ynh_replace_string "relative_url_root =" "relative_url_root = ${path_url%/}" "$final_path/config/discourse.conf"
+ynh_replace_string "hostname = \"www.example.com\"" "hostname = \"$domain\"" "$discourse_config_file"
+ynh_replace_string "relative_url_root =" "relative_url_root = ${path_url%/}" "$discourse_config_file"
 # Serve static assets (i.e. images, js, etc.)
-ynh_replace_string "serve_static_assets = false" "serve_static_assets = true" "$final_path/config/discourse.conf"
+ynh_replace_string "serve_static_assets = false" "serve_static_assets = true" "$discourse_config_file"
 
 # Configure e-mail server
 admin_mail=$(ynh_user_get_info "$admin" mail)
-ynh_replace_string "developer_emails =" "developer_emails = $admin_mail" "$final_path/config/discourse.conf"
-ynh_replace_string "smtp_address =" "smtp_address = localhost" "$final_path/config/discourse.conf"
-ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$final_path/config/discourse.conf"
-ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$final_path/config/discourse.conf"
+ynh_replace_string "developer_emails =" "developer_emails = $admin_mail" "$discourse_config_file"
+ynh_replace_string "smtp_address =" "smtp_address = localhost" "$discourse_config_file"
+ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$discourse_config_file"
+ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$discourse_config_file"
 
 # Calculate and store the config file checksum
-ynh_store_file_checksum "$final_path/config/discourse.conf"
+ynh_store_file_checksum "$discourse_config_file"
 
-# Configure LDAP plugins
-ynh_replace_string "adfs.example.com" "localhost" "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
-ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
-ynh_replace_string "sAMAccountName" "uid" "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+# Configure LDAP plugin
+ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+ynh_replace_string "adfs.example.com" "localhost" "$ldap_config_file"
+ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$ldap_config_file"
+ynh_replace_string "sAMAccountName" "uid" "$ldap_config_file"
+ynh_store_file_checksum "$ldap_config_file"
 
 #=================================================
 # SETUP PUMA, A RUBY SERVER
 #=================================================
-
-ynh_replace_string "#{APP_ROOT}/log/puma" "/var/log/$app/puma" "$final_path/config/puma.rb"
-ynh_replace_string "/home/discourse" "/var/www" "$final_path/config/puma.rb"
-ynh_replace_string "daemonize true" "daemonize false" "$final_path/config/puma.rb"
+puma_config_file="$final_path/config/puma.rb"
+ynh_replace_string "#{APP_ROOT}/log/puma" "/var/log/$app/puma" "$puma_config_file"
+ynh_replace_string "/home/discourse" "/var/www" "$puma_config_file"
+ynh_replace_string "daemonize true" "daemonize false" "$puma_config_file"
 # Calculate and store the config file checksum
-ynh_store_file_checksum "$final_path/config/puma.rb"
+ynh_store_file_checksum "$puma_config_file"
 
 # Set a secret value
 cp ../conf/secrets.yml "$final_path/config/secrets.yml"
@@ -166,13 +166,13 @@ ynh_store_file_checksum "$final_path/config/secrets.yml"
 chown -R $app: $final_path
 
 
-# # Install puma with gem
+# Install puma with gem
 (cd "$final_path"
-# # Install bundler, a gems installer
+# Install bundler, a gems installer
 gem install bundler
-# # Install without documentation
+# Install without documentation
 exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
-# # Install dependencies
+# Install dependencies
 exec_as $app bundle install --path vendor/bundle --without development test postgresql)
 
 #=================================================
