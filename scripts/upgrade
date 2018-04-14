@@ -1,0 +1,214 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+if [ ! -e _common.sh ]; then
+	# Fetch helpers file if not in current directory
+	cp ../settings/scripts/_common.sh ./_common.sh
+	chmod a+rx _common.sh
+fi
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
+
+domain=$(ynh_app_setting_get $app domain)
+path_url=$(ynh_app_setting_get $app path_url)
+final_path=$(ynh_app_setting_get $app final_path)
+is_public=$(ynh_app_setting_get $app is_public)
+admin=$(ynh_app_setting_get $app admin)
+db_name=$(ynh_app_setting_get $app db_name)
+db_pwd=$(ynh_app_setting_get $app db_pwd)
+
+#=================================================
+# BACKUP BEFORE UPGRADE
+#=================================================
+
+# Stop services
+systemctl stop $app-sidekiq
+systemctl stop $app-puma
+
+# Backup the current version of the app
+if [[ $(ynh_app_setting_get $app disable_backup_before_upgrade) != '1' ]]
+then
+    ynh_backup_before_upgrade
+    ynh_clean_setup () {
+        ynh_restore_upgradebackup
+    }
+fi
+#=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+
+ynh_install_app_dependencies "$pkg_dependencies"
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+ynh_app_setting_set $app final_path $final_path
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source "$final_path"
+# Install LDAP plugin
+mkdir -p "$final_path/plugins/discourse-ldap-auth"
+ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
+
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
+# Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
+if [ "$path_url" != "/" ] ; then
+  ynh_replace_string '$proxy_add_x_forwarded_for' '$http_your_original_ip_header' ../conf/nginx.conf
+fi
+
+# Create a dedicated nginx config
+ynh_add_nginx_config
+
+#=================================================
+# SPECIFIC SETUP
+#=================================================
+
+#=================================================
+# CONFIGURE DISCOURSE
+#=================================================
+
+# Make a backup of the original config file if modified
+ynh_backup_if_checksum_is_different "$final_path/config/discourse.conf"
+# Configure database
+discourse_config_file="$final_path/config/discourse.conf"
+cp $final_path/config/discourse_defaults.conf $discourse_config_file
+ynh_replace_string "db_name = discourse" "db_name = $db_name" "$discourse_config_file"
+ynh_replace_string "db_username = discourse" "db_username = $db_name" "$discourse_config_file"
+ynh_replace_string "db_password =" "db_password = $db_pwd" "$discourse_config_file"
+
+# Configure hostname
+ynh_replace_string "hostname = \"www.example.com\"" "hostname = \"$domain\"" "$discourse_config_file"
+ynh_replace_string "relative_url_root =" "relative_url_root = ${path_url%/}" "$discourse_config_file"
+# Serve static assets (i.e. images, js, etc.)
+ynh_replace_string "serve_static_assets = false" "serve_static_assets = true" "$discourse_config_file"
+# Don't show miniprofiler
+ynh_replace_string "load_mini_profiler = true" "load_mini_profiler = false" "$discourse_config_file"
+
+
+# Configure e-mail server
+admin_mail=$(ynh_user_get_info "$admin" mail)
+ynh_replace_string "developer_emails =" "developer_emails = $admin_mail" "$discourse_config_file"
+ynh_replace_string "smtp_address =" "smtp_address = localhost" "$discourse_config_file"
+ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$discourse_config_file"
+ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$discourse_config_file"
+
+# Calculate and store the config file checksum
+ynh_store_file_checksum "$discourse_config_file"
+
+# Make a backup of the original config file if modified
+ynh_backup_if_checksum_is_different "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+# Configure LDAP plugin
+ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+ynh_replace_string "adfs.example.com" "localhost" "$ldap_config_file"
+ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$ldap_config_file"
+ynh_replace_string "sAMAccountName" "uid" "$ldap_config_file"
+ynh_store_file_checksum "$ldap_config_file"
+
+#=================================================
+# SETUP PUMA, A RUBY SERVER
+#=================================================
+puma_config_file="$final_path/config/puma.rb"
+ynh_replace_string "#{APP_ROOT}/log/puma" "/var/log/$app/puma" "$puma_config_file"
+ynh_replace_string "/home/discourse/discourse" "/var/www/$app" "$puma_config_file"
+ynh_replace_string "daemonize true" "daemonize false" "$puma_config_file"
+# Calculate and store the config file checksum
+ynh_store_file_checksum "$puma_config_file"
+
+# Set a secret value
+cp ../conf/secrets.yml "$final_path/config/secrets.yml"
+ynh_replace_string "__SECRET__" "$(ynh_string_random)" "$final_path/config/secrets.yml"
+# Calculate and store the config file checksum
+ynh_store_file_checksum "$final_path/config/secrets.yml"
+
+# Set permissions to app files
+chown -R $app: $final_path
+
+
+# Install puma with gem
+(cd "$final_path"
+# Install bundler, a gems installer
+gem install bundler
+# Install without documentation
+exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+# Install dependencies
+exec_as $app bundle install --path vendor/bundle --with development)
+
+#=================================================
+# SETUP SIDEKIQ
+#=================================================
+cp ../conf/sidekiq.yml "$final_path/config/sidekiq.yml"
+
+#=================================================
+# PREPARE THE DATABASE
+#=================================================
+
+(cd "$final_path"
+rake_exec="exec_as $app bin/rake RAILS_ENV=production"
+$rake_exec db:migrate
+$rake_exec assets:precompile)
+
+#=================================================
+# CONFIGURE PLUGINS
+#=================================================
+
+# Patch ldap-auth plugin to fix it when using domain subfolder
+# (Can only do that now because we are patching dependencies which have just been downloaded)
+#(cd $final_path/plugins/discourse-ldap-auth
+#patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
+# No need to patch dependencies if they haven't changed
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+
+# Set permissions to app files
+chown -R $app: $final_path
+
+#=================================================
+# SETUP SSOWAT
+#=================================================
+
+# If app is public, add url to SSOWat conf as skipped_uris
+if [ $is_public -eq 1 ]; then
+  # unprotected_uris allows SSO credentials to be passed anyway.
+  ynh_app_setting_set "$app" skipped_uris "/"
+fi
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+
+systemctl reload nginx
+
+#=================================================
+# START PUMA AND SIDEKIQ
+#=================================================
+
+# Wait for discourse-puma to be fully started
+# As discourse-sidekiq is a dependency, it is automatically started before
+ynh_check_starting_systemd "Use Ctrl-C to stop" "$app-puma" "120"
+# Additional pause to avoid 502 errors in package_check after reinstall...
+sleep 120s
