@@ -1,5 +1,5 @@
---- discourse-ldap-auth.orig/gems/2.3.3/gems/omniauth-ldap-1.0.5/lib/omniauth/strategies/ldap.rb        2018-04-02 17:58:36.830909997 +0200
-+++ discourse-ldap-auth/gems/2.3.3/gems/omniauth-ldap-1.0.5/lib/omniauth/strategies/ldap.rb     2018-04-02 19:17:51.903732202 +0200
+--- omniauth-ldap-1.0.5.orig/lib/omniauth/strategies/ldap.rb        2018-04-02 17:58:36.830909997 +0200
++++ omniauth-ldap-1.0.5/lib/omniauth/strategies/ldap.rb     2018-04-02 19:17:51.903732202 +0200
 @@ -27,7 +27,8 @@
 
        def request_phase
