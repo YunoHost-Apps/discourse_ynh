@@ -9,8 +9,8 @@ if [ ! -e _common.sh ]; then
 	cp ../settings/scripts/_common.sh ./_common.sh
 	chmod a+rx _common.sh
 fi
-source _common.sh
 source /usr/share/yunohost/helpers
+source _common.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE

@@ -170,6 +170,83 @@ ynh_psql_drop_user() {
 	su --command="dropuser \"${user}\"" postgres
 }
 
+# ============= MODIFIED EXISTING YUNOHOST HELPERS =============
+
+# Create a dedicated systemd config
+#
+# usage: ynh_add_systemd_config [service] [template]
+# | arg: service - Service name (optionnal, $app by default)
+# | arg: template - Name of template file (optionnal, this is 'systemd' by default, meaning ./conf/systemd.service will be used as template)
+#
+# This will use the template ../conf/<templatename>.service
+# to generate a systemd config, by replacing the following keywords
+# with global variables that should be defined before calling
+# this helper :
+#
+#   __APP__       by  $app
+#   __FINALPATH__ by  $final_path
+#
+ynh_add_systemd_config () {
+	local service_name="${1:-$app}"
+
+	finalsystemdconf="/etc/systemd/system/$service_name.service"
+	ynh_backup_if_checksum_is_different "$finalsystemdconf"
+	sudo cp ../conf/${2:-systemd.service} "$finalsystemdconf"
+
+	# To avoid a break by set -u, use a void substitution ${var:-}. If the variable is not set, it's simply set with an empty variable.
+	# Substitute in a nginx config file only if the variable is not empty
+	if test -n "${final_path:-}"; then
+		ynh_replace_string "__FINALPATH__" "$final_path" "$finalsystemdconf"
+	fi
+	if test -n "${app:-}"; then
+		ynh_replace_string "__APP__" "$app" "$finalsystemdconf"
+	fi
+	ynh_store_file_checksum "$finalsystemdconf"
+
+	sudo chown root: "$finalsystemdconf"
+	sudo systemctl enable $service_name
+	sudo systemctl daemon-reload
+}
+
+# Remove the dedicated systemd config
+#
+# usage: ynh_remove_systemd_config [service]
+# | arg: service - Service name (optionnal, $app by default)
+#
+ynh_remove_systemd_config () {
+	local service_name="${1:-$app}"
+
+	local finalsystemdconf="/etc/systemd/system/$service_name.service"
+	if [ -e "$finalsystemdconf" ]; then
+		sudo systemctl stop $service_name
+		sudo systemctl disable $service_name
+		ynh_secure_remove "$finalsystemdconf"
+		sudo systemctl daemon-reload
+	fi
+}
+
+# Create a system user
+#
+# usage: ynh_system_user_create user_name [home_dir] [use_shell]
+# | arg: user_name - Name of the system user that will be create
+# | arg: home_dir - Path of the home dir for the user. Usually the final path of the app. If this argument is omitted, the user will be created without home
+# | arg: use_shell - Create a user using the default shell if present. If this argument is omitted, the user will be created with /usr/sbin/nologin shell
+ynh_system_user_create () {
+	if ! ynh_system_user_exists "$1"	# Check if the user exists on the system
+	then	# If the user doesn't exist
+		if [ $# -ge 2 ]; then	# If a home dir is mentioned
+			local user_home_dir="-d $2"
+		else
+			local user_home_dir="--no-create-home"
+		fi
+    if [ $# -ge 3 ]; then	# If we want a shell for the user
+      local shell="" # Use default shell
+		else
+			local shell="--shell /usr/sbin/nologin"
+		fi
+		useradd $user_home_dir --system --user-group $1 $shell || ynh_die "Unable to create $1 system account"
+	fi
+}
 
 # ============= FUTURE YUNOHOST HELPERS =============
 

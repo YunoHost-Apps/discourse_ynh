@@ -7,8 +7,8 @@ shopt -s extglob  # sets extended pattern matching options in the bash shell
 # IMPORT GENERIC HELPERS
 #=================================================
 
-source _common.sh
 source /usr/share/yunohost/helpers
+source _common.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
