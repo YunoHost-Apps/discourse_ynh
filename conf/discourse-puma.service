@@ -12,8 +12,8 @@ User=__APP__
 Group=__APP__
 WorkingDirectory=__FINALPATH__
 Environment=RAILS_ENV=production
-ExecStart=__FINALPATH__/bin/bundle exec puma --config config/puma.rb -e production
-ExecStop=__FINALPATH__/bin/bundle exec pumactl stop
+ExecStart=__RBENVROOT__/shims/bundle exec puma --config config/puma.rb -e production
+ExecStop=__RBENVROOT__/shims/bundle exec pumactl stop
 RemainAfterExit=true
 Restart=always
 RestartSec=10

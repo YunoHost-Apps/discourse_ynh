@@ -58,15 +58,10 @@ fi
 ynh_install_app_dependencies "$pkg_dependencies"
 
 #=================================================
-# DOWNLOAD, CHECK AND UNPACK SOURCE
+# INSTALL RUBY
 #=================================================
 
-ynh_app_setting_set $app final_path $final_path
-# Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source "$final_path"
-# Install LDAP plugin
-mkdir -p "$final_path/plugins/discourse-ldap-auth"
-ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
+ynh_install_ruby $RUBY_VERSION
 
 #=================================================
 # NGINX CONFIGURATION
@@ -79,6 +74,17 @@ fi
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+
+ynh_app_setting_set $app final_path $final_path
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source "$final_path"
+# Install LDAP plugin
+mkdir -p "$final_path/plugins/discourse-ldap-auth"
+ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
 
 #=================================================
 # SPECIFIC SETUP
@@ -129,9 +135,14 @@ ynh_store_file_checksum "$ldap_config_file"
 # SETUP PUMA, A RUBY SERVER
 #=================================================
 puma_config_file="$final_path/config/puma.rb"
+# Set log files location
 ynh_replace_string "#{APP_ROOT}/log/puma" "/var/log/$app/puma" "$puma_config_file"
+# Set application absolute path
 ynh_replace_string "/home/discourse/discourse" "/var/www/$app" "$puma_config_file"
+# Don't daemonize so we get logs in journalctl
 ynh_replace_string "daemonize true" "daemonize false" "$puma_config_file"
+# Don't preload threads to avoid warnings
+ynh_replace_string "preload_app" "#preload_app" "$puma_config_file"
 # Calculate and store the config file checksum
 ynh_store_file_checksum "$puma_config_file"
 
@@ -152,7 +163,7 @@ gem install bundler
 # Install without documentation
 exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
 # Install dependencies
-exec_as $app bundle install --path vendor/bundle --with development)
+exec_login_as $app bundle install --path vendor/bundle --with development)
 
 #=================================================
 # SETUP SIDEKIQ
@@ -163,20 +174,9 @@ cp ../conf/sidekiq.yml "$final_path/config/sidekiq.yml"
 # PREPARE THE DATABASE
 #=================================================
 
-(cd "$final_path"
-rake_exec="exec_as $app bin/rake RAILS_ENV=production"
+rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
 $rake_exec db:migrate
-$rake_exec assets:precompile)
-
-#=================================================
-# CONFIGURE PLUGINS
-#=================================================
-
-# Patch ldap-auth plugin to fix it when using domain subfolder
-# (Can only do that now because we are patching dependencies which have just been downloaded)
-#(cd $final_path/plugins/discourse-ldap-auth
-#patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
-# No need to patch dependencies if they haven't changed
+$rake_exec assets:precompile
 
 #=================================================
 # GENERIC FINALIZATION

@@ -7,7 +7,7 @@ User=__APP__
 Group=__APP__
 WorkingDirectory=__FINALPATH__
 Environment=RAILS_ENV=production
-ExecStart=__FINALPATH__/bin/bundle exec sidekiq -C config/sidekiq.yml
+ExecStart=__RBENVROOT__/shims/bundle exec sidekiq -C config/sidekiq.yml
 Restart=always
 RestartSec=10
 

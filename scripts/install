@@ -55,6 +55,7 @@ ynh_app_setting_set $app domain "$domain"
 ynh_app_setting_set $app path_url "$path_url"
 ynh_app_setting_set $app admin "$admin"
 ynh_app_setting_set $app is_public "$is_public"
+ynh_app_setting_set $app final_path $final_path
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -63,6 +64,13 @@ ynh_app_setting_set $app is_public "$is_public"
 #=================================================
 
 ynh_install_app_dependencies "$pkg_dependencies"
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+
+# Create a system user allowing login
+ynh_system_user_create $app $final_path 1
 
 #=================================================
 # CREATE A POSTGRES DATABASE
@@ -82,12 +90,17 @@ CREATE EXTENSION IF NOT EXISTS hstore; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
-ynh_app_setting_set $app final_path $final_path
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source "$final_path"
 # Install LDAP plugin
 mkdir -p "$final_path/plugins/discourse-ldap-auth"
 ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
+
+#=================================================
+# INSTALL RUBY
+#=================================================
+
+ynh_install_ruby $RUBY_VERSION
 
 #=================================================
 # NGINX CONFIGURATION
@@ -100,13 +113,6 @@ fi
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-
-# Create a system user
-ynh_system_user_create $app "$final_path"
 
 #=================================================
 # SPECIFIC SETUP
@@ -173,14 +179,13 @@ ynh_store_file_checksum "$final_path/config/secrets.yml"
 chown -R $app: $final_path
 
 
-# Install puma with gem
 (cd "$final_path"
 # Install bundler, a gems installer
 gem install bundler
 # Install without documentation
-exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc")
 # Install dependencies
-exec_as $app bundle install --path vendor/bundle --with development)
+exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2 --path vendor/bundle --with development
 
 #=================================================
 # SETUP SIDEKIQ
@@ -191,10 +196,9 @@ cp ../conf/sidekiq.yml "$final_path/config/sidekiq.yml"
 # PREPARE THE DATABASE
 #=================================================
 
-rake_exec="exec_as $app bin/rake RAILS_ENV=production"
-(cd "$final_path"
+rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
 $rake_exec db:migrate
-$rake_exec assets:precompile)
+$rake_exec assets:precompile
 
 #=================================================
 # POPULATE THE DATABASE
@@ -218,8 +222,8 @@ INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUE
 #=================================================
 
 if [ "$path_url" != "/" ] ; then
-  (cd /$final_path ; RAILS_ENV=production sudo -H -E -u $app bundle exec script/discourse remap /images/welcome/ $path_url/images/welcome/ <<< "YES
-	")
+  exec_login_as $app RAILS_ENV=production bundle exec script/discourse remap /images/welcome/ $path_url/images/welcome/ <<< "YES
+	"
 fi
 
 #=================================================
@@ -228,12 +232,11 @@ fi
 
 # Create a random password
 admin_pwd=$(ynh_string_random)
-(cd "$final_path"
 $rake_exec admin:create <<< "$admin_mail
 $admin_pwd
 $admin_pwd
 y
-")
+"
 
 #=================================================
 # CONFIGURE PLUGINS
@@ -248,6 +251,9 @@ patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
 #=================================================
 # SETUP SYSTEMD
 #=================================================
+
+ynh_replace_string "__RBENVROOT__" "$RBENV_ROOT" "../conf/discourse-puma.service"
+ynh_replace_string "__RBENVROOT__" "$RBENV_ROOT" "../conf/discourse-sidekiq.service"
 
 ynh_add_systemd_config $app-puma discourse-puma.service
 ynh_add_systemd_config $app-sidekiq discourse-sidekiq.service

@@ -28,16 +28,6 @@ final_path=$(ynh_app_setting_get $app final_path)
 ynh_remove_systemd_config discourse-puma
 ynh_remove_systemd_config discourse-sidekiq
 
-# STOP AND REMOVE SERVICE
-#=================================================
-
-# Remove the dedicated systemd config
-# ynh_remove_systemd_config
-
-# service $app stop
-# rm "/etc/init.d/$app"
-# update-rc.d -f $app remove
-
 #=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
@@ -55,6 +45,12 @@ fi
 
 # Remove metapackage and its dependencies
 ynh_remove_app_dependencies
+
+#=================================================
+# REMOVE RUBY
+#=================================================
+
+ynh_remove_ruby
 
 #=================================================
 # REMOVE THE POSTGRES DATABASE

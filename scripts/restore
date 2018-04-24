@@ -57,6 +57,12 @@ ynh_restore
 ynh_install_app_dependencies "$pkg_dependencies"
 
 #=================================================
+# INSTALL RUBY
+#=================================================
+
+ynh_install_ruby $RUBY_VERSION
+
+#=================================================
 # REINSTALL BUNDLE GEM
 #=================================================
 
@@ -94,7 +100,8 @@ ynh_use_logrotate
 # RECREATE OF THE DEDICATED USER
 #=================================================
 
-ynh_system_user_create $app	# Recreate the dedicated user, if not existing
+# Create a system user allowing login (if not existing)
+ynh_system_user_create $app $final_path 1
 
 #=================================================
 # RESTORE USER RIGHTS
