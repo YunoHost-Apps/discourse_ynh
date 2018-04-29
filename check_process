@@ -8,23 +8,24 @@
 		pkg_linter=1
 		setup_sub_dir=1
 		setup_root=1
-		# setup_nourl=0
-		# setup_private=1
-		# setup_public=1
-		# upgrade=1
-		# backup_restore=1
-		# multi_instance=1
-		# incorrect_path=1
-		# port_already_use=0
-		# change_url=1
+		setup_nourl=0
+		setup_private=1
+		setup_public=1
+		upgrade=1
+		backup_restore=1
+# Activate multi-instance test only if you have more than 2Gb RAM!
+		multi_instance=0
+		incorrect_path=1
+		port_already_use=0
+		change_url=1
 ;;; Levels
 	Level 1=auto
 	Level 2=auto
 	Level 3=auto
+# LDAP integration by using discourse-ldap-lauth plugin
+# HTTP auth currently not available (in base software or via a plugin)
 	Level 4=1
-# https://github.com/YunoHost-Apps/piwigo_ynh/issues/4
-	Level 5=1
-# https://github.com/YunoHost-Apps/piwigo_ynh/issues/5
+	Level 5=auto
 	Level 6=auto
 	Level 7=auto
 	Level 8=0
