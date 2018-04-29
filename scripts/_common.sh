@@ -516,3 +516,62 @@ ynh_remove_ruby () {
 	fi
 }
 
+# ============= EXPERIMENTAL HELPERS =============
+
+# Returns true if upstream version is up to date
+#
+# This helper should be used to avoid an upgrade of the upstream version
+# when it's not needed (but yet allowing to upgrade other part of the
+# YunoHost application (e.g. nginx conf)
+#
+# usage: ynh_is_upstream_up_to_date
+ynh_is_upstream_up_to_date () {
+	local version=$(ynh_read_manifest "/etc/yunohost/apps/$YNH_APP_INSTANCE_NAME/manifest.json" "version" || echo 1.0)
+  version="${version/~ynh*/}"
+	local last_version=$(ynh_read_manifest "../manifest.json" "version" || echo 1.0)
+  last_version="${last_version/~ynh*/}"
+  [ "$version" = "$last_version" ]
+}
+
+# Read the value of a key in a ynh manifest file
+#
+# usage: ynh_read_manifest manifest key
+# | arg: manifest - Path of the manifest to read
+# | arg: key - Name of the key to find
+ynh_read_manifest () {
+	manifest="$1"
+	key="$2"
+	python3 -c "import sys, json;print(json.load(open('$manifest', encoding='utf-8'))['$key'])"
+}
+
+# Read the upstream version from the manifest
+# The version number in the manifest is defined by <upstreamversion>~ynh<packageversion>
+# For example : 4.3-2~ynh3
+# This include the number before ~ynh
+# In the last example it return 4.3-2
+#
+# usage: ynh_app_upstream_version
+ynh_app_upstream_version () {
+    manifest_path="../manifest.json"
+    if [ ! -e "$manifest_path" ]; then
+        manifest_path="../settings/manifest.json"	# Into the restore script, the manifest is not at the same place
+    fi
+    version_key=$(ynh_read_manifest "$manifest_path" "version")
+    echo "${version_key/~ynh*/}"
+}
+
+# Read package version from the manifest
+# The version number in the manifest is defined by <upstreamversion>~ynh<packageversion>
+# For example : 4.3-2~ynh3
+# This include the number after ~ynh
+# In the last example it return 3
+#
+# usage: ynh_app_package_version
+ynh_app_package_version () {
+    manifest_path="../manifest.json"
+    if [ ! -e "$manifest_path" ]; then
+        manifest_path="../settings/manifest.json"	# Into the restore script, the manifest is not at the same place
+    fi
+    version_key=$(ynh_read_manifest "$manifest_path" "version")
+    echo "${version_key/*~ynh/}"
+}

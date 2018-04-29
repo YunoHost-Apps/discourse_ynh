@@ -75,125 +75,128 @@ fi
 # Create a dedicated nginx config
 ynh_add_nginx_config
 
-#=================================================
-# DOWNLOAD, CHECK AND UNPACK SOURCE
-#=================================================
+if ! ynh_is_upstream_up_to_date ; then
 
-ynh_app_setting_set $app final_path $final_path
-# Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source "$final_path"
-# Install LDAP plugin
-mkdir -p "$final_path/plugins/discourse-ldap-auth"
-ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
+	#=================================================
+	# DOWNLOAD, CHECK AND UNPACK SOURCE
+	#=================================================
 
-#=================================================
-# SPECIFIC SETUP
-#=================================================
+	ynh_app_setting_set $app final_path $final_path
+	# Download, check integrity, uncompress and patch the source from app.src
+	ynh_setup_source "$final_path"
+	# Install LDAP plugin
+	mkdir -p "$final_path/plugins/discourse-ldap-auth"
+	ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
 
-#=================================================
-# CONFIGURE DISCOURSE
-#=================================================
+	#=================================================
+	# SPECIFIC SETUP
+	#=================================================
 
-# Make a backup of the original config file if modified
-ynh_backup_if_checksum_is_different "$final_path/config/discourse.conf"
-# Configure database
-discourse_config_file="$final_path/config/discourse.conf"
-cp $final_path/config/discourse_defaults.conf $discourse_config_file
-ynh_replace_string "db_name = discourse" "db_name = $db_name" "$discourse_config_file"
-ynh_replace_string "db_username = discourse" "db_username = $db_name" "$discourse_config_file"
-ynh_replace_string "db_password =" "db_password = $db_pwd" "$discourse_config_file"
+	#=================================================
+	# CONFIGURE DISCOURSE
+	#=================================================
 
-# Configure hostname
-ynh_replace_string "hostname = \"www.example.com\"" "hostname = \"$domain\"" "$discourse_config_file"
-ynh_replace_string "relative_url_root =" "relative_url_root = ${path_url%/}" "$discourse_config_file"
-# Serve static assets (i.e. images, js, etc.)
-ynh_replace_string "serve_static_assets = false" "serve_static_assets = true" "$discourse_config_file"
-# Don't show miniprofiler
-ynh_replace_string "load_mini_profiler = true" "load_mini_profiler = false" "$discourse_config_file"
+	# Make a backup of the original config file if modified
+	ynh_backup_if_checksum_is_different "$final_path/config/discourse.conf"
+	# Configure database
+	discourse_config_file="$final_path/config/discourse.conf"
+	cp $final_path/config/discourse_defaults.conf $discourse_config_file
+	ynh_replace_string "db_name = discourse" "db_name = $db_name" "$discourse_config_file"
+	ynh_replace_string "db_username = discourse" "db_username = $db_name" "$discourse_config_file"
+	ynh_replace_string "db_password =" "db_password = $db_pwd" "$discourse_config_file"
 
-
-# Configure e-mail server
-admin_mail=$(ynh_user_get_info "$admin" mail)
-ynh_replace_string "developer_emails =" "developer_emails = $admin_mail" "$discourse_config_file"
-ynh_replace_string "smtp_address =" "smtp_address = localhost" "$discourse_config_file"
-ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$discourse_config_file"
-ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$discourse_config_file"
-
-# Calculate and store the config file checksum
-ynh_store_file_checksum "$discourse_config_file"
-
-# Make a backup of the original config file if modified
-ynh_backup_if_checksum_is_different "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
-# Configure LDAP plugin
-ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
-ynh_replace_string "adfs.example.com" "localhost" "$ldap_config_file"
-ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$ldap_config_file"
-ynh_replace_string "sAMAccountName" "uid" "$ldap_config_file"
-ynh_store_file_checksum "$ldap_config_file"
-
-#=================================================
-# SETUP PUMA, A RUBY SERVER
-#=================================================
-puma_config_file="$final_path/config/puma.rb"
-# Set log files location
-ynh_replace_string "#{APP_ROOT}/log/puma" "/var/log/$app/puma" "$puma_config_file"
-# Set application absolute path
-ynh_replace_string "/home/discourse/discourse" "/var/www/$app" "$puma_config_file"
-# Don't daemonize so we get logs in journalctl
-ynh_replace_string "daemonize true" "daemonize false" "$puma_config_file"
-# Don't preload threads to avoid warnings
-ynh_replace_string "preload_app" "#preload_app" "$puma_config_file"
-# Calculate and store the config file checksum
-ynh_store_file_checksum "$puma_config_file"
-
-# Set a secret value
-cp ../conf/secrets.yml "$final_path/config/secrets.yml"
-ynh_replace_string "__SECRET__" "$(ynh_string_random)" "$final_path/config/secrets.yml"
-# Calculate and store the config file checksum
-ynh_store_file_checksum "$final_path/config/secrets.yml"
-
-# Set permissions to app files
-chown -R $app: $final_path
+	# Configure hostname
+	ynh_replace_string "hostname = \"www.example.com\"" "hostname = \"$domain\"" "$discourse_config_file"
+	ynh_replace_string "relative_url_root =" "relative_url_root = ${path_url%/}" "$discourse_config_file"
+	# Serve static assets (i.e. images, js, etc.)
+	ynh_replace_string "serve_static_assets = false" "serve_static_assets = true" "$discourse_config_file"
+	# Don't show miniprofiler
+	ynh_replace_string "load_mini_profiler = true" "load_mini_profiler = false" "$discourse_config_file"
 
 
-# Install puma with gem
-(cd "$final_path"
-# Install bundler, a gems installer
-gem install bundler
-# Install without documentation
-exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
-# Install dependencies
-exec_login_as $app bundle install --path vendor/bundle --with development)
-# On ARM architecture, replace bundled libpsl by system native libpsl
-# because the provided binary isn't compatible
-if [ -n "$(uname -m | grep arm)" ] ; then
-  (cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
-  rm libpsl.so
-  ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so)
+	# Configure e-mail server
+	admin_mail=$(ynh_user_get_info "$admin" mail)
+	ynh_replace_string "developer_emails =" "developer_emails = $admin_mail" "$discourse_config_file"
+	ynh_replace_string "smtp_address =" "smtp_address = localhost" "$discourse_config_file"
+	ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$discourse_config_file"
+	ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$discourse_config_file"
+
+	# Calculate and store the config file checksum
+	ynh_store_file_checksum "$discourse_config_file"
+
+	# Make a backup of the original config file if modified
+	ynh_backup_if_checksum_is_different "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+	# Configure LDAP plugin
+	ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+	ynh_replace_string "adfs.example.com" "localhost" "$ldap_config_file"
+	ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$ldap_config_file"
+	ynh_replace_string "sAMAccountName" "uid" "$ldap_config_file"
+	ynh_store_file_checksum "$ldap_config_file"
+
+	#=================================================
+	# SETUP PUMA, A RUBY SERVER
+	#=================================================
+	puma_config_file="$final_path/config/puma.rb"
+	# Set log files location
+	ynh_replace_string "#{APP_ROOT}/log/puma" "/var/log/$app/puma" "$puma_config_file"
+	# Set application absolute path
+	ynh_replace_string "/home/discourse/discourse" "/var/www/$app" "$puma_config_file"
+	# Don't daemonize so we get logs in journalctl
+	ynh_replace_string "daemonize true" "daemonize false" "$puma_config_file"
+	# Don't preload threads to avoid warnings
+	ynh_replace_string "preload_app" "#preload_app" "$puma_config_file"
+	# Calculate and store the config file checksum
+	ynh_store_file_checksum "$puma_config_file"
+
+	# Set a secret value
+	cp ../conf/secrets.yml "$final_path/config/secrets.yml"
+	ynh_replace_string "__SECRET__" "$(ynh_string_random)" "$final_path/config/secrets.yml"
+	# Calculate and store the config file checksum
+	ynh_store_file_checksum "$final_path/config/secrets.yml"
+
+	# Set permissions to app files
+	chown -R $app: $final_path
+
+
+	# Install puma with gem
+	(cd "$final_path"
+	# Install bundler, a gems installer
+	gem install bundler
+	# Install without documentation
+	exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+	# Install dependencies
+	exec_login_as $app bundle install --path vendor/bundle --with development)
+	# On ARM architecture, replace bundled libpsl by system native libpsl
+	# because the provided binary isn't compatible
+	if [ -n "$(uname -m | grep arm)" ] ; then
+	  (cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
+	  rm libpsl.so
+	  ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so)
+	fi
+
+	#=================================================
+	# SETUP SIDEKIQ
+	#=================================================
+	cp ../conf/sidekiq.yml "$final_path/config/sidekiq.yml"
+
+	#=================================================
+	# PREPARE THE DATABASE
+	#=================================================
+
+	rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
+	$rake_exec db:migrate
+	$rake_exec assets:precompile
+
+	#=================================================
+	# GENERIC FINALIZATION
+	#=================================================
+	# SECURE FILES AND DIRECTORIES
+	#=================================================
+
+	# Set permissions to app files
+	chown -R $app: $final_path
+
 fi
-
-#=================================================
-# SETUP SIDEKIQ
-#=================================================
-cp ../conf/sidekiq.yml "$final_path/config/sidekiq.yml"
-
-#=================================================
-# PREPARE THE DATABASE
-#=================================================
-
-rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
-$rake_exec db:migrate
-$rake_exec assets:precompile
-
-#=================================================
-# GENERIC FINALIZATION
-#=================================================
-# SECURE FILES AND DIRECTORIES
-#=================================================
-
-# Set permissions to app files
-chown -R $app: $final_path
-
 #=================================================
 # SETUP SSOWAT
 #=================================================
@@ -217,4 +220,3 @@ systemctl reload nginx
 # Wait for discourse-puma to be fully started
 # As discourse-sidekiq is a dependency, it is automatically started before
 ynh_check_starting_systemd "Use Ctrl-C to stop" "$app-puma" "120"
-
