@@ -129,5 +129,3 @@ ynh_check_starting_systemd "Use Ctrl-C to stop" "$app-puma" "120"
 
 systemctl reload nginx
 
-# Additional pause to avoid 502 errors in package_check after reinstall...
-sleep 120s

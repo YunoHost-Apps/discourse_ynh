@@ -11,6 +11,7 @@ Requires=discourse-sidekiq.service
 User=__APP__
 Group=__APP__
 WorkingDirectory=__FINALPATH__
+Environment=__ADDITIONAL_ENV__
 Environment=RAILS_ENV=production
 ExecStart=__RBENVROOT__/shims/bundle exec puma --config config/puma.rb -e production
 ExecStop=__RBENVROOT__/shims/bundle exec pumactl stop

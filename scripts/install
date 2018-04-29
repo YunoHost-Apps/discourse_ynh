@@ -184,8 +184,21 @@ chown -R $app: $final_path
 gem install bundler
 # Install without documentation
 exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc")
+# If on ARM architecture, define the platform specificly to retrieve binaries
+# for libv8 because it currently doesn't compile on ARM devices
+if [ -n "$(uname -m | grep arm)" ] ; then
+  exec_login_as $app bundle config specific_platform arm-linux
+fi
 # Install dependencies
 exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2 --path vendor/bundle --with development
+
+# On ARM architecture, replace bundled libpsl by system native libpsl
+# because the provided binary isn't compatible
+if [ -n "$(uname -m | grep arm)" ] ; then
+  (cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
+  rm libpsl.so
+  ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so)
+fi
 
 #=================================================
 # SETUP SIDEKIQ
@@ -255,6 +268,16 @@ patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
 ynh_replace_string "__RBENVROOT__" "$RBENV_ROOT" "../conf/discourse-puma.service"
 ynh_replace_string "__RBENVROOT__" "$RBENV_ROOT" "../conf/discourse-sidekiq.service"
 
+# We assume for the moment that ARM devices are only dual core, so
+# we restrict the number of workers to 2 (the default is 4)
+if [ -n "$(uname -m | grep arm)" ] ; then
+	additional_env="NUM_WEBS=2"
+else
+	additional_env=""
+fi
+
+ynh_replace_string "__ADDITIONAL_ENV__" "$additional_env" "../conf/discourse-puma.service"
+
 ynh_add_systemd_config $app-puma discourse-puma.service
 ynh_add_systemd_config $app-sidekiq discourse-sidekiq.service
 
@@ -312,5 +335,4 @@ systemctl reload nginx
 # Wait for discourse-puma to be fully started
 # As discourse-sidekiq is a dependency, it is automatically started before
 ynh_check_starting_systemd "Use Ctrl-C to stop" "$app-puma" "120"
-# Additional pause to avoid 502 errors in package_check after reinstall...
-sleep 120s
+
