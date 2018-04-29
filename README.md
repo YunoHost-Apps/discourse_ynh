@@ -30,7 +30,7 @@ Finally, if installing on a low-end ARM device (e.g. Raspberry Pi), first access
 
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
-**Shipped version:** 1.9.4
+**Shipped version:** 1.9.6
 
 ## Screenshots
 

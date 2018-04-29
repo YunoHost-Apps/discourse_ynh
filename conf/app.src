@@ -1,3 +1,3 @@
-SOURCE_URL=https://github.com/discourse/discourse/archive/v1.9.4.tar.gz
-SOURCE_SUM=68a2167fda5689a2817534183c3b890f8657677bc883c34e5dd40ac1cbf0c3ac
+SOURCE_URL=https://github.com/discourse/discourse/archive/v1.9.6.tar.gz
+SOURCE_SUM=336193db2677c9061c1a339b874acd96cae1fc7e4fed2566e2c86a0d7d186c9d
 SOURCE_FORMAT=tar.gz

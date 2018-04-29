@@ -6,7 +6,7 @@
         "en": "photo gallery",
         "fr": "Galerie photo"
     },
-    "version": "1.9.4~ynh1",
+    "version": "1.9.6~ynh1",
     "url": "http://Discourse.org",
     "license": "GPL-2.0",
     "maintainer": {
