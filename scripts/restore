@@ -41,6 +41,9 @@ ynh_webpath_available $domain $path_url \
 test ! -d $final_path \
 	|| ynh_die "There is already a directory: $final_path "
 
+	# Check memory requirements
+	check_memory_requirements
+
 #=================================================
 # STANDARD RESTORATION STEPS
 #=================================================

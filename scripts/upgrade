@@ -35,6 +35,9 @@ admin=$(ynh_app_setting_get $app admin)
 db_name=$(ynh_app_setting_get $app db_name)
 db_pwd=$(ynh_app_setting_get $app db_pwd)
 
+# Check memory requirements
+check_memory_requirements_upgrade
+
 #=================================================
 # BACKUP BEFORE UPGRADE
 #=================================================

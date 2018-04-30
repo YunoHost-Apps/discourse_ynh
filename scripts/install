@@ -15,7 +15,7 @@ source _common.sh
 #=================================================
 
 ynh_clean_setup () {
-# Nettoyage des rÃ©sidus d'installation non pris en charge par le script remove.
+# Nettoyage des résidus d'installation non pris en charge par le script remove.
 	ynh_clean_check_starting_systemd
 }
 ynh_abort_if_errors	# Stop script if an error is detected
@@ -46,6 +46,9 @@ test ! -e "$final_path" || ynh_die "This path already contains a folder"
 ynh_webpath_available $domain $path_url
 # Register (book) web path
 ynh_webpath_register $app $domain $path_url
+
+# Check memory requirements
+check_memory_requirements
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
