@@ -107,8 +107,8 @@ systemctl restart discourse-puma
 
 ---
 
-Developers infos
-----------------
+Developers info
+---------------
 
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing).
 
