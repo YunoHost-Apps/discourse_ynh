@@ -375,60 +375,7 @@ ynh_delete_file_checksum () {
 	ynh_app_setting_delete $app $checksum_setting_name
 }
 
-
-ynh_clean_check_starting_systemd () {
-  # Stop the execution of tail.
-  kill -s 15 $pid_tail 2>&1
-  ynh_secure_remove "$templog" 2>&1
-}
-
-# Start or restart a service and follow its booting
-#
-# usage: ynh_check_starting_systemd "Line to match" [Service name] [Timeout]
-#
-# | arg: Line to match - The line to find in the log to attest the service have finished to boot.
-# | arg: Service name
-# | arg: Timeout - The maximum time to wait before ending the watching. Defaut 300 seconds.
-ynh_check_starting_systemd () {
-	local line_to_match="$1"
-	local service_name="${2:-$app}"
-	local timeout=${3:-300}
-
-
-
-	echo "Starting of $service_name" >&2
-	systemctl stop $service_name
-	local templog="$(mktemp)"
-	# Follow the starting of the app in its log
-	journalctl -u $service_name -f > "$templog" &
-	# Get the PID of the tail command
-	local pid_tail=$!
-	systemctl start $service_name
-
-	local i=0
-	for i in `seq 1 $timeout`
-	do
-		# Read the log until the sentence is found, that means the app finished starting. Or run until the timeout
-		if grep --quiet "$line_to_match" "$templog"
-		then
-			echo "The service $service_name has correctly started." >&2
-			break
-		fi
-		echo -n "." >&2
-		sleep 1
-	done
-	if [ $i -eq $timeout ]
-	then
-		echo "The service $service_name didn't fully started before the timeout." >&2
-	fi
-
-	echo ""
-	ynh_clean_check_starting_systemd
-}
-
-
 rbenv_install_dir="/opt/rbenv"
-ruby_version_path="/opt/rbenv/versions"
 # RBENV_ROOT is the directory of rbenv, it needs to be loaded as a environment variable.
 export RBENV_ROOT="$rbenv_install_dir"
 
@@ -619,4 +566,61 @@ ynh_app_package_version () {
     fi
     version_key=$(ynh_read_manifest "$manifest_path" "version")
     echo "${version_key/*~ynh/}"
+}
+
+# Start or restart a service and follow its booting
+#
+# usage: ynh_check_starting "Line to match" [Log file] [Timeout] [Service name]
+#
+# | arg: Log file - The log file to watch, specify "systemd" to read systemd journal for specified service
+# | arg: Line to match - The line to find in the log to attest the service have finished to boot.
+# | arg: Service name
+# /var/log/$app/$app.log will be used if no other log is defined.
+# | arg: Timeout - The maximum time to wait before ending the watching. Defaut 300 seconds.
+ynh_check_starting () {
+	local line_to_match="$1"
+	local service_name="${4:-$app}"
+	local app_log="${2:-/var/log/$service_name/$service_name.log}"
+	local timeout=${3:-300}
+
+	ynh_clean_check_starting () {
+		# Stop the execution of tail.
+		kill -s 15 $pid_tail 2>&1
+		ynh_secure_remove "$templog" 2>&1
+	}
+
+	echo "Starting of $service_name" >&2
+	systemctl stop $service_name
+	local templog="$(mktemp)"
+	# Following the starting of the app in its log
+  if [ "$app_log" == "systemd" ] ; then
+    # Read the systemd journal
+    journalctl -u $service_name -f --since=-45 > "$templog" &
+  else
+    # Read the specified log file
+	  tail -F -n0 "$app_log" > "$templog" &
+  fi
+	# Get the PID of the last command
+	local pid_tail=$!
+	systemctl start $service_name
+
+	local i=0
+	for i in `seq 1 $timeout`
+	do
+		# Read the log until the sentence is found, that means the app finished to start. Or run until the timeout
+		if grep --quiet "$line_to_match" "$templog"
+		then
+			echo "The service $service_name has correctly started." >&2
+			break
+		fi
+		echo -n "." >&2
+		sleep 1
+	done
+	if [ $i -eq $timeout ]
+	then
+		echo "The service $service_name didn't fully start before the timeout." >&2
+	fi
+
+	echo ""
+	ynh_clean_check_starting
 }

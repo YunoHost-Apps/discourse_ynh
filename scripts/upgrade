@@ -222,4 +222,4 @@ systemctl reload nginx
 
 # Wait for discourse-puma to be fully started
 # As discourse-sidekiq is a dependency, it is automatically started before
-ynh_check_starting_systemd "Use Ctrl-C to stop" "$app-puma" "120"
+ynh_check_starting "Use Ctrl-C to stop" systemd "120" "$app-puma"

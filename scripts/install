@@ -15,8 +15,8 @@ source _common.sh
 #=================================================
 
 ynh_clean_setup () {
-# Nettoyage des résidus d'installation non pris en charge par le script remove.
-	ynh_clean_check_starting_systemd
+	# Clean remainings not handled by remove script
+	ynh_clean_check_starting
 }
 ynh_abort_if_errors	# Stop script if an error is detected
 
@@ -284,7 +284,6 @@ ynh_replace_string "__ADDITIONAL_ENV__" "$additional_env" "../conf/discourse-pum
 ynh_add_systemd_config $app-puma discourse-puma.service
 ynh_add_systemd_config $app-sidekiq discourse-sidekiq.service
 
-
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
@@ -337,5 +336,4 @@ systemctl reload nginx
 
 # Wait for discourse-puma to be fully started
 # As discourse-sidekiq is a dependency, it is automatically started before
-ynh_check_starting_systemd "Use Ctrl-C to stop" "$app-puma" "120"
-
+ynh_check_starting "Use Ctrl-C to stop" systemd "120" "$app-puma"
