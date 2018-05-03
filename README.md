@@ -86,9 +86,6 @@ Known non impacting log messages:
 fatal: Not a git repository (or any of the parent directories): .git
 
 bash: BASH_XTRACEFD: 7: invalid value for trace file descriptor
-
-svgo worker: `svgo` not found; please provide proper binary or disable this worker (--no-svgo argument or `:svgo => false` through options)
-
 ```
 ## How-tos
 ### Install plugins

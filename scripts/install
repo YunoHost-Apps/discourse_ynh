@@ -157,6 +157,9 @@ ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$ldap_conf
 ynh_replace_string "sAMAccountName" "uid" "$ldap_config_file"
 ynh_store_file_checksum "$ldap_config_file"
 
+# Disable svgo worker
+echo "svgo: false" > $final_path/.image_optim.yml
+
 #=================================================
 # SETUP PUMA, A RUBY SERVER
 #=================================================
