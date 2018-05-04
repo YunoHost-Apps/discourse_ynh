@@ -161,19 +161,14 @@ ynh_store_file_checksum "$ldap_config_file"
 echo "svgo: false" > $final_path/.image_optim.yml
 
 #=================================================
-# SETUP PUMA, A RUBY SERVER
+# SETUP UNICORN, A RUBY SERVER
 #=================================================
-puma_config_file="$final_path/config/puma.rb"
-# Set log files location
-ynh_replace_string "#{APP_ROOT}/log/puma" "/var/log/$app/puma" "$puma_config_file"
-# Set application absolute path
-ynh_replace_string "/home/discourse/discourse" "/var/www/$app" "$puma_config_file"
-# Don't daemonize so we get logs in journalctl
-ynh_replace_string "daemonize true" "daemonize false" "$puma_config_file"
-# Don't preload threads to avoid warnings
-ynh_replace_string "preload_app" "#preload_app" "$puma_config_file"
+unicorn_config_file="$final_path/config/unicorn.conf.rb"
+# Use socket connection
+ynh_replace_string 'listen (ENV\["UNICORN_PORT"\] || 3000).to_i' '# listen (ENV["UNICORN_PORT"] || 3000).to_i' "$unicorn_config_file"
+ynh_replace_string '# listen "#{discourse_path}/tmp/sockets/unicorn.sock"' 'listen "#{discourse_path}/tmp/sockets/unicorn.sock"' "$unicorn_config_file"
 # Calculate and store the config file checksum
-ynh_store_file_checksum "$puma_config_file"
+ynh_store_file_checksum "$unicorn_config_file"
 
 # Set a secret value
 cp ../conf/secrets.yml "$final_path/config/secrets.yml"
@@ -205,11 +200,6 @@ if [ -n "$(uname -m | grep arm)" ] ; then
   rm libpsl.so
   ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so)
 fi
-
-#=================================================
-# SETUP SIDEKIQ
-#=================================================
-cp ../conf/sidekiq.yml "$final_path/config/sidekiq.yml"
 
 #=================================================
 # PREPARE THE DATABASE
@@ -271,21 +261,20 @@ patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
 # SETUP SYSTEMD
 #=================================================
 
-ynh_replace_string "__RBENVROOT__" "$RBENV_ROOT" "../conf/discourse-puma.service"
-ynh_replace_string "__RBENVROOT__" "$RBENV_ROOT" "../conf/discourse-sidekiq.service"
+ynh_replace_string "__RBENVROOT__" "$RBENV_ROOT" "../conf/systemd.service"
 
 # We assume for the moment that ARM devices are only dual core, so
-# we restrict the number of workers to 2 (the default is 4)
+# we restrict the number of workers to 2 (the default is 3)
 if [ -n "$(uname -m | grep arm)" ] ; then
-	additional_env="NUM_WEBS=2"
+	additional_env="UNICORN_WORKERS=2"
+	unicorn_workers=2
 else
 	additional_env=""
+	unicorn_workers=3
 fi
 
-ynh_replace_string "__ADDITIONAL_ENV__" "$additional_env" "../conf/discourse-puma.service"
-
-ynh_add_systemd_config $app-puma discourse-puma.service
-ynh_add_systemd_config $app-sidekiq discourse-sidekiq.service
+ynh_replace_string "__ADDITIONAL_ENV__" "$additional_env" "../conf/systemd.service"
+ynh_add_systemd_config
 
 #=================================================
 # GENERIC FINALIZATION
@@ -304,18 +293,14 @@ chown -R $app: $final_path
 # SETUP LOGROTATE
 #=================================================
 
-mkdir -p /var/log/$app
-chown -R $app: /var/log/$app
-
 # Use logrotate to manage application logfile(s)
-ynh_use_logrotate
+ynh_use_logrotate "$final_path/log/unicorn.stderr.log"
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add $app-puma --log "/var/log/$app/puma.stderr.log"
-yunohost service add $app-sidekiq --log "/var/www/$app/log/production.log"
+yunohost service add $app --log "$final_path/log/unicorn.stderr.log"
 
 #=================================================
 # SETUP SSOWAT
@@ -334,9 +319,8 @@ fi
 systemctl reload nginx
 
 #=================================================
-# START PUMA AND SIDEKIQ
+# START UNICORN
 #=================================================
 
-# Wait for discourse-puma to be fully started
-# As discourse-sidekiq is a dependency, it is automatically started before
-ynh_check_starting "Use Ctrl-C to stop" systemd "120" "$app-puma"
+# Wait for discourse to be fully started
+ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "120" "$app"

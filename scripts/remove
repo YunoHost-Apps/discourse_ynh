@@ -25,8 +25,7 @@ final_path=$(ynh_app_setting_get $app final_path)
 # STOP AND REMOVE SERVICE
 #=================================================
 
-ynh_remove_systemd_config discourse-puma
-ynh_remove_systemd_config discourse-sidekiq
+ynh_remove_systemd_config
 
 #=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
@@ -35,8 +34,7 @@ ynh_remove_systemd_config discourse-sidekiq
 if yunohost service status | grep -q $app
 then
 	echo "Remove $app services"
-	yunohost service remove $app-puma
-	yunohost service remove $app-sidekiq
+	yunohost service remove $app
 fi
 
 #=================================================

@@ -48,17 +48,10 @@ ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 # BACKUP SYSTEMD
 #=================================================
 
-ynh_backup "/etc/systemd/system/$app-puma.service"
-ynh_backup "/etc/systemd/system/$app-sidekiq.service"
+ynh_backup "/etc/systemd/system/$app.service"
 
 #=================================================
 # BACKUP THE POSTGRESQL DATABASE
 #=================================================
 
 ynh_psql_dump_db "$db_name" > ${YNH_CWD}/db.sql
-
-#=================================================
-# BACKUP LOG FILE
-#=================================================
-
-ynh_backup "/var/log/$app"

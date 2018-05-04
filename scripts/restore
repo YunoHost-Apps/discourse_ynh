@@ -90,8 +90,7 @@ ynh_psql_execute_file_as_root ./db.sql "$db_name"
 #=================================================
 
 systemctl daemon-reload
-systemctl enable $app-puma.service
-systemctl enable $app-sidekiq.service
+systemctl enable $app.service
 
 #=================================================
 # SETUP LOGROTATE
@@ -117,8 +116,7 @@ chown -R $app: /var/log/$app
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add $app-puma --log "/var/log/$app/puma.stderr.log"
-yunohost service add $app-sidekiq --log "/var/www/$app/log/production.log"
+yunohost service add $app --log "$final_path/log/unicorn.stderr.log"
 
 #=================================================
 # GENERIC FINALIZATION
@@ -126,8 +124,13 @@ yunohost service add $app-sidekiq --log "/var/www/$app/log/production.log"
 # RELOAD NGINX AND DISCOURSE
 #=================================================
 
-# Wait for discourse-puma to be fully started
-# As discourse-sidekiq is a dependency, it is automatically started before
-ynh_check_starting "Use Ctrl-C to stop" systemd "120" "$app-puma"
+if [ -n "$(uname -m | grep arm)" ] ; then
+	unicorn_workers=2
+else
+	unicorn_workers=3
+fi
+# Wait for discourse to be fully started
+ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "120" "$app"
+
 
 systemctl reload nginx

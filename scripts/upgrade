@@ -43,8 +43,7 @@ check_memory_requirements_upgrade
 #=================================================
 
 # Stop services
-systemctl stop $app-sidekiq
-systemctl stop $app-puma
+systemctl stop $app
 
 # Backup the current version of the app
 if [[ $(ynh_app_setting_get $app disable_backup_before_upgrade) != '1' ]]
@@ -137,19 +136,14 @@ if ! ynh_is_upstream_up_to_date ; then
 	ynh_store_file_checksum "$ldap_config_file"
 
 	#=================================================
-	# SETUP PUMA, A RUBY SERVER
+	# SETUP UNICORN, A RUBY SERVER
 	#=================================================
-	puma_config_file="$final_path/config/puma.rb"
-	# Set log files location
-	ynh_replace_string "#{APP_ROOT}/log/puma" "/var/log/$app/puma" "$puma_config_file"
-	# Set application absolute path
-	ynh_replace_string "/home/discourse/discourse" "/var/www/$app" "$puma_config_file"
-	# Don't daemonize so we get logs in journalctl
-	ynh_replace_string "daemonize true" "daemonize false" "$puma_config_file"
-	# Don't preload threads to avoid warnings
-	ynh_replace_string "preload_app" "#preload_app" "$puma_config_file"
+	unicorn_config_file="$final_path/config/unicorn.conf.rb"
+	# Use socket connection
+	ynh_replace_string 'listen (ENV\["UNICORN_PORT"\] || 3000).to_i' '# listen (ENV["UNICORN_PORT"] || 3000).to_i' "$unicorn_config_file"
+	ynh_replace_string '# listen "#{discourse_path}/tmp/sockets/unicorn.sock"' 'listen "#{discourse_path}/tmp/sockets/unicorn.sock"' "$unicorn_config_file"
 	# Calculate and store the config file checksum
-	ynh_store_file_checksum "$puma_config_file"
+	ynh_store_file_checksum "$unicorn_config_file"
 
 	# Set a secret value
 	cp ../conf/secrets.yml "$final_path/config/secrets.yml"
@@ -176,11 +170,6 @@ if ! ynh_is_upstream_up_to_date ; then
 	  rm libpsl.so
 	  ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so)
 	fi
-
-	#=================================================
-	# SETUP SIDEKIQ
-	#=================================================
-	cp ../conf/sidekiq.yml "$final_path/config/sidekiq.yml"
 
 	#=================================================
 	# PREPARE THE DATABASE
@@ -217,9 +206,13 @@ fi
 systemctl reload nginx
 
 #=================================================
-# START PUMA AND SIDEKIQ
+# START UNICORN
 #=================================================
 
-# Wait for discourse-puma to be fully started
-# As discourse-sidekiq is a dependency, it is automatically started before
-ynh_check_starting "Use Ctrl-C to stop" systemd "120" "$app-puma"
+if [ -n "$(uname -m | grep arm)" ] ; then
+	unicorn_workers=2
+else
+	unicorn_workers=3
+fi
+# Wait for discourse to be fully started
+ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "120" "$app"
