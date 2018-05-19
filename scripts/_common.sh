@@ -157,7 +157,6 @@ ynh_psql_execute_file_as_root() {
 # | arg: pwd - Password of the database. If not given, a password will be generated
 ynh_psql_setup_db () {
 	db_user="$1"
-	app="$1"
 	db_name="$2"
 	new_db_pwd=$(ynh_string_random)	# Generate a random password
 	# If $3 is not given, use new_db_pwd instead for db_pwd.
@@ -513,10 +512,10 @@ ynh_remove_ruby () {
 # Returns true if upstream version is up to date
 #
 # This helper should be used to avoid an upgrade of the upstream version
-# when it's not needed (but yet allowing to upgrade other part of the
+# when it's not needed (but yet allowing to upgrade other parts of the
 # YunoHost application (e.g. nginx conf)
 #
-# usage: ynh_is_upstream_up_to_date
+# usage: ynh_is_upstream_up_to_date (returns a boolean)
 ynh_is_upstream_up_to_date () {
 	local version=$(ynh_read_manifest "/etc/yunohost/apps/$YNH_APP_INSTANCE_NAME/manifest.json" "version" || echo 1.0)
   version="${version/~ynh*/}"
@@ -572,34 +571,28 @@ ynh_app_package_version () {
 #
 # usage: ynh_check_starting "Line to match" [Log file] [Timeout] [Service name]
 #
-# | arg: Log file - The log file to watch, specify "systemd" to read systemd journal for specified service
 # | arg: Line to match - The line to find in the log to attest the service have finished to boot.
-# | arg: Service name
-# /var/log/$app/$app.log will be used if no other log is defined.
+# | arg: Log file - The log file to watch; specify "systemd" to read systemd journal for specified service
+#    /var/log/$app/$app.log will be used if no other log is defined.
 # | arg: Timeout - The maximum time to wait before ending the watching. Defaut 300 seconds.
+# | arg: Service name
 ynh_check_starting () {
 	local line_to_match="$1"
 	local service_name="${4:-$app}"
 	local app_log="${2:-/var/log/$service_name/$service_name.log}"
 	local timeout=${3:-300}
 
-	ynh_clean_check_starting () {
-		# Stop the execution of tail.
-		kill -s 15 $pid_tail 2>&1
-		ynh_secure_remove "$templog" 2>&1
-	}
-
 	echo "Starting of $service_name" >&2
 	systemctl stop $service_name
 	local templog="$(mktemp)"
 	# Following the starting of the app in its log
-  if [ "$app_log" == "systemd" ] ; then
-    # Read the systemd journal
-    journalctl -u $service_name -f --since=-45 > "$templog" &
-  else
-    # Read the specified log file
-	  tail -F -n0 "$app_log" > "$templog" &
-  fi
+	if [ "$app_log" == "systemd" ] ; then
+		# Read the systemd journal
+		journalctl -u $service_name -f --since=-45 > "$templog" &
+	else
+		# Read the specified log file
+		tail -F -n0 "$app_log" > "$templog" &
+	fi
 	# Get the PID of the last command
 	local pid_tail=$!
 	systemctl start $service_name
@@ -607,7 +600,7 @@ ynh_check_starting () {
 	local i=0
 	for i in `seq 1 $timeout`
 	do
-		# Read the log until the sentence is found, that means the app finished to start. Or run until the timeout
+		# Read the log until the sentence is found, which means the app finished starting. Or run until the timeout.
 		if grep --quiet "$line_to_match" "$templog"
 		then
 			echo "The service $service_name has correctly started." >&2
@@ -623,4 +616,14 @@ ynh_check_starting () {
 
 	echo ""
 	ynh_clean_check_starting
+}
+# Clean temporary process and file used by ynh_check_starting
+# (usually used in ynh_clean_setup scripts)
+#
+# usage: ynh_clean_check_starting
+
+ynh_clean_check_starting () {
+	# Stop the execution of tail.
+	kill -s 15 $pid_tail 2>&1
+	ynh_secure_remove "$templog" 2>&1
 }

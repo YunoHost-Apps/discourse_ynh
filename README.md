@@ -20,7 +20,9 @@ Moreover, you should have in mind Discourse [hardware requirements](https://gith
 - 64 bit Linux compatible with Docker
 - 10 GB disk space minimum
 
-Finally, if installing on a low-end ARM device (e.g. Raspberry Pi), first access right after installation could take a couple of minutes.
+Finally, if installing on a low-end ARM device (e.g. Raspberry Pi):
+- installation can last up to 3 hours,
+- first access right after installation could take a couple of minutes.
 ## Overview
 [Discourse](http://www.discourse.org) is the 100% open source discussion platform built for the next decade of the Internet. Use it as a:
 
