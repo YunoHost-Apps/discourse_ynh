@@ -274,6 +274,7 @@ else
 fi
 
 ynh_replace_string "__ADDITIONAL_ENV__" "$additional_env" "../conf/systemd.service"
+ynh_replace_string "__LIBJEMALLOC__" "$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')" "../conf/systemd.service"
 ynh_add_systemd_config
 
 #=================================================
