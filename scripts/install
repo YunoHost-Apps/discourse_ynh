@@ -289,6 +289,8 @@ mkdir "$final_path/tmp/sockets"
 
 # Set permissions to app files
 chown -R $app: $final_path
+# Restrict rights to log directory (needed by logrotate)
+chmod g-w $final_path/log
 
 #=================================================
 # SETUP LOGROTATE
@@ -296,12 +298,14 @@ chown -R $app: $final_path
 
 # Use logrotate to manage application logfile(s)
 ynh_use_logrotate "$final_path/log/unicorn.stderr.log"
+ynh_use_logrotate "$final_path/log/unicorn.stdout.log"
+ynh_use_logrotate "$final_path/log/production.log"
 
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add $app --log "$final_path/log/unicorn.stderr.log"
+yunohost service add $app --log "$final_path/log/unicorn.stderr.log" "$final_path/log/unicorn.stdout.log" "$final_path/log/production.log"
 
 #=================================================
 # SETUP SSOWAT

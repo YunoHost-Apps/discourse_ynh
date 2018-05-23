@@ -187,7 +187,8 @@ if ! ynh_is_upstream_up_to_date ; then
 
 	# Set permissions to app files
 	chown -R $app: $final_path
-
+	# Restrict rights to log directory (needed by logrotate)
+	chmod g-w $final_path/log
 fi
 #=================================================
 # SETUP SSOWAT
