@@ -15,7 +15,7 @@
         "url": ""
     },
     "requirements": {
-    "yunohost": ">= 2.7.9"
+    "yunohost": ">= 2.7.12"
     },
     "multi_instance": true,
     "services": [

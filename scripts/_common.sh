@@ -225,59 +225,6 @@ ynh_psql_drop_user() {
 
 # ============= MODIFIED EXISTING YUNOHOST HELPERS =============
 
-# Create a dedicated systemd config
-#
-# usage: ynh_add_systemd_config [service] [template]
-# | arg: service - Service name (optionnal, $app by default)
-# | arg: template - Name of template file (optionnal, this is 'systemd' by default, meaning ./conf/systemd.service will be used as template)
-#
-# This will use the template ../conf/<templatename>.service
-# to generate a systemd config, by replacing the following keywords
-# with global variables that should be defined before calling
-# this helper :
-#
-#   __APP__       by  $app
-#   __FINALPATH__ by  $final_path
-#
-ynh_add_systemd_config () {
-	local service_name="${1:-$app}"
-
-	finalsystemdconf="/etc/systemd/system/$service_name.service"
-	ynh_backup_if_checksum_is_different "$finalsystemdconf"
-	sudo cp ../conf/${2:-systemd.service} "$finalsystemdconf"
-
-	# To avoid a break by set -u, use a void substitution ${var:-}. If the variable is not set, it's simply set with an empty variable.
-	# Substitute in a nginx config file only if the variable is not empty
-	if test -n "${final_path:-}"; then
-		ynh_replace_string "__FINALPATH__" "$final_path" "$finalsystemdconf"
-	fi
-	if test -n "${app:-}"; then
-		ynh_replace_string "__APP__" "$app" "$finalsystemdconf"
-	fi
-	ynh_store_file_checksum "$finalsystemdconf"
-
-	sudo chown root: "$finalsystemdconf"
-	sudo systemctl enable $service_name
-	sudo systemctl daemon-reload
-}
-
-# Remove the dedicated systemd config
-#
-# usage: ynh_remove_systemd_config [service]
-# | arg: service - Service name (optionnal, $app by default)
-#
-ynh_remove_systemd_config () {
-	local service_name="${1:-$app}"
-
-	local finalsystemdconf="/etc/systemd/system/$service_name.service"
-	if [ -e "$finalsystemdconf" ]; then
-		sudo systemctl stop $service_name
-		sudo systemctl disable $service_name
-		ynh_secure_remove "$finalsystemdconf"
-		sudo systemctl daemon-reload
-	fi
-}
-
 # Create a system user
 #
 # usage: ynh_system_user_create user_name [home_dir] [use_shell]
