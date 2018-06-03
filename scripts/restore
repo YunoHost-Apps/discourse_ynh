@@ -77,7 +77,6 @@ gem install bundler)
 #=================================================
 
 ynh_psql_test_if_first_run
-ynh_psql_test_if_first_run
 ynh_psql_setup_db "$db_name" "$db_name" "$db_pwd"
 # Set extensions
 ynh_psql_execute_as_root "\connect $db_name

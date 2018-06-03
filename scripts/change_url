@@ -1,0 +1,138 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# RETRIEVE ARGUMENTS
+#=================================================
+
+old_domain=$YNH_APP_OLD_DOMAIN
+old_path=$YNH_APP_OLD_PATH
+
+new_domain=$YNH_APP_NEW_DOMAIN
+new_path=$YNH_APP_NEW_PATH
+
+app=$YNH_APP_INSTANCE_NAME
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+db_name=$(ynh_app_setting_get "$app" db_name)
+db_pwd=$(ynh_app_setting_get $app db_pwd)
+final_path=$(ynh_app_setting_get "$app" final_path)
+
+#=================================================
+# CHECK PATHS SYNTAX
+#=================================================
+
+test -n "$old_path" || old_path="/"
+test -n "$new_path" || new_path="/"
+new_path=$(ynh_normalize_url_path $new_path)
+old_path=$(ynh_normalize_url_path $old_path)
+
+#=================================================
+# CHECK WHICH PARTS SHOULD BE CHANGED
+#=================================================
+
+change_domain=0
+if [ "$old_domain" != "$new_domain" ]
+then
+	change_domain=1
+fi
+
+change_path=0
+if [ "$old_path" != "$new_path" ]
+then
+	change_path=1
+fi
+
+#=================================================
+# STANDARD MODIFICATIONS
+#=================================================
+# MODIFY URL IN NGINX CONF FILE
+#=================================================
+
+nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
+
+# Change the path in the nginx config file
+if [ $change_path -eq 1 ]
+then
+	domain="$old_domain"
+	path_url="$new_path"
+	ynh_add_nginx_config
+	# Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
+	if [ "$path_url" != "/" ] ; then
+	  ynh_replace_string '$proxy_add_x_forwarded_for' '$http_your_original_ip_header' "/etc/nginx/conf.d/$domain.d/$app.conf"
+	fi
+	ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
+fi
+
+# Change the domain for nginx
+if [ $change_domain -eq 1 ]
+then
+  # Delete file checksum for the old conf file location
+  ynh_delete_file_checksum "$nginx_conf_path"
+  mv $nginx_conf_path /etc/nginx/conf.d/$new_domain.d/$app.conf
+  # Store file checksum for the new config file location
+  ynh_store_file_checksum "/etc/nginx/conf.d/$new_domain.d/$app.conf"
+fi
+
+#=================================================
+# SPECIFIC MODIFICATIONS
+#=================================================
+
+# Stop Discourse service
+systemctl stop $app
+
+discourse_config_file="$final_path/config/discourse.conf"
+# Configure hostname
+ynh_replace_string "hostname = .*" "hostname = \"$new_domain\"" "$discourse_config_file"
+ynh_replace_string "relative_url_root = .*" "relative_url_root = ${path_url%/}" "$discourse_config_file"
+ynh_replace_string "smtp_domain = .*" "smtp_domain = $new_domain" "$discourse_config_file"
+
+# Calculate and store the config file checksum
+ynh_store_file_checksum "$discourse_config_file"
+
+# Change URL setting
+echo "UPDATE site_settings SET value = replace(value, '${old_path%/}/images/', '${new_path%/}/images/');
+UPDATE site_settings SET value = '${new_path}') WHERE name='long_polling_base_url';"
+
+ynh_psql_connect_as $db_name $db_pwd $db_name <<< "UPDATE site_settings SET value = replace(value, '${old_path%/}/images/', '${new_path%/}/images/');
+UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';"
+
+# Get the number of Unicorn workers used
+unicorn_workers=$(cat /etc/systemd/system/$app.service  |grep UNICORN_WORKERS | sed "s/.*UNICORN_WORKERS=//")
+if [ -z "$unicorn_workers" ] ; then
+	# By default, 3 workers are used
+	unicorn_workers=3
+fi
+# Wait for discourse to be fully started
+ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "240" "$app"
+
+# # Remap URLs in forum posts
+exec_login_as $app RAILS_ENV=production bundle exec script/discourse remap ${old_path%/}/uploads ${new_path%/}/uploads <<< "YES
+# "
+
+rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
+
+# Regenerate assets
+$rake_exec assets:precompile
+
+# Regenerate all forum posts
+$rake_exec posts:rebake
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# RELOAD NGINX
+#=================================================
+
+systemctl reload nginx

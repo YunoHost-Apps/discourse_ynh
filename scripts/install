@@ -109,13 +109,14 @@ ynh_install_ruby $RUBY_VERSION
 # NGINX CONFIGURATION
 #=================================================
 
-# Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
-if [ "$path_url" != "/" ] ; then
-  ynh_replace_string '$proxy_add_x_forwarded_for' '$http_your_original_ip_header' ../conf/nginx.conf
-fi
-
 # Create a dedicated nginx config
 ynh_add_nginx_config
+
+# Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
+if [ "$path_url" != "/" ] ; then
+  ynh_replace_string '$proxy_add_x_forwarded_for' '$http_your_original_ip_header' "/etc/nginx/conf.d/$domain.d/$app.conf"
+fi
+ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # SPECIFIC SETUP
