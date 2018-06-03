@@ -39,6 +39,12 @@ db_pwd=$(ynh_app_setting_get $app db_pwd)
 check_memory_requirements_upgrade
 
 #=================================================
+# ENABLE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_ON
+
+#=================================================
 # BACKUP BEFORE UPGRADE
 #=================================================
 
@@ -217,3 +223,9 @@ else
 fi
 # Wait for discourse to be fully started
 ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "120" "$app"
+
+#=================================================
+# DISABLE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_OFF
