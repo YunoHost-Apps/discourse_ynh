@@ -224,6 +224,7 @@ INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUE
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('favicon_url', 1, '${path_url%/}/images/default-favicon.ico', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('apple_touch_icon_url', 1, '${path_url%/}/images/default-apple-touch-icon.png', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('wizard_enabled', 5, 'f', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('force_https', 5, 't', 'NOW()', 'NOW()');
 "
 
 #=================================================

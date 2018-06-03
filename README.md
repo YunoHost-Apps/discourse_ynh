@@ -32,7 +32,7 @@ Finally, if installing on a low-end ARM device (e.g. Raspberry Pi):
 
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
-**Shipped version:** 1.9.7
+**Shipped version:** 2.0.0
 
 ## Screenshots
 
@@ -83,7 +83,10 @@ When disabling Local Login and other authentication services, clicking the `Logi
 * Tested on ARM
 
 ## Limitations
-Known non impacting log messages:
+### Known problems
+* On ARM devices, default generated avatars are missing the profile initials (they are only a plain discus)
+
+### Known non-impacting log messages
 ```
 fatal: Not a git repository (or any of the parent directories): .git
 
