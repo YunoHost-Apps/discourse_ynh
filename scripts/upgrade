@@ -223,7 +223,7 @@ else
 	unicorn_workers=3
 fi
 # Wait for discourse to be fully started
-ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "120" "$app"
+ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "240" "$app"
 
 #=================================================
 # DISABLE MAINTENANCE MODE
