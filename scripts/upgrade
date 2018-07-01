@@ -34,6 +34,7 @@ is_public=$(ynh_app_setting_get $app is_public)
 admin=$(ynh_app_setting_get $app admin)
 db_name=$(ynh_app_setting_get $app db_name)
 db_pwd=$(ynh_app_setting_get $app db_pwd)
+redis_db=$(ynh_app_setting_get $app redis_db)
 
 # Check memory requirements
 check_memory_requirements_upgrade
@@ -129,6 +130,9 @@ if ! ynh_is_upstream_up_to_date ; then
 	ynh_replace_string "smtp_address =" "smtp_address = localhost" "$discourse_config_file"
 	ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$discourse_config_file"
 	ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$discourse_config_file"
+
+	# Configure redis
+	ynh_replace_string "redis_db = 0" "redis_db = $redis_db" "$discourse_config_file"
 
 	# Calculate and store the config file checksum
 	ynh_store_file_checksum "$discourse_config_file"

@@ -148,6 +148,11 @@ ynh_replace_string "smtp_address =" "smtp_address = localhost" "$discourse_confi
 ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$discourse_config_file"
 ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$discourse_config_file"
 
+# Configure redis
+redis_db=$(ynh_redis_get_free_db)
+ynh_app_setting_set "$app" redis_db "$redis_db"
+ynh_replace_string "redis_db = 0" "redis_db = $redis_db" "$discourse_config_file"
+
 # Calculate and store the config file checksum
 ynh_store_file_checksum "$discourse_config_file"
 

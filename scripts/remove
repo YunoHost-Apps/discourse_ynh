@@ -18,6 +18,7 @@ app=$YNH_APP_INSTANCE_NAME
 domain=$(ynh_app_setting_get $app domain)
 db_name=$(ynh_app_setting_get $app db_name)
 final_path=$(ynh_app_setting_get $app final_path)
+redis_db=$(ynh_app_setting_get $app redis_db)
 
 #=================================================
 # STANDARD REMOVE
@@ -55,6 +56,12 @@ ynh_remove_ruby
 #=================================================
 
 ynh_psql_remove_db $db_name $db_name
+
+#=================================================
+# REMOVE THE REDIS DATABASE
+#=================================================
+
+ynh_redis_remove_db "$redis_db"
 
 #=================================================
 # REMOVE APP MAIN DIR
