@@ -32,7 +32,7 @@ Finally, if installing on a low-end ARM device (e.g. Raspberry Pi):
 
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
-**Shipped version:** 2.0.3
+**Shipped version:** 2.0.4
 
 ## Screenshots
 

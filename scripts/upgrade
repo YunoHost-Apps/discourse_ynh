@@ -134,6 +134,9 @@ if ! ynh_is_upstream_up_to_date ; then
 	# Configure redis
 	ynh_replace_string "redis_db = 0" "redis_db = $redis_db" "$discourse_config_file"
 
+	# Don't notify on new versions (handled by the YunoHost package)
+	ynh_replace_string "new_version_emails = true" "new_version_emails = false" "$discourse_config_file"
+	
 	# Calculate and store the config file checksum
 	ynh_store_file_checksum "$discourse_config_file"
 

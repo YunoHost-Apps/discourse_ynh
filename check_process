@@ -12,7 +12,7 @@
 		setup_private=1
 		setup_public=1
 		upgrade=1
-		upgrade=1 from_commit=f67986641f48d9e7b5df99f13fefe460094a5d81
+		upgrade=1 from_commit=c97db21b4a821651355c48c4f7efdfb763e2a072
 		backup_restore=1
 # Activate multi-instance test only if you have more than 2Gb RAM!
 		multi_instance=1
@@ -36,6 +36,6 @@
 Email=
 Notification=none
 ;;; Upgrade options
-	; commit=f67986641f48d9e7b5df99f13fefe460094a5d81
-		name=Use unicorn instead of puma, hence not needing a separate sidekiq ser
+	; commit=c97db21b4a821651355c48c4f7efdfb763e2a072
+		name=Upgrade to upstream version 2.0.2
 		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&is_public=1&
