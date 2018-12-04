@@ -54,8 +54,6 @@ check_memory_requirements
 # STORE SETTINGS FROM MANIFEST
 #=================================================
 
-ynh_app_setting_set $app domain "$domain"
-ynh_app_setting_set $app path_url "$path_url"
 ynh_app_setting_set $app admin "$admin"
 ynh_app_setting_set $app is_public "$is_public"
 ynh_app_setting_set $app final_path $final_path
