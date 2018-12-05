@@ -92,6 +92,7 @@ CREATE EXTENSION IF NOT EXISTS hstore; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 #=================================================
 
 # Download, check integrity, uncompress and patch the source from app.src
+# Use the patch from https://meta.discourse.org/t/uglifier-error-during-assets-precompile/96970/4 to fix the Uglifier error
 ynh_setup_source "$final_path"
 # Install LDAP plugin
 mkdir -p "$final_path/plugins/discourse-ldap-auth"
