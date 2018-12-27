@@ -90,6 +90,14 @@ CREATE EXTENSION IF NOT EXISTS hstore; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+# Specific actions on ARM architecture
+if [ -n "$(uname -m | grep arm)" ] ; then
+  # Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
+  # compatibility by pointing to a recent libv8 version
+  # This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
+  # that prevents it from being compiled on ARM hence no binary gem is available yet
+  cp ../sources/patches_arm/* ../sources/patches
+fi
 
 # Download, check integrity, uncompress and patch the source from app.src
 # Use the patch from https://meta.discourse.org/t/uglifier-error-during-assets-precompile/96970/4 to fix the Uglifier error
@@ -198,14 +206,6 @@ if [ -n "$(uname -m | grep arm)" ] ; then
   # Define the platform specifically to retrieve binaries
   # for libv8 because it currently doesn't compile on ARM devices
   exec_login_as $app bundle config specific_platform arm-linux
-  # Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
-  # compatibility by pointing to a recent libv8 version
-  # This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
-  # that prevents it from being compiled on ARM hence no binary gem is available yet
-  (cd $final_path
-  wget https://github.com/discourse/discourse/commit/cf9b4a789b855b5199e98a13424e409854a8e848.diff -O libv8-patch.diff
-  patch -R -p1 < libv8-patch.diff
-  rm libv8-patch.diff)
 fi
 # Install dependencies
 exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2 --path vendor/bundle --with development
