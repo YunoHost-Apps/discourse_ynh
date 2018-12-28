@@ -90,7 +90,14 @@ if ! ynh_is_upstream_up_to_date ; then
 	#=================================================
 	# DOWNLOAD, CHECK AND UNPACK SOURCE
 	#=================================================
-
+	# Specific actions on ARM architecture
+	if [ -n "$(uname -m | grep arm)" ] ; then
+	  # Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
+	  # compatibility by pointing to a recent libv8 version
+	  # This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
+	  # that prevents it from being compiled on ARM hence no binary gem is available yet
+	  cp ../sources/patches_arm/* ../sources/patches
+	fi
 	ynh_app_setting_set $app final_path $final_path
 	# Download, check integrity, uncompress and patch the source from app.src
 	ynh_setup_source "$final_path"
@@ -136,7 +143,7 @@ if ! ynh_is_upstream_up_to_date ; then
 
 	# Don't notify on new versions (handled by the YunoHost package)
 	ynh_replace_string "new_version_emails = true" "new_version_emails = false" "$discourse_config_file"
-	
+
 	# Calculate and store the config file checksum
 	ynh_store_file_checksum "$discourse_config_file"
 
@@ -175,17 +182,6 @@ if ! ynh_is_upstream_up_to_date ; then
 	gem install bundler
 	# Install without documentation
 	exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
-	# Specific actions on ARM architecture
-	if [ -n "$(uname -m | grep arm)" ] ; then
-	  # Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
-	  # compatibility by pointing to a recent libv8 version
-	  # This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
-	  # that prevents it from being compiled on ARM hence no binary gem is available yet
-	  (cd $final_path
-	  wget https://github.com/discourse/discourse/commit/cf9b4a789b855b5199e98a13424e409854a8e848.diff -O libv8-patch.diff
-	  patch -R -p1 < libv8-patch.diff
-	  rm libv8-patch.diff)
-	fi
 	# Install dependencies
 	exec_login_as $app bundle install --path vendor/bundle --with development)
 	# On ARM architecture, replace bundled libpsl by system native libpsl
