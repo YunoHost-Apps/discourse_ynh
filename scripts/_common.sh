@@ -4,7 +4,7 @@
 #
 
 pkg_dependencies="libjemalloc1 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-openssl-dev libapr1-dev libxslt1-dev checkinstall libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle"
-RUBY_VERSION="2.4.4"
+RUBY_VERSION="2.6.0"
 
 # Execute a command as another user with login
 # (hence in user home dir, with prior loading of .profile, etc.)
@@ -339,13 +339,6 @@ SOURCE_SUM=41f1a60714c55eceb21d692a469aee1ec4f46bba351d0dfcb0c660ff9cf1a1c9" > "
 	# Download and extract rbenv
 	ynh_setup_source "$rbenv_install_dir" rbenv
 
-  # Build an app.src for ruby-build
-  mkdir -p "../conf"
-  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20180329.tar.gz
-SOURCE_SUM=4c8610c178ef2fa6bb29d4bcfca52608914632a51a56a5e70aeec8bf0894167b" > "../conf/ruby-build.src"
-  # Download and extract ruby-build
-  ynh_setup_source "$rbenv_install_dir/plugins/ruby-build" ruby-build
-
   (cd $rbenv_install_dir
   ./src/configure && make -C src)
 
@@ -396,6 +389,16 @@ ynh_install_ruby () {
 		ynh_install_rbenv
 	fi
 
+  # Download ruby-build (replace if already exists)
+  if [ -d $rbenv_install_dir/plugins/ruby-build ]; then
+    rm -Rf $rbenv_install_dir/plugins/ruby-build
+  fi
+  # Build an app.src for ruby-build
+  mkdir -p "../conf"
+  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20181225.tar.gz
+SOURCE_SUM=5ace4787ace47384dc419b20f5eb5a59f1174e00bfabcfed74a175033cd0b18a" > "../conf/ruby-build.src"
+  # Download and extract ruby-build
+  ynh_setup_source "$rbenv_install_dir/plugins/ruby-build" ruby-build
 	# Restore /usr/local/bin in PATH (if needed)
 	PATH=$CLEAR_PATH
 
