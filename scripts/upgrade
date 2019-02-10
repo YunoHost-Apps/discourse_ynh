@@ -67,12 +67,6 @@ fi
 ynh_install_app_dependencies "$pkg_dependencies"
 
 #=================================================
-# INSTALL RUBY
-#=================================================
-
-ynh_install_ruby $RUBY_VERSION
-
-#=================================================
 # NGINX CONFIGURATION
 #=================================================
 
@@ -99,11 +93,41 @@ if ! ynh_is_upstream_up_to_date ; then
 	  cp ../sources/patches_arm/* ../sources/patches
 	fi
 	ynh_app_setting_set $app final_path $final_path
+	# Backup files to keep
+	tmpdir=$(mktemp -d)
+	cp -Rp $final_path/public/uploads $final_path/plugins $final_path/config/discourse.conf $tmpdir
+	if [ -d $final_path/public/backups ] ; then
+		cp -Rp $final_path/public/backups $tmpdir
+	fi
+	if [ -d $final_path/log ] ; then
+		cp -Rp $final_path/log $tmpdir
+	fi
+	# Remove destination directory
+	ynh_secure_remove $final_path
 	# Download, check integrity, uncompress and patch the source from app.src
 	ynh_setup_source "$final_path"
+	# Restore previous files
+	cp -Rp $tmpdir/uploads $final_path/public
+	if [ -d $tmpdir/backups ] ; then
+		cp -Rp $tmpdir/backups $final_path/public
+	fi
+	if [ -d $tmpdir/log ] ; then
+		cp -Rp $tmpdir/log $final_path
+	fi
+	cp -Rp $tmpdir/plugins/* $final_path/plugins
+	cp -Rp $tmpdir/log $final_path
+	cp -p $tmpdir/discourse.conf $final_path/config
+
 	# Install LDAP plugin
+	ynh_secure_remove "$final_path/plugins/discourse-ldap-auth"
 	mkdir -p "$final_path/plugins/discourse-ldap-auth"
 	ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
+
+	#=================================================
+	# INSTALL RUBY
+	#=================================================
+
+	ynh_install_ruby $RUBY_VERSION
 
 	#=================================================
 	# SPECIFIC SETUP
@@ -149,12 +173,16 @@ if ! ynh_is_upstream_up_to_date ; then
 
 	# Make a backup of the original config file if modified
 	ynh_backup_if_checksum_is_different "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+
 	# Configure LDAP plugin
 	ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
 	ynh_replace_string "adfs.example.com" "localhost" "$ldap_config_file"
 	ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$ldap_config_file"
 	ynh_replace_string "sAMAccountName" "uid" "$ldap_config_file"
 	ynh_store_file_checksum "$ldap_config_file"
+
+	# Disable svgo worker
+	echo "svgo: false" > $final_path/.image_optim.yml
 
 	#=================================================
 	# SETUP UNICORN, A RUBY SERVER
@@ -176,14 +204,20 @@ if ! ynh_is_upstream_up_to_date ; then
 	chown -R $app: $final_path
 
 
-	# Install puma with gem
 	(cd "$final_path"
 	# Install bundler, a gems installer
 	gem install bundler
 	# Install without documentation
-	exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+	exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc")
+	# Specific actions on ARM architecture
+	if [ -n "$(uname -m | grep arm)" ] ; then
+	  # Define the platform specifically to retrieve binaries
+	  # for libv8 because it currently doesn't compile on ARM devices
+	  exec_login_as $app bundle config specific_platform arm-linux
+	fi
 	# Install dependencies
-	exec_login_as $app bundle install --path vendor/bundle --with development)
+	exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2 --path vendor/bundle --with development
+
 	# On ARM architecture, replace bundled libpsl by system native libpsl
 	# because the provided binary isn't compatible
 	if [ -n "$(uname -m | grep arm)" ] ; then
@@ -201,10 +235,24 @@ if ! ynh_is_upstream_up_to_date ; then
 	$rake_exec assets:precompile
 
 	#=================================================
+	# CONFIGURE PLUGINS
+	#=================================================
+
+	# Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
+	# (Can only do that now because we are patching dependencies which have just been downloaded)
+	# Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
+	(cd $final_path/plugins/discourse-ldap-auth/gems/${RUBY_VERSION}/gems/omniauth-ldap*/
+	patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
+
+	#=================================================
 	# GENERIC FINALIZATION
 	#=================================================
 	# SECURE FILES AND DIRECTORIES
 	#=================================================
+
+	# Add a pids and socket directory for the systemd script.
+	mkdir -p "$final_path/tmp/pids"
+	mkdir "$final_path/tmp/sockets"
 
 	# Set permissions to app files
 	chown -R $app: $final_path
