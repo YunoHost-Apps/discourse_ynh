@@ -1,3 +1,3 @@
-SOURCE_URL=https://github.com/jonmbake/discourse-ldap-auth/archive/v0.3.5.tar.gz
-SOURCE_SUM=18aa689a2583ca1dc6bb75257a8bd951e6bbc6b16d64f5585b0452ffe0e91a8c
+SOURCE_URL=https://github.com/jonmbake/discourse-ldap-auth/archive/v0.4.0.tar.gz
+SOURCE_SUM=5fedfe5f287f0ec49e5acf0591fda38084024676de490c6c35e9194de3440185
 SOURCE_FORMAT=tar.gz
