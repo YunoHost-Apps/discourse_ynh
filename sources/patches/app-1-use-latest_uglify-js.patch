@@ -1,8 +1,8 @@
 diff --git a/lib/tasks/assets.rake b/lib/tasks/assets.rake
-index bdca7c30ed..847a8d07c2 100644
+index 8575ca11dc..a643316bac 100644
 --- a/lib/tasks/assets.rake
 +++ b/lib/tasks/assets.rake
-@@ -95,6 +95,7 @@ def compress_ruby(from, to)
+@@ -94,6 +94,7 @@ def compress_ruby(from, to)
    data = File.read("#{assets_path}/#{from}")
 
    uglified, map = Uglifier.new(comments: :none,
