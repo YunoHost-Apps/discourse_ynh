@@ -305,6 +305,14 @@ ynh_add_systemd_config
 mkdir -p "$final_path/tmp/pids"
 mkdir "$final_path/tmp/sockets"
 
+# Create specific folders and links for subfolder compatibility
+# (see: https://meta.discourse.org/t/subfolder-support-with-docker/30507)
+(
+cd $final_path
+mkdir -p "public/forum"
+cd public/forum && ln -s ../uploads && ln -s ../backups
+)
+
 # Set permissions to app files
 chown -R $app: $final_path
 # Restrict rights to log directory (needed by logrotate)
