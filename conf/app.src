@@ -1,3 +1,3 @@
-SOURCE_URL=https://github.com/discourse/discourse/archive/v2.2.5.tar.gz
-SOURCE_SUM=eb0864d43ddc80c828dc656d3d8f33f761f518bf6fb1a269183924582ef677c9
+SOURCE_URL=https://github.com/discourse/discourse/archive/v2.2.6.tar.gz
+SOURCE_SUM=6d64745f50f9fb6d99e3c766d758869a9baa36ad0ccfc254b215fbcba232f52a
 SOURCE_FORMAT=tar.gz
