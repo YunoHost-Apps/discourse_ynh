@@ -1,0 +1,12 @@
+diff --git a/lib/discourse.rb b/lib/discourse.rb
+index 2b53a91eb3..eec55647d5 100644
+--- a/lib/discourse.rb
++++ b/lib/discourse.rb
+@@ -439,7 +439,7 @@ module Discourse
+     $full_version ||=
+       begin
+         git_cmd = 'git describe --dirty --match "v[0-9]*"'
+-        self.try_git(git_cmd, 'unknown')
++        self.try_git(git_cmd, Discourse::VERSION::STRING)
+       end
+   end

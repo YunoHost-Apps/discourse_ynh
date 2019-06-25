@@ -114,7 +114,17 @@ if ! ynh_is_upstream_up_to_date ; then
 	if [ -d $tmpdir/log ] ; then
 		cp -Rp $tmpdir/log $final_path
 	fi
-	cp -Rp $tmpdir/plugins/* $final_path/plugins
+	(
+		cd $tmpdir/plugins/
+    for discourse_plugin_dir in */
+    do
+			# Only copy plugins not included in Discourse archive
+      if [ ! -d "$final_path/plugins/$discourse_plugin_dir" ]
+      then
+        cp -a "$discourse_plugin_dir" "$final_path/plugins/$discourse_plugin_dir"
+      fi
+    done
+  )
 	cp -Rp $tmpdir/log $final_path
 	cp -p $tmpdir/discourse.conf $final_path/config
 
