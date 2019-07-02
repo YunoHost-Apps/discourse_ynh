@@ -95,7 +95,10 @@ if ! ynh_is_upstream_up_to_date ; then
 	ynh_app_setting_set $app final_path $final_path
 	# Backup files to keep
 	tmpdir=$(mktemp -d)
-	cp -Rp $final_path/public/uploads $final_path/plugins $final_path/config/discourse.conf $tmpdir
+	cp -Rp $final_path/plugins $final_path/config/discourse.conf $tmpdir
+	if [ -d $final_path/public/uploads ] ; then
+		cp -Rp $final_path/public/uploads $tmpdir
+	fi
 	if [ -d $final_path/public/backups ] ; then
 		cp -Rp $final_path/public/backups $tmpdir
 	fi
@@ -107,7 +110,9 @@ if ! ynh_is_upstream_up_to_date ; then
 	# Download, check integrity, uncompress and patch the source from app.src
 	ynh_setup_source "$final_path"
 	# Restore previous files
-	cp -Rp $tmpdir/uploads $final_path/public
+	if [ -d $tmpdir/uploads ] ; then
+		cp -Rp $tmpdir/uploads $final_path/public
+	fi
 	if [ -d $tmpdir/backups ] ; then
 		cp -Rp $tmpdir/backups $final_path/public
 	fi
