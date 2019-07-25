@@ -99,7 +99,7 @@ bash: BASH_XTRACEFD: 7: invalid value for trace file descriptor
 cd /var/www/discourse
 sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved (for example)
 sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
-systemctl restart discourse-puma
+systemctl restart discourse
 ```
 
 ## Links
