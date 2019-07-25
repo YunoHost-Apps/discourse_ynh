@@ -1,0 +1,13 @@
+diff --git a/lib/discourse.rb b/lib/discourse.rb
+index 2b53a91eb3..955fa4f7be 100644
+--- a/lib/discourse.rb
++++ b/lib/discourse.rb
+@@ -448,7 +448,7 @@ module Discourse
+     $last_commit_date ||=
+       begin
+         git_cmd = 'git log -1 --format="%ct"'
+-        seconds = self.try_git(git_cmd, nil)
++        seconds = '1563199245' # Note(decentral1se): Output from actual command in the v2.3.2 branch
+         seconds.nil? ? nil : DateTime.strptime(seconds, '%s')
+       end
+   end
