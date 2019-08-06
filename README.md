@@ -59,6 +59,24 @@ Use the admin panel of your discourse to configure this app.
 
 You should now be able to start testing. Try using the `/admin/email` "Send Test Email" and then view the "Sent" or "Skipped" etc. tabs. You should see a report on what happened with the email. You may also want to look in `/var/www/discourse/log/production.log` as well as `/var/www/mail.err`. You should perhaps also use [Rainloop](https://github.com/YunoHost-Apps/rainloop_ynh) or another Yunohost email client application to quickly test that both your user and the dedicated Yunohost Discourse user (`response@...`) is receiving mail.
 
+### "Reply-By-Email" and mail forwarding
+
+If you use the administration UI in YunoHost to setup a mail forwarding address for your users then you may face the problem whereby your users are replying by email from the forwarded email address and the Discourse software is not able to understand how to receive that email.
+
+For example, your user has email address `foo@myyunohostdomain.org` and all mail is forwarded to `foo@theirexternalmail.com`. Discourse receives replies from `foo@theirexternalmail.com` but cannot understand how to deliver this to the user account with `foo@myyunohostdomain.org` configured.
+
+Their is on-going work to allow for [multiple email addresses for one user](https://meta.discourse.org/t/additional-email-address-per-user-account-support/59847) in Discourse development but at current major version (2.3 as of 2019-08-06), there is no web interface for this functionality. It is possible to set it up via the command-line interface but it is **experimental** and you should not undertake this work unless you take some time to understand what it is you are going to do.
+
+Here's how to setup a secondary mail address for a user account:
+
+```bash
+$ cd /var/www/discourse
+$ RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails c
+$ UserEmail.create!(user: User.find_by_username("foo"), email: "foo@theirexternalmail.com")
+```
+
+Discourse can now receive mail from `foo@theirexternalmail.com` and give it to the user account with mail address `foo@myyunohostdomain.org`.
+
 ## Documentation
 
  * Official documentation: https://www.discourse.org/
