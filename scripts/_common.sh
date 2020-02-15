@@ -4,7 +4,7 @@
 #
 
 pkg_dependencies="g++ libjemalloc1 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-openssl-dev libapr1-dev libxslt1-dev checkinstall libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
-RUBY_VERSION="2.6.0"
+RUBY_VERSION="2.6.5"
 
 # Execute a command as another user with login
 # (hence in user home dir, with prior loading of .profile, etc.)
@@ -395,8 +395,8 @@ ynh_install_ruby () {
   fi
   # Build an app.src for ruby-build
   mkdir -p "../conf"
-  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20181225.tar.gz
-SOURCE_SUM=5ace4787ace47384dc419b20f5eb5a59f1174e00bfabcfed74a175033cd0b18a" > "../conf/ruby-build.src"
+  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20200115.tar.gz
+SOURCE_SUM=e680eb8a606be358740fb0dfcf08309081fa27a54224e00fc7673ed2c842032d" > "../conf/ruby-build.src"
   # Download and extract ruby-build
   ynh_setup_source "$rbenv_install_dir/plugins/ruby-build" ruby-build
 	# Restore /usr/local/bin in PATH (if needed)
