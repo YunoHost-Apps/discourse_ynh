@@ -208,7 +208,9 @@ if [ -n "$(uname -m | grep arm)" ] ; then
   exec_login_as $app bundle config specific_platform arm-linux
 fi
 # Install dependencies
-exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2 --path vendor/bundle --with development
+exec_login_as $app bundle config set path 'vendor/bundle'
+exec_login_as $app bundle config set with 'development'
+exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2
 
 # On ARM architecture, replace bundled libpsl by system native libpsl
 # because the provided binary isn't compatible

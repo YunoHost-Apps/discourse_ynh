@@ -40,12 +40,6 @@ redis_db=$(ynh_app_setting_get $app redis_db)
 check_memory_requirements_upgrade
 
 #=================================================
-# ENABLE MAINTENANCE MODE
-#=================================================
-
-ynh_maintenance_mode_ON
-
-#=================================================
 # BACKUP BEFORE UPGRADE
 #=================================================
 
@@ -60,6 +54,13 @@ then
         ynh_restore_upgradebackup
     }
 fi
+
+#=================================================
+# ENABLE MAINTENANCE MODE
+#=================================================
+
+ynh_maintenance_mode_ON
+
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
@@ -231,7 +232,9 @@ if ! ynh_is_upstream_up_to_date ; then
 	  exec_login_as $app bundle config specific_platform arm-linux
 	fi
 	# Install dependencies
-	exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2 --path vendor/bundle --with development
+	exec_login_as $app bundle config set path 'vendor/bundle'
+	exec_login_as $app bundle config set with 'development'
+	exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2
 
 	# On ARM architecture, replace bundled libpsl by system native libpsl
 	# because the provided binary isn't compatible
