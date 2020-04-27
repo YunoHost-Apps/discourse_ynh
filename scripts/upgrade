@@ -6,304 +6,340 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-if [ ! -e _common.sh ]; then
-	# Fetch helpers file if not in current directory
-	cp ../settings/scripts/_common.sh ./_common.sh
-	chmod a+rx _common.sh
-fi
-source /usr/share/yunohost/helpers
 source _common.sh
-
-#=================================================
-# MANAGE SCRIPT FAILURE
-#=================================================
-
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+source /usr/share/yunohost/helpers
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info --message="Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get $app domain)
-path_url=$(ynh_app_setting_get $app path)
-final_path=$(ynh_app_setting_get $app final_path)
-is_public=$(ynh_app_setting_get $app is_public)
-admin=$(ynh_app_setting_get $app admin)
-db_name=$(ynh_app_setting_get $app db_name)
-db_pwd=$(ynh_app_setting_get $app db_pwd)
-redis_db=$(ynh_app_setting_get $app redis_db)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
+admin=$(ynh_app_setting_get --app=$app --key=admin)
+is_public=$(ynh_app_setting_get --app=$app --key=is_public)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
+redis_db=$(ynh_app_setting_get --app=$app --key=redis_db)
 
 # Check memory requirements
 check_memory_requirements_upgrade
 
 #=================================================
-# BACKUP BEFORE UPGRADE
+# CHECK VERSION
 #=================================================
+ynh_print_info --message="Checking version..."
 
-# Stop services
-systemctl stop $app
+upgrade_type=$(ynh_check_app_version_changed)
+
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+ynh_print_info --message="Backing up the app before upgrading (may take a while)..."
 
 # Backup the current version of the app
-if [[ $(ynh_app_setting_get $app disable_backup_before_upgrade) != '1' ]]
-then
-    ynh_backup_before_upgrade
-    ynh_clean_setup () {
-        ynh_restore_upgradebackup
-    }
-fi
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	# restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 #=================================================
 # ENABLE MAINTENANCE MODE
 #=================================================
+ynh_print_info --message="Enabling maintenance mode..."
 
 ynh_maintenance_mode_ON
 
 #=================================================
-# INSTALL DEPENDENCIES
+# STANDARD UPGRADE STEPS
 #=================================================
+# STOP SYSTEMD SERVICE
+#=================================================
+ynh_print_info --message="Stopping a systemd service..."
 
-ynh_install_app_dependencies "$pkg_dependencies"
+ynh_systemd_action --service_name=$app --action="stop" --log_path="$final_path/log/unicorn.stderr.log"
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_print_info --message="Downloading..."
+
+# Specific actions on ARM architecture
+if [ -n "$(uname -m | grep arm)" ] ; then
+  # Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
+  # compatibility by pointing to a recent libv8 version
+  # This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
+  # that prevents it from being compiled on ARM hence no binary gem is available yet
+  cp ../sources/patches_arm/* ../sources/patches
+fi
+
+# Backup files to keep
+tmpdir=$(mktemp -d)
+cp -Rp $final_path/plugins $final_path/config/discourse.conf $tmpdir
+if [ -d $final_path/public/uploads ] ; then
+	cp -Rp $final_path/public/uploads $tmpdir
+fi
+if [ -d $final_path/public/backups ] ; then
+	cp -Rp $final_path/public/backups $tmpdir
+fi
+if [ -d $final_path/log ] ; then
+	cp -Rp $final_path/log $tmpdir
+fi
+# Remove destination directory
+ynh_secure_remove --file=$final_path
+# Download, check integrity, uncompress and patch the source from app.src
+ynh_setup_source --dest_dir="$final_path"
+# Restore previous files
+if [ -d $tmpdir/uploads ] ; then
+	cp -Rp $tmpdir/uploads $final_path/public
+fi
+if [ -d $tmpdir/backups ] ; then
+	cp -Rp $tmpdir/backups $final_path/public
+fi
+if [ -d $tmpdir/log ] ; then
+	cp -Rp $tmpdir/log $final_path
+fi
+(
+	cd $tmpdir/plugins/
+for discourse_plugin_dir in */
+do
+		# Only copy plugins not included in Discourse archive
+  if [ ! -d "$final_path/plugins/$discourse_plugin_dir" ]
+  then
+    cp -a "$discourse_plugin_dir" "$final_path/plugins/$discourse_plugin_dir"
+  fi
+done
+)
+cp -Rp $tmpdir/log $final_path
+cp -p $tmpdir/discourse.conf $final_path/config
+
+# Install LDAP plugin
+ynh_secure_remove --file="$final_path/plugins/discourse-ldap-auth"
+mkdir -p "$final_path/plugins/discourse-ldap-auth"
+ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_id=ldap-auth
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_print_info --message="Upgrading nginx web server configuration..."
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
 
 # Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
 if [ "$path_url" != "/" ] ; then
-  ynh_replace_string '$proxy_add_x_forwarded_for' '$http_your_original_ip_header' "/etc/nginx/conf.d/$domain.d/$app.conf"
+  ynh_replace_string --match_string='$proxy_add_x_forwarded_for' --replace_string='$http_your_original_ip_header' --target_file="/etc/nginx/conf.d/$domain.d/$app.conf"
 fi
-ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
 
-if ! ynh_is_upstream_up_to_date ; then
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+ynh_print_info --message="Upgrading dependencies..."
 
-	#=================================================
-	# DOWNLOAD, CHECK AND UNPACK SOURCE
-	#=================================================
-	# Specific actions on ARM architecture
-	if [ -n "$(uname -m | grep arm)" ] ; then
-	  # Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
-	  # compatibility by pointing to a recent libv8 version
-	  # This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
-	  # that prevents it from being compiled on ARM hence no binary gem is available yet
-	  cp ../sources/patches_arm/* ../sources/patches
-	fi
-	ynh_app_setting_set $app final_path $final_path
-	# Backup files to keep
-	tmpdir=$(mktemp -d)
-	cp -Rp $final_path/plugins $final_path/config/discourse.conf $tmpdir
-	if [ -d $final_path/public/uploads ] ; then
-		cp -Rp $final_path/public/uploads $tmpdir
-	fi
-	if [ -d $final_path/public/backups ] ; then
-		cp -Rp $final_path/public/backups $tmpdir
-	fi
-	if [ -d $final_path/log ] ; then
-		cp -Rp $final_path/log $tmpdir
-	fi
-	# Remove destination directory
-	ynh_secure_remove $final_path
-	# Download, check integrity, uncompress and patch the source from app.src
-	ynh_setup_source "$final_path"
-	# Restore previous files
-	if [ -d $tmpdir/uploads ] ; then
-		cp -Rp $tmpdir/uploads $final_path/public
-	fi
-	if [ -d $tmpdir/backups ] ; then
-		cp -Rp $tmpdir/backups $final_path/public
-	fi
-	if [ -d $tmpdir/log ] ; then
-		cp -Rp $tmpdir/log $final_path
-	fi
-	(
-		cd $tmpdir/plugins/
-    for discourse_plugin_dir in */
-    do
-			# Only copy plugins not included in Discourse archive
-      if [ ! -d "$final_path/plugins/$discourse_plugin_dir" ]
-      then
-        cp -a "$discourse_plugin_dir" "$final_path/plugins/$discourse_plugin_dir"
-      fi
-    done
-  )
-	cp -Rp $tmpdir/log $final_path
-	cp -p $tmpdir/discourse.conf $final_path/config
+ynh_install_app_dependencies "$pkg_dependencies"
 
-	# Install LDAP plugin
-	ynh_secure_remove "$final_path/plugins/discourse-ldap-auth"
-	mkdir -p "$final_path/plugins/discourse-ldap-auth"
-	ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
+#=================================================
+# INSTALL RUBY
+#=================================================
+ynh_print_info --message="Installing Ruby..."
 
-	#=================================================
-	# INSTALL RUBY
-	#=================================================
+ynh_install_ruby --ruby_version=$RUBY_VERSION
 
-	ynh_install_ruby $RUBY_VERSION
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_print_info --message="Making sure dedicated system user exists..."
 
-	#=================================================
-	# SPECIFIC SETUP
-	#=================================================
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app
 
-	#=================================================
-	# CONFIGURE DISCOURSE
-	#=================================================
+#=================================================
+# SPECIFIC UPGRADE
+#=================================================
+# CONFIGURE DISCOURSE
+#=================================================
+ynh_print_info --message="Configuring Discourse..."
 
-	# Make a backup of the original config file if modified
-	ynh_backup_if_checksum_is_different "$final_path/config/discourse.conf"
-	# Configure database
-	discourse_config_file="$final_path/config/discourse.conf"
-	cp $final_path/config/discourse_defaults.conf $discourse_config_file
-	ynh_replace_string "db_name = discourse" "db_name = $db_name" "$discourse_config_file"
-	ynh_replace_string "db_username = discourse" "db_username = $db_name" "$discourse_config_file"
-	ynh_replace_string "db_password =" "db_password = $db_pwd" "$discourse_config_file"
+# Make a backup of the original config file if modified
+ynh_backup_if_checksum_is_different --file="$final_path/config/discourse.conf"
+# Configure database
+discourse_config_file="$final_path/config/discourse.conf"
+cp $final_path/config/discourse_defaults.conf $discourse_config_file
+ynh_replace_string --match_string="db_name = discourse" --replace_string="db_name = $db_name" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="db_username = discourse" --replace_string="db_username = $db_name" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="db_password =" --replace_string="db_password = $db_pwd" --target_file="$discourse_config_file"
 
-	# Configure hostname
-	ynh_replace_string "hostname = \"www.example.com\"" "hostname = \"$domain\"" "$discourse_config_file"
-	ynh_replace_string "relative_url_root =" "relative_url_root = ${path_url%/}" "$discourse_config_file"
-	# Serve static assets (i.e. images, js, etc.)
-	ynh_replace_string "serve_static_assets = false" "serve_static_assets = true" "$discourse_config_file"
-	# Don't show miniprofiler
-	ynh_replace_string "load_mini_profiler = true" "load_mini_profiler = false" "$discourse_config_file"
+# Configure hostname
+ynh_replace_string --match_string="hostname = \"www.example.com\"" --replace_string="hostname = \"$domain\"" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="relative_url_root =" --replace_string="relative_url_root = ${path_url%/}" --target_file="$discourse_config_file"
+# Serve static assets (i.e. images, js, etc.)
+ynh_replace_string --match_string="serve_static_assets = false" --replace_string="serve_static_assets = true" --target_file="$discourse_config_file"
+# Don't show miniprofiler
+ynh_replace_string --match_string="load_mini_profiler = true" --replace_string="load_mini_profiler = false" --target_file="$discourse_config_file"
 
 
-	# Configure e-mail server
-	admin_mail=$(ynh_user_get_info "$admin" mail)
-	ynh_replace_string "developer_emails =" "developer_emails = $admin_mail" "$discourse_config_file"
-	ynh_replace_string "smtp_address =" "smtp_address = localhost" "$discourse_config_file"
-	ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$discourse_config_file"
-	ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$discourse_config_file"
+# Configure e-mail server
+admin_mail=$(ynh_user_get_info "$admin" mail)
+ynh_replace_string --match_string="developer_emails =" --replace_string="developer_emails = $admin_mail" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="smtp_address =" --replace_string="smtp_address = localhost" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="smtp_domain =" --replace_string="smtp_domain = $domain" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="smtp_enable_start_tls = true" --replace_string="smtp_enable_start_tls = false" --target_file="$discourse_config_file"
 
-	# Configure redis
-	ynh_replace_string "redis_db = 0" "redis_db = $redis_db" "$discourse_config_file"
+# Configure redis
+ynh_replace_string --match_string="redis_db = 0" --replace_string="redis_db = $redis_db" --target_file="$discourse_config_file"
 
-	# Don't notify on new versions (handled by the YunoHost package)
-	ynh_replace_string "new_version_emails = true" "new_version_emails = false" "$discourse_config_file"
+# Don't notify on new versions (handled by the YunoHost package)
+ynh_replace_string --match_string="new_version_emails = true" --replace_string="new_version_emails = false" --target_file="$discourse_config_file"
 
-	# Calculate and store the config file checksum
-	ynh_store_file_checksum "$discourse_config_file"
+# Calculate and store the config file checksum
+ynh_store_file_checksum --file="$discourse_config_file"
 
-	# Make a backup of the original config file if modified
-	ynh_backup_if_checksum_is_different "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+# Make a backup of the original config file if modified
+ynh_backup_if_checksum_is_different "$final_path/plugins/discourse-ldap-auth/config/settings.yml"
 
-	# Configure LDAP plugin
-	ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
-	ynh_replace_string "adfs.example.com" "localhost" "$ldap_config_file"
-	ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$ldap_config_file"
-	ynh_replace_string "sAMAccountName" "uid" "$ldap_config_file"
-	ynh_store_file_checksum "$ldap_config_file"
+# Configure LDAP plugin
+ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
+ynh_replace_string --match_string="adfs.example.com" --replace_string="localhost" --target_file="$ldap_config_file"
+ynh_replace_string --match_string="dc=example,dc=com" --replace_string="ou=users,dc=yunohost,dc=org" --target_file="$ldap_config_file"
+ynh_replace_string --match_string="sAMAccountName" --replace_string="uid" --target_file="$ldap_config_file"
+ynh_store_file_checksum --file="$ldap_config_file"
 
-	# Disable svgo worker
-	echo "svgo: false" > $final_path/.image_optim.yml
+# Disable svgo worker
+echo "svgo: false" > $final_path/.image_optim.yml
 
-	#=================================================
-	# SETUP UNICORN, A RUBY SERVER
-	#=================================================
-	unicorn_config_file="$final_path/config/unicorn.conf.rb"
-	# Use socket connection
-	ynh_replace_string 'listen (ENV\["UNICORN_PORT"\] || 3000).to_i' '# listen (ENV["UNICORN_PORT"] || 3000).to_i' "$unicorn_config_file"
-	ynh_replace_string '# listen "#{discourse_path}/tmp/sockets/unicorn.sock"' 'listen "#{discourse_path}/tmp/sockets/unicorn.sock"' "$unicorn_config_file"
-	# Calculate and store the config file checksum
-	ynh_store_file_checksum "$unicorn_config_file"
+#=================================================
+# SETUP UNICORN, A RUBY SERVER
+#=================================================
+ynh_print_info --message="Setuping Unicorn..."
 
-	# Set a secret value
-	cp ../conf/secrets.yml "$final_path/config/secrets.yml"
-	ynh_replace_string "__SECRET__" "$(ynh_string_random)" "$final_path/config/secrets.yml"
-	# Calculate and store the config file checksum
-	ynh_store_file_checksum "$final_path/config/secrets.yml"
+unicorn_config_file="$final_path/config/unicorn.conf.rb"
+# Use socket connection
+ynh_replace_string --match_string='listen (ENV\["UNICORN_PORT"\] || 3000).to_i' --replace_string='# listen (ENV["UNICORN_PORT"] || 3000).to_i' --target_file="$unicorn_config_file"
+ynh_replace_string --match_string='# listen "#{discourse_path}/tmp/sockets/unicorn.sock"' --replace_string='listen "#{discourse_path}/tmp/sockets/unicorn.sock"' --target_file="$unicorn_config_file"
+# Calculate and store the config file checksum
+ynh_store_file_checksum --file="$unicorn_config_file"
 
-	# Set permissions to app files
-	chown -R $app: $final_path
+# Set a secret value
+cp ../conf/secrets.yml "$final_path/config/secrets.yml"
+ynh_replace_string --match_string="__SECRET__" --replace_string="$(ynh_string_random)" --target_file="$final_path/config/secrets.yml"
+# Calculate and store the config file checksum
+ynh_store_file_checksum --file="$final_path/config/secrets.yml"
 
+# Set permissions to app files
+chown -R $app: $final_path
 
-	(cd "$final_path"
-	# Install bundler, a gems installer
-	gem install bundler
-	# Install without documentation
-	exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc")
-	# Specific actions on ARM architecture
-	if [ -n "$(uname -m | grep arm)" ] ; then
-	  # Define the platform specifically to retrieve binaries
-	  # for libv8 because it currently doesn't compile on ARM devices
-	  exec_login_as $app bundle config specific_platform arm-linux
-	fi
-	# Install dependencies
-	exec_login_as $app bundle config set path 'vendor/bundle'
-	exec_login_as $app bundle config set with 'development'
-	exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2
-
-	# On ARM architecture, replace bundled libpsl by system native libpsl
-	# because the provided binary isn't compatible
-	if [ -n "$(uname -m | grep arm)" ] ; then
-	  (cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
-	  rm libpsl.so
-	  ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so)
-	fi
-
-	#=================================================
-	# PREPARE THE DATABASE
-	#=================================================
-
-	rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
-	$rake_exec db:migrate
-	$rake_exec assets:precompile
-
-	#=================================================
-	# CONFIGURE PLUGINS
-	#=================================================
-
-	# Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
-	# (Can only do that now because we are patching dependencies which have just been downloaded)
-	# Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
-	(cd $final_path/plugins/discourse-ldap-auth/gems/${RUBY_VERSION}/gems/omniauth-ldap*/
-	patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
-
-	#=================================================
-	# GENERIC FINALIZATION
-	#=================================================
-	# SECURE FILES AND DIRECTORIES
-	#=================================================
-
-	# Add a pids and socket directory for the systemd script.
-	mkdir -p "$final_path/tmp/pids"
-	mkdir "$final_path/tmp/sockets"
-
-	# Create specific folders and links for subfolder compatibilityn
-	# (see: https://meta.discourse.org/t/subfolder-support-with-docker/30507)
-	(
-	cd $final_path
-	mkdir -p "public/forum"
-	cd public/forum && ln -s ../uploads && ln -s ../backups
-	)
-
-	# Set permissions to app files
-	chown -R $app: $final_path
-	# Restrict rights to log directory (needed by logrotate)
-	chmod g-w $final_path/log
+(cd "$final_path"
+# Install bundler, a gems installer
+gem install bundler
+# Install without documentation
+exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc")
+# Specific actions on ARM architecture
+if [ -n "$(uname -m | grep arm)" ] ; then
+  # Define the platform specifically to retrieve binaries
+  # for libv8 because it currently doesn't compile on ARM devices
+  exec_login_as $app bundle config specific_platform arm-linux
 fi
+# Install dependencies
+exec_login_as $app bundle config set path 'vendor/bundle'
+exec_login_as $app bundle config set with 'development'
+exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2
+
+# On ARM architecture, replace bundled libpsl by system native libpsl
+# because the provided binary isn't compatible
+if [ -n "$(uname -m | grep arm)" ] ; then
+  (cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
+  rm libpsl.so
+  ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so)
+fi
+
+#=================================================
+# PREPARE THE DATABASE
+#=================================================
+ynh_print_info --message="Preparing the database..."
+
+rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
+$rake_exec db:migrate
+$rake_exec assets:precompile
+
+#=================================================
+# CONFIGURE PLUGINS
+#=================================================
+ynh_print_info --message="Configuring plugins..."
+
+# Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
+# (Can only do that now because we are patching dependencies which have just been downloaded)
+# Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
+(cd $final_path/plugins/discourse-ldap-auth/gems/${RUBY_VERSION}/gems/omniauth-ldap*/
+patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
+
+#=================================================
+# SETUP SYSTEMD
+#=================================================
+ynh_print_info --message="Configuring a systemd service..."
+
+ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/systemd.service"
+
+# We assume for the moment that ARM devices are only dual core, so
+# we restrict the number of workers to 2 (the default is 3)
+if [ -n "$(uname -m | grep arm)" ] ; then
+	additional_env="UNICORN_WORKERS=2"
+	unicorn_workers=2
+else
+	additional_env=""
+	unicorn_workers=3
+fi
+
+ynh_replace_string --match_string="__ADDITIONAL_ENV__" --replace_string="$additional_env" --target_file="../conf/systemd.service"
+ynh_replace_string --match_string="__LIBJEMALLOC__" --replace_string="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')" --target_file="../conf/systemd.service"
+ynh_add_systemd_config
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SECURE FILES AND DIRECTORIES
+#=================================================
+ynh_print_info --message="Securing files and directories..."
+
+# Add a pids and socket directory for the systemd script.
+mkdir -p "$final_path/tmp/pids"
+mkdir "$final_path/tmp/sockets"
+
+# Create specific folders and links for subfolder compatibilityn
+# (see: https://meta.discourse.org/t/subfolder-support-with-docker/30507)
+(
+cd $final_path
+mkdir -p "public/forum"
+cd public/forum && ln -s ../uploads && ln -s ../backups
+)
+
+# Set permissions to app files
+chown -R $app: $final_path
+# Restrict rights to log directory (needed by logrotate)
+chmod g-w $final_path/log
+
 #=================================================
 # SETUP SSOWAT
 #=================================================
+ynh_print_info --message="Upgrading SSOwat configuration..."
 
 # If app is public, add url to SSOWat conf as skipped_uris
-if [ $is_public -eq 1 ]; then
+if [ $is_public -eq 1 ]
+then
   # unprotected_uris allows SSO credentials to be passed anyway.
   ynh_app_setting_set "$app" skipped_uris "/"
 fi
 
 #=================================================
-# RELOAD NGINX
+# START SYSTEMD SERVICE
 #=================================================
-
-systemctl reload nginx
-
-#=================================================
-# START UNICORN
-#=================================================
+ynh_print_info --message="Starting a systemd service..."
 
 if [ -n "$(uname -m | grep arm)" ] ; then
 	unicorn_workers=2
@@ -311,10 +347,23 @@ else
 	unicorn_workers=3
 fi
 # Wait for discourse to be fully started
-ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "240" "$app"
+ynh_systemd_action --service_name=$app --action="start" --log_path="$final_path/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
 # DISABLE MAINTENANCE MODE
 #=================================================
 
 ynh_maintenance_mode_OFF
+
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_print_info --message="Reloading nginx web server..."
+
+ynh_systemd_action --service_name=nginx --action=reload
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info --message="Upgrade of $app completed"

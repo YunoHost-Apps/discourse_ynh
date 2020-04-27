@@ -1,10 +1,16 @@
 #!/bin/bash
-#
-# Common variables
-#
 
-pkg_dependencies="g++ libjemalloc1 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-openssl-dev libapr1-dev libxslt1-dev checkinstall libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
+#=================================================
+# COMMON VARIABLES
+#=================================================
+
+pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-openssl-dev libapr1-dev libxslt1-dev checkinstall libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
+
 RUBY_VERSION="2.6.5"
+
+#=================================================
+# PERSONAL HELPERS
+#=================================================
 
 # Execute a command as another user with login
 # (hence in user home dir, with prior loading of .profile, etc.)
@@ -52,11 +58,11 @@ is_memory_available() {
 # terminates installation if requirements not met
 check_memory_requirements() {
   if ! is_swap_present ; then
-    ynh_die "You must have a swap partition in order to install and use this application"
+    ynh_die --message="You must have a swap partition in order to install and use this application"
   elif ! is_swappiness_sufficient ; then
-    ynh_die "Your swappiness must be higher than 50; please see https://en.wikipedia.org/wiki/Swappiness"
+    ynh_die --message="Your swappiness must be higher than 50; please see https://en.wikipedia.org/wiki/Swappiness"
   elif ! is_memory_available 1000000 ; then
-    ynh_die "You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
+    ynh_die --message="You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
   fi
 }
 # Checks discourse upgrade memory requirements
@@ -64,518 +70,8 @@ check_memory_requirements() {
 # terminates upgrade if requirements not met
 check_memory_requirements_upgrade() {
   if ! is_memory_available 400000 ; then
-    ynh_die "You must have a minimum of 400Mb available memory (RAM+swap) for the upgrade"
+    ynh_die --message="You must have a minimum of 400Mb available memory (RAM+swap) for the upgrade"
   fi
-}
-#=================================================
-# POSTGRES HELPERS
-#=================================================
-
-# Create a master password and set up global settings
-# Please always call this script in install and restore scripts
-#
-# usage: ynh_psql_test_if_first_run
-
-ynh_psql_test_if_first_run() {
-	if [ -f /etc/yunohost/psql ];
-	then
-		echo "PostgreSQL is already installed, no need to create master password"
-	else
-		pgsql=$(ynh_string_random)
-		pg_hba=""
-		echo "$pgsql" >> /etc/yunohost/psql
-
-		if [ -e /etc/postgresql/9.4/ ]
-		then
-			pg_hba=/etc/postgresql/9.4/main/pg_hba.conf
-		elif [ -e /etc/postgresql/9.6/ ]
-		then
-			pg_hba=/etc/postgresql/9.6/main/pg_hba.conf
-		else
-			ynh_die "postgresql shoud be 9.4 or 9.6"
-		fi
-
-		systemctl start postgresql
-		sudo --login --user=postgres psql -c"ALTER user postgres WITH PASSWORD '$pgsql'" postgres
-
-		# force all user to connect to local database using passwords
-		# https://www.postgresql.org/docs/current/static/auth-pg-hba-conf.html#EXAMPLE-PG-HBA.CONF
-		# Note: we can't use peer since YunoHost create users with nologin
-		#  See: https://github.com/YunoHost/yunohost/blob/unstable/data/helpers.d/user
-		sed -i '/local\s*all\s*all\s*peer/i \
-		local all all password' "$pg_hba"
-		systemctl enable postgresql
-		systemctl reload postgresql
-	fi
-}
-
-# Open a connection as a user
-#
-# example: ynh_psql_connect_as 'user' 'pass' <<< "UPDATE ...;"
-# example: ynh_psql_connect_as 'user' 'pass' < /path/to/file.sql
-#
-# usage: ynh_psql_connect_as user pwd [db]
-# | arg: user - the user name to connect as
-# | arg: pwd - the user password
-# | arg: db - the database to connect to
-ynh_psql_connect_as() {
-	user="$1"
-	pwd="$2"
-	db="$3"
-	sudo --login --user=postgres PGUSER="$user" PGPASSWORD="$pwd" psql "$db"
-}
-
-# # Execute a command as root user
-#
-# usage: ynh_psql_execute_as_root sql [db]
-# | arg: sql - the SQL command to execute
-# | arg: db - the database to connect to
-ynh_psql_execute_as_root () {
-	sql="$1"
-	sudo --login --user=postgres psql <<< "$sql"
-}
-
-# Execute a command from a file as root user
-#
-# usage: ynh_psql_execute_file_as_root file [db]
-# | arg: file - the file containing SQL commands
-# | arg: db - the database to connect to
-ynh_psql_execute_file_as_root() {
-	file="$1"
-	db="$2"
-	sudo --login --user=postgres psql "$db" < "$file"
-}
-
-# Create a database, an user and its password. Then store the password in the app's config
-#
-# After executing this helper, the password of the created database will be available in $db_pwd
-# It will also be stored as "psqlpwd" into the app settings.
-#
-# usage: ynh_psql_setup_db user name [pwd]
-# | arg: user - Owner of the database
-# | arg: name - Name of the database
-# | arg: pwd - Password of the database. If not given, a password will be generated
-ynh_psql_setup_db () {
-	db_user="$1"
-	db_name="$2"
-	new_db_pwd=$(ynh_string_random)	# Generate a random password
-	# If $3 is not given, use new_db_pwd instead for db_pwd.
-	db_pwd="${3:-$new_db_pwd}"
-	ynh_psql_create_db "$db_name" "$db_user" "$db_pwd"	# Create the database
-	ynh_app_setting_set "$app" psqlpwd "$db_pwd"	# Store the password in the app's config
-}
-
-# Create a database and grant privilegies to a user
-#
-# usage: ynh_psql_create_db db [user [pwd]]
-# | arg: db - the database name to create
-# | arg: user - the user to grant privilegies
-# | arg: pwd  - the user password
-ynh_psql_create_db() {
-	db="$1"
-	user="$2"
-	pwd="$3"
-	ynh_psql_create_user "$user" "$pwd"
-	sudo --login --user=postgres createdb --owner="$user" "$db"
-}
-
-# Drop a database
-#
-# usage: ynh_psql_drop_db db
-# | arg: db - the database name to drop
-# | arg: user - the user to drop
-ynh_psql_remove_db() {
-	db="$1"
-	user="$2"
-	sudo --login --user=postgres dropdb "$db"
-	ynh_psql_drop_user "$user"
-}
-
-# Dump a database
-#
-# example: ynh_psql_dump_db 'roundcube' > ./dump.sql
-#
-# usage: ynh_psql_dump_db db
-# | arg: db - the database name to dump
-# | ret: the psqldump output
-ynh_psql_dump_db() {
-	db="$1"
-	sudo --login --user=postgres pg_dump "$db"
-}
-
-
-# Create a user
-#
-# usage: ynh_psql_create_user user pwd [host]
-# | arg: user - the user name to create
-ynh_psql_create_user() {
-	user="$1"
-	pwd="$2"
-        sudo --login --user=postgres psql -c"CREATE USER $user WITH PASSWORD '$pwd'" postgres
-}
-
-# Drop a user
-#
-# usage: ynh_psql_drop_user user
-# | arg: user - the user name to drop
-ynh_psql_drop_user() {
-	user="$1"
-	sudo --login --user=postgres dropuser "$user"
-}
-
-# ============= MODIFIED EXISTING YUNOHOST HELPERS =============
-
-# Create a system user
-#
-# usage: ynh_system_user_create user_name [home_dir] [use_shell]
-# | arg: user_name - Name of the system user that will be create
-# | arg: home_dir - Path of the home dir for the user. Usually the final path of the app. If this argument is omitted, the user will be created without home
-# | arg: use_shell - Create a user using the default shell if present. If this argument is omitted, the user will be created with /usr/sbin/nologin shell
-ynh_system_user_create () {
-	if ! ynh_system_user_exists "$1"	# Check if the user exists on the system
-	then	# If the user doesn't exist
-		if [ $# -ge 2 ]; then	# If a home dir is mentioned
-			local user_home_dir="-d $2"
-		else
-			local user_home_dir="--no-create-home"
-		fi
-    if [ $# -ge 3 ]; then	# If we want a shell for the user
-      local shell="" # Use default shell
-		else
-			local shell="--shell /usr/sbin/nologin"
-		fi
-		useradd $user_home_dir --system --user-group $1 $shell || ynh_die "Unable to create $1 system account"
-	fi
-}
-
-# ============= FUTURE YUNOHOST HELPERS =============
-
-# Create a dedicated fail2ban config (jail and filter conf files)
-#
-# usage: ynh_add_fail2ban_config log_file filter [max_retry [ports]]
-# | arg: log_file - Log file to be checked by fail2ban
-# | arg: failregex - Failregex to be looked for by fail2ban
-# | arg: max_retry - Maximum number of retries allowed before banning IP address - default: 3
-# | arg: ports - Ports blocked for a banned IP address - default: http,https
-ynh_add_fail2ban_config () {
-   # Process parameters
-   logpath=$1
-   failregex=$2
-   max_retry=${3:-3}
-   ports=${4:-http,https}
-
-  test -n "$logpath" || ynh_die "ynh_add_fail2ban_config expects a logfile path as first argument and received nothing."
-  test -n "$failregex" || ynh_die "ynh_add_fail2ban_config expects a failure regex as second argument and received nothing."
-
-	finalfail2banjailconf="/etc/fail2ban/jail.d/$app.conf"
-	finalfail2banfilterconf="/etc/fail2ban/filter.d/$app.conf"
-	ynh_backup_if_checksum_is_different "$finalfail2banjailconf" 1
-	ynh_backup_if_checksum_is_different "$finalfail2banfilterconf" 1
-
-  cat > $finalfail2banjailconf <<EOF
-[$app]
-enabled = true
-port = $ports
-filter = $app
-logpath = $logpath
-maxretry = $max_retry
-EOF
-
-  cat > $finalfail2banfilterconf <<EOF
-[INCLUDES]
-before = common.conf
-[Definition]
-failregex = $failregex
-ignoreregex =
-EOF
-
-	ynh_store_file_checksum "$finalfail2banjailconf"
-	ynh_store_file_checksum "$finalfail2banfilterconf"
-
-  systemctl restart fail2ban
-  local fail2ban_error="$(journalctl -u fail2ban | tail -n50 | grep "WARNING.*$app.*")"
-  if [ -n "$fail2ban_error" ]
-  then
-    echo "[ERR] Fail2ban failed to load the jail for $app" >&2
-    echo "WARNING${fail2ban_error#*WARNING}" >&2
-  fi
-}
-
-# Remove the dedicated fail2ban config (jail and filter conf files)
-#
-# usage: ynh_remove_fail2ban_config
-ynh_remove_fail2ban_config () {
-	ynh_secure_remove "/etc/fail2ban/jail.d/$app.conf"
-  ynh_secure_remove "/etc/fail2ban/filter.d/$app.conf"
-	systemctl restart fail2ban
-}
-
-# Delete a file checksum from the app settings
-#
-# $app should be defined when calling this helper
-#
-# usage: ynh_remove_file_checksum file
-# | arg: file - The file for which the checksum will be deleted
-ynh_delete_file_checksum () {
-	local checksum_setting_name=checksum_${1//[\/ ]/_}	# Replace all '/' and ' ' by '_'
-	ynh_app_setting_delete $app $checksum_setting_name
-}
-
-rbenv_install_dir="/opt/rbenv"
-# RBENV_ROOT is the directory of rbenv, it needs to be loaded as a environment variable.
-export RBENV_ROOT="$rbenv_install_dir"
-
-# Install ruby version management
-#
-# [internal]
-#
-# usage: ynh_install_rbenv
-ynh_install_rbenv () {
-	echo "Installation of rbenv - ruby version management" >&2
-	# Build an app.src for rbenv
-	mkdir -p "../conf"
-	echo "SOURCE_URL=https://github.com/rbenv/rbenv/archive/v1.1.1.tar.gz
-SOURCE_SUM=41f1a60714c55eceb21d692a469aee1ec4f46bba351d0dfcb0c660ff9cf1a1c9" > "../conf/rbenv.src"
-	# Download and extract rbenv
-	ynh_setup_source "$rbenv_install_dir" rbenv
-
-  (cd $rbenv_install_dir
-  ./src/configure && make -C src)
-
-# Create shims directory if needed
-if [ ! -d $rbenv_install_dir/shims ] ; then
-  mkdir $rbenv_install_dir/shims
-fi
-}
-
-# Install a specific version of ruby
-#
-# ynh_install_ruby will install the version of ruby provided as argument by using rbenv.
-#
-# rbenv (ruby version management) stores the target ruby version in a .ruby_version file created in the target folder (using rbenv local <version>)
-# It then uses that information for every ruby user that uses rbenv provided ruby command
-#
-# This helper creates a /etc/profile.d/rbenv.sh that configures PATH environment for rbenv
-# for every LOGIN user, hence your user must have a defined shell (as opposed to /usr/sbin/nologin)
-#
-# Don't forget to execute ruby-dependent command in a login environment
-# (e.g. sudo --login option)
-# When not possible (e.g. in systemd service definition), please use direct path
-# to rbenv shims (e.g. $RBENV_ROOT/shims/bundle)
-#
-# usage: ynh_install_ruby ruby_version user
-# | arg: ruby_version - Version of ruby to install.
-#        If possible, prefer to use major version number (e.g. 8 instead of 8.10.0).
-#        The crontab will handle the update of minor versions when needed.
-ynh_install_ruby () {
-	# Use rbenv, https://github.com/rbenv/rbenv to manage the ruby versions
-	local ruby_version="$1"
-
-	# Create $rbenv_install_dir
-	mkdir -p "$rbenv_install_dir/plugins/ruby-build"
-
-	# Load rbenv path in PATH
-	CLEAR_PATH="$rbenv_install_dir/bin:$PATH"
-
-	# Remove /usr/local/bin in PATH in case of ruby prior installation
-	PATH=$(echo $CLEAR_PATH | sed 's@/usr/local/bin:@@')
-
-	# Move an existing ruby binary, to avoid to block rbenv
-	test -x /usr/bin/ruby && mv /usr/bin/ruby /usr/bin/ruby_rbenv
-
-	# If rbenv is not previously setup, install it
-	if ! type rbenv > /dev/null 2>&1
-	then
-		ynh_install_rbenv
-	fi
-
-  # Download ruby-build (replace if already exists)
-  if [ -d $rbenv_install_dir/plugins/ruby-build ]; then
-    rm -Rf $rbenv_install_dir/plugins/ruby-build
-  fi
-  # Build an app.src for ruby-build
-  mkdir -p "../conf"
-  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20200115.tar.gz
-SOURCE_SUM=e680eb8a606be358740fb0dfcf08309081fa27a54224e00fc7673ed2c842032d" > "../conf/ruby-build.src"
-  # Download and extract ruby-build
-  ynh_setup_source "$rbenv_install_dir/plugins/ruby-build" ruby-build
-	# Restore /usr/local/bin in PATH (if needed)
-	PATH=$CLEAR_PATH
-
-	# And replace the old ruby binary
-	test -x /usr/bin/ruby_rbenv && mv /usr/bin/ruby_rbenv /usr/bin/ruby
-
-	# Install the requested version of ruby
-	CONFIGURE_OPTS="--disable-install-doc --with-jemalloc" MAKE_OPTS="-j2" rbenv install --skip-existing $ruby_version
-
-	# Store the ID of this app and the version of ruby requested for it
-	echo "$YNH_APP_ID:$ruby_version" | tee --append "$rbenv_install_dir/ynh_app_version"
-
-	# Store ruby_version into the config of this app
-	ynh_app_setting_set $app ruby_version $ruby_version
-
-  # Set environment for ruby users
-  echo  "#rbenv
-export RBENV_ROOT=$rbenv_install_dir
-export PATH=\"$rbenv_install_dir/bin:$PATH\"
-eval \"\$(rbenv init -)\"
-#rbenv" > /etc/profile.d/rbenv.sh
-
-  # Load the right environment for the Installation
-  eval "$(rbenv init -)"
-
-  (cd $final_path
-  rbenv local $ruby_version)
-}
-
-# Remove the version of ruby used by the app.
-#
-# This helper will check if another app uses the same version of ruby,
-# if not, this version of ruby will be removed.
-# If no other app uses ruby, rbenv will be also removed.
-#
-# usage: ynh_remove_ruby
-ynh_remove_ruby () {
-	ruby_version=$(ynh_app_setting_get $app ruby_version)
-
-	# Remove the line for this app
-	sed --in-place "/$YNH_APP_ID:$ruby_version/d" "$rbenv_install_dir/ynh_app_version"
-
-	# If no other app uses this version of ruby, remove it.
-	if ! grep --quiet "$ruby_version" "$rbenv_install_dir/ynh_app_version"
-	then
-		$rbenv_install_dir/bin/rbenv uninstall --force $ruby_version
-	fi
-
-  # Remove rbenv environment configuration
-  rm /etc/profile.d/rbenv.sh
-
-	# If no other app uses rbenv, remove rbenv and dedicated group
-	if [ ! -s "$rbenv_install_dir/ynh_app_version" ]
-	then
-		ynh_secure_remove "$rbenv_install_dir"
-	fi
-}
-
-# ============= EXPERIMENTAL HELPERS =============
-
-# Returns true if upstream version is up to date
-#
-# This helper should be used to avoid an upgrade of the upstream version
-# when it's not needed (but yet allowing to upgrade other parts of the
-# YunoHost application (e.g. nginx conf)
-#
-# usage: ynh_is_upstream_up_to_date (returns a boolean)
-ynh_is_upstream_up_to_date () {
-	local version=$(ynh_read_manifest "/etc/yunohost/apps/$YNH_APP_INSTANCE_NAME/manifest.json" "version" || echo 1.0)
-  version="${version/~ynh*/}"
-	local last_version=$(ynh_read_manifest "../manifest.json" "version" || echo 1.0)
-  last_version="${last_version/~ynh*/}"
-  [ "$version" = "$last_version" ]
-}
-
-# Read the value of a key in a ynh manifest file
-#
-# usage: ynh_read_manifest manifest key
-# | arg: manifest - Path of the manifest to read
-# | arg: key - Name of the key to find
-ynh_read_manifest () {
-	manifest="$1"
-	key="$2"
-	python3 -c "import sys, json;print(json.load(open('$manifest', encoding='utf-8'))['$key'])"
-}
-
-# Read the upstream version from the manifest
-# The version number in the manifest is defined by <upstreamversion>~ynh<packageversion>
-# For example : 4.3-2~ynh3
-# This include the number before ~ynh
-# In the last example it return 4.3-2
-#
-# usage: ynh_app_upstream_version
-ynh_app_upstream_version () {
-    manifest_path="../manifest.json"
-    if [ ! -e "$manifest_path" ]; then
-        manifest_path="../settings/manifest.json"	# Into the restore script, the manifest is not at the same place
-    fi
-    version_key=$(ynh_read_manifest "$manifest_path" "version")
-    echo "${version_key/~ynh*/}"
-}
-
-# Read package version from the manifest
-# The version number in the manifest is defined by <upstreamversion>~ynh<packageversion>
-# For example : 4.3-2~ynh3
-# This include the number after ~ynh
-# In the last example it return 3
-#
-# usage: ynh_app_package_version
-ynh_app_package_version () {
-    manifest_path="../manifest.json"
-    if [ ! -e "$manifest_path" ]; then
-        manifest_path="../settings/manifest.json"	# Into the restore script, the manifest is not at the same place
-    fi
-    version_key=$(ynh_read_manifest "$manifest_path" "version")
-    echo "${version_key/*~ynh/}"
-}
-
-# Start or restart a service and follow its booting
-#
-# usage: ynh_check_starting "Line to match" [Log file] [Timeout] [Service name]
-#
-# | arg: Line to match - The line to find in the log to attest the service have finished to boot.
-# | arg: Log file - The log file to watch; specify "systemd" to read systemd journal for specified service
-#    /var/log/$app/$app.log will be used if no other log is defined.
-# | arg: Timeout - The maximum time to wait before ending the watching. Defaut 300 seconds.
-# | arg: Service name
-ynh_check_starting () {
-	local line_to_match="$1"
-	local service_name="${4:-$app}"
-	local app_log="${2:-/var/log/$service_name/$service_name.log}"
-	local timeout=${3:-300}
-
-	echo "Starting of $service_name" >&2
-	systemctl stop $service_name
-	local templog="$(mktemp)"
-	# Following the starting of the app in its log
-	if [ "$app_log" == "systemd" ] ; then
-		# Read the systemd journal
-		journalctl -u $service_name -f --since=-45 > "$templog" &
-	else
-		# Read the specified log file
-		tail -F -n0 "$app_log" > "$templog" &
-	fi
-	# Get the PID of the last command
-	local pid_tail=$!
-	systemctl start $service_name
-
-	local i=0
-	for i in `seq 1 $timeout`
-	do
-		# Read the log until the sentence is found, which means the app finished starting. Or run until the timeout.
-		if grep --quiet "$line_to_match" "$templog"
-		then
-			echo "The service $service_name has correctly started." >&2
-			break
-		fi
-		echo -n "." >&2
-		sleep 1
-	done
-	if [ $i -eq $timeout ]
-	then
-		echo "The service $service_name didn't fully start before the timeout." >&2
-	fi
-
-	echo ""
-	ynh_clean_check_starting
-}
-# Clean temporary process and file used by ynh_check_starting
-# (usually used in ynh_clean_setup scripts)
-#
-# usage: ynh_clean_check_starting
-
-ynh_clean_check_starting () {
-	# Stop the execution of tail.
-	kill -s 15 $pid_tail 2>&1
-	ynh_secure_remove "$templog" 2>&1
 }
 
 ynh_maintenance_mode_ON () {
@@ -656,6 +152,173 @@ ynh_maintenance_mode_OFF () {
 }
 
 #=================================================
+# EXPERIMENTAL HELPERS
+#=================================================
+
+#=================================================
+# FUTURE OFFICIAL HELPERS
+#=================================================
+
+#=================================================
+# RUBY HELPER
+#=================================================
+
+rbenv_install_dir="/opt/rbenv"
+# RBENV_ROOT is the directory of rbenv, it needs to be loaded as a environment variable.
+export RBENV_ROOT="$rbenv_install_dir"
+
+# Install ruby version management
+#
+# [internal]
+#
+# usage: ynh_install_rbenv
+ynh_install_rbenv () {
+  echo "Installation of rbenv - ruby version management" >&2
+  # Build an app.src for rbenv
+  mkdir -p "../conf"
+  echo "SOURCE_URL=https://github.com/rbenv/rbenv/archive/v1.1.2.tar.gz
+SOURCE_SUM=80ad89ffe04c0b481503bd375f05c212bbc7d44ef5f5e649e0acdf25eba86736" > "../conf/rbenv.src"
+  # Download and extract rbenv
+  ynh_setup_source "$rbenv_install_dir" rbenv
+
+  # Build an app.src for ruby-build
+  mkdir -p "../conf"
+  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20191004.tar.gz
+SOURCE_SUM=6f053957acb0af6d621ebf2b9dacc9c265844b2dc6842a021eb10f0a70094fe8" > "../conf/ruby-build.src"
+  # Download and extract ruby-build
+  ynh_setup_source "$rbenv_install_dir/plugins/ruby-build" ruby-build
+
+  (cd $rbenv_install_dir
+  ./src/configure && make -C src)
+
+# Create shims directory if needed
+if [ ! -d $rbenv_install_dir/shims ] ; then
+  mkdir $rbenv_install_dir/shims
+fi
+}
+
+# Install a specific version of ruby
+#
+# ynh_install_ruby will install the version of ruby provided as argument by using rbenv.
+#
+# rbenv (ruby version management) stores the target ruby version in a .ruby_version file created in the target folder (using rbenv local <version>)
+# It then uses that information for every ruby user that uses rbenv provided ruby command
+#
+# This helper creates a /etc/profile.d/rbenv.sh that configures PATH environment for rbenv
+# for every LOGIN user, hence your user must have a defined shell (as opposed to /usr/sbin/nologin)
+#
+# Don't forget to execute ruby-dependent command in a login environment
+# (e.g. sudo --login option)
+# When not possible (e.g. in systemd service definition), please use direct path
+# to rbenv shims (e.g. $RBENV_ROOT/shims/bundle)
+#
+# usage: ynh_install_ruby ruby_version user
+# | arg: -v, --ruby_version= - Version of ruby to install.
+#        If possible, prefer to use major version number (e.g. 8 instead of 8.10.0).
+#        The crontab will handle the update of minor versions when needed.
+ynh_install_ruby () {
+  # Declare an array to define the options of this helper.
+  declare -Ar args_array=( [v]=ruby_version= )
+  # Use rbenv, https://github.com/rbenv/rbenv to manage the ruby versions
+  local ruby_version
+  # Manage arguments with getopts
+  ynh_handle_getopts_args "$@"
+
+  # Create $rbenv_install_dir
+  mkdir -p "$rbenv_install_dir/plugins/ruby-build"
+
+  # Load rbenv path in PATH
+  CLEAR_PATH="$rbenv_install_dir/bin:$PATH"
+
+  # Remove /usr/local/bin in PATH in case of ruby prior installation
+  PATH=$(echo $CLEAR_PATH | sed 's@/usr/local/bin:@@')
+
+  # Move an existing ruby binary, to avoid to block rbenv
+  test -x /usr/bin/ruby && mv /usr/bin/ruby /usr/bin/ruby_rbenv
+
+  # If rbenv is not previously setup, install it
+  if ! type rbenv > /dev/null 2>&1
+  then
+    ynh_install_rbenv
+  elif dpkg --compare-versions "$(/opt/rbenv/bin/rbenv --version | cut -d" " -f2)" lt "1.1.2"
+  then
+    ynh_install_rbenv
+  fi
+
+  # Restore /usr/local/bin in PATH (if needed)
+  PATH=$CLEAR_PATH
+
+  # And replace the old ruby binary
+  test -x /usr/bin/ruby_rbenv && mv /usr/bin/ruby_rbenv /usr/bin/ruby
+
+  # Install the requested version of ruby
+  CONFIGURE_OPTS="--disable-install-doc" MAKE_OPTS="-j2" rbenv install --skip-existing $ruby_version
+
+  # Store the ID of this app and the version of ruby requested for it
+  echo "$YNH_APP_ID:$ruby_version" | tee --append "$rbenv_install_dir/ynh_app_version"
+
+  # Store ruby_version into the config of this app
+  ynh_app_setting_set $app ruby_version $ruby_version
+
+  # Set environment for ruby users
+  echo  "#rbenv
+export RBENV_ROOT=$rbenv_install_dir
+export PATH=\"$rbenv_install_dir/bin:$PATH\"
+eval \"\$(rbenv init -)\"
+#rbenv" > /etc/profile.d/rbenv.sh
+
+  # Load the right environment for the Installation
+  eval "$(rbenv init -)"
+
+  (cd $final_path
+  rbenv local $ruby_version)
+}
+
+# Remove the version of ruby used by the app.
+#
+# This helper will check if another app uses the same version of ruby,
+# if not, this version of ruby will be removed.
+# If no other app uses ruby, rbenv will be also removed.
+#
+# usage: ynh_remove_ruby
+ynh_remove_ruby () {
+  ruby_version=$(ynh_app_setting_get $app ruby_version)
+
+  # Remove the line for this app
+  sed --in-place "/$YNH_APP_ID:$ruby_version/d" "$rbenv_install_dir/ynh_app_version"
+
+  # If no other app uses this version of ruby, remove it.
+  if ! grep --quiet "$ruby_version" "$rbenv_install_dir/ynh_app_version"
+  then
+    $rbenv_install_dir/bin/rbenv uninstall --force $ruby_version
+  fi
+
+  # Remove rbenv environment configuration
+  rm /etc/profile.d/rbenv.sh
+
+  # If no other app uses rbenv, remove rbenv and dedicated group
+  if [ ! -s "$rbenv_install_dir/ynh_app_version" ]
+  then
+    ynh_secure_remove "$rbenv_install_dir"
+  fi
+}
+
+# Returns true if upstream version is up to date
+#
+# This helper should be used to avoid an upgrade of the upstream version
+# when it's not needed (but yet allowing to upgrade other parts of the
+# YunoHost application (e.g. nginx conf)
+#
+# usage: ynh_is_upstream_up_to_date (returns a boolean)
+ynh_is_upstream_up_to_date () {
+	local version=$(ynh_read_manifest "/etc/yunohost/apps/$YNH_APP_INSTANCE_NAME/manifest.json" "version" || echo 1.0)
+  version="${version/~ynh*/}"
+	local last_version=$(ynh_read_manifest "../manifest.json" "version" || echo 1.0)
+  last_version="${last_version/~ynh*/}"
+  [ "$version" = "$last_version" ]
+}
+
+#=================================================
 # REDIS HELPERS
 #=================================================
 
@@ -682,7 +345,7 @@ ynh_redis_get_free_db() {
  		db=-1
 	done
 
-	test "$db" -eq -1 && ynh_die "No available Redis databases..."
+	test "$db" -eq -1 && ynh_die --message="No available Redis databases..."
 
 	echo "$db"
 }
@@ -695,227 +358,4 @@ ynh_redis_get_free_db() {
 ynh_redis_remove_db() {
 	local db=$1
 	redis-cli -n "$db" flushall
-}
-
-#=================================================
-# FIXED HELPERS FROM UNSTABLE
-#=================================================
-
-# Internal helper design to allow helpers to use getopts to manage their arguments
-#
-# [internal]
-#
-# example: function my_helper()
-# {
-#     declare -Ar args_array=( [a]=arg1= [b]=arg2= [c]=arg3 )
-#     local arg1
-#     local arg2
-#     local arg3
-#     ynh_handle_getopts_args "$@"
-#
-#     [...]
-# }
-# my_helper --arg1 "val1" -b val2 -c
-#
-# usage: ynh_handle_getopts_args "$@"
-# | arg: $@    - Simply "$@" to tranfert all the positionnal arguments to the function
-#
-# This helper need an array, named "args_array" with all the arguments used by the helper
-# 	that want to use ynh_handle_getopts_args
-# Be carreful, this array has to be an associative array, as the following example:
-# declare -Ar args_array=( [a]=arg1 [b]=arg2= [c]=arg3 )
-# Let's explain this array:
-# a, b and c are short options, -a, -b and -c
-# arg1, arg2 and arg3 are the long options associated to the previous short ones. --arg1, --arg2 and --arg3
-# For each option, a short and long version has to be defined.
-# Let's see something more significant
-# declare -Ar args_array=( [u]=user [f]=finalpath= [d]=database )
-#
-# NB: Because we're using 'declare' without -g, the array will be declared as a local variable.
-#
-# Please keep in mind that the long option will be used as a variable to store the values for this option.
-# For the previous example, that means that $finalpath will be fill with the value given as argument for this option.
-#
-# Also, in the previous example, finalpath has a '=' at the end. That means this option need a value.
-# So, the helper has to be call with --finalpath /final/path, --finalpath=/final/path or -f /final/path, the variable $finalpath will get the value /final/path
-# If there's many values for an option, -f /final /path, the value will be separated by a ';' $finalpath=/final;/path
-# For an option without value, like --user in the example, the helper can be called only with --user or -u. $user will then get the value 1.
-#
-# To keep a retrocompatibility, a package can still call a helper, using getopts, with positional arguments.
-# The "legacy mode" will manage the positional arguments and fill the variable in the same order than they are given in $args_array.
-# e.g. for `my_helper "val1" val2`, arg1 will be filled with val1, and arg2 with val2.
-ynh_handle_getopts_args () {
-	# Manage arguments only if there's some provided
-	set +x
-	if [ $# -ne 0 ]
-	then
-		# Store arguments in an array to keep each argument separated
-		local arguments=("$@")
-
-		# For each option in the array, reduce to short options for getopts (e.g. for [u]=user, --user will be -u)
-		# And built parameters string for getopts
-		# ${!args_array[@]} is the list of all option_flags in the array (An option_flag is 'u' in [u]=user, user is a value)
-		local getopts_parameters=""
-		local option_flag=""
-		for option_flag in "${!args_array[@]}"
-		do
-			# Concatenate each option_flags of the array to build the string of arguments for getopts
-			# Will looks like 'abcd' for -a -b -c -d
-			# If the value of an option_flag finish by =, it's an option with additionnal values. (e.g. --user bob or -u bob)
-			# Check the last character of the value associate to the option_flag
-			if [ "${args_array[$option_flag]: -1}" = "=" ]
-			then
-				# For an option with additionnal values, add a ':' after the letter for getopts.
-				getopts_parameters="${getopts_parameters}${option_flag}:"
-			else
-				getopts_parameters="${getopts_parameters}${option_flag}"
-			fi
-			# Check each argument given to the function
-			local arg=""
-			# ${#arguments[@]} is the size of the array
-			for arg in `seq 0 $(( ${#arguments[@]} - 1 ))`
-			do
-				# And replace long option (value of the option_flag) by the short option, the option_flag itself
-				# (e.g. for [u]=user, --user will be -u)
-				# Replace long option with =
-				arguments[arg]="${arguments[arg]//--${args_array[$option_flag]}/-${option_flag} }"
-				# And long option without =
-				arguments[arg]="${arguments[arg]//--${args_array[$option_flag]%=}/-${option_flag}}"
-			done
-		done
-
-		# Read and parse all the arguments
-		# Use a function here, to use standart arguments $@ and be able to use shift.
-		parse_arg () {
-			# Read all arguments, until no arguments are left
-			while [ $# -ne 0 ]
-			do
-				# Initialize the index of getopts
-				OPTIND=1
-				# Parse with getopts only if the argument begin by -, that means the argument is an option
-				# getopts will fill $parameter with the letter of the option it has read.
-				local parameter=""
-				getopts ":$getopts_parameters" parameter || true
-
-				if [ "$parameter" = "?" ]
-				then
-					ynh_die --message="Invalid argument: -${OPTARG:-}"
-				elif [ "$parameter" = ":" ]
-				then
-					ynh_die --message="-$OPTARG parameter requires an argument."
-				else
-					local shift_value=1
-					# Use the long option, corresponding to the short option read by getopts, as a variable
-					# (e.g. for [u]=user, 'user' will be used as a variable)
-					# Also, remove '=' at the end of the long option
-					# The variable name will be stored in 'option_var'
-					local option_var="${args_array[$parameter]%=}"
-					# If this option doesn't take values
-					# if there's a '=' at the end of the long option name, this option takes values
-					if [ "${args_array[$parameter]: -1}" != "=" ]
-					then
-						# 'eval ${option_var}' will use the content of 'option_var'
-						eval ${option_var}=1
-					else
-						# Read all other arguments to find multiple value for this option.
-						# Load args in a array
-						local all_args=("$@")
-
-						# If the first argument is longer than 2 characters,
-						# There's a value attached to the option, in the same array cell
-						if [ ${#all_args[0]} -gt 2 ]; then
-							# Remove the option and the space, so keep only the value itself.
-							all_args[0]="${all_args[0]#-${parameter} }"
-							# Reduce the value of shift, because the option has been removed manually
-							shift_value=$(( shift_value - 1 ))
-						fi
-
-						# Declare the content of option_var as a variable.
-						eval ${option_var}=""
-						# Then read the array value per value
-						local i
-						for i in `seq 0 $(( ${#all_args[@]} - 1 ))`
-						do
-							# If this argument is an option, end here.
-							if [ "${all_args[$i]:0:1}" == "-" ]
-							then
-								# Ignore the first value of the array, which is the option itself
-								if [ "$i" -ne 0 ]; then
-									break
-								fi
-							else
-								# Else, add this value to this option
-								# Each value will be separated by ';'
-								if [ -n "${!option_var}" ]
-								then
-									# If there's already another value for this option, add a ; before adding the new value
-									eval ${option_var}+="\;"
-								fi
-								# Escape double quote to prevent any interpretation during the eval
-								all_args[$i]="${all_args[$i]//\"/\\\"}"
-								# Escape $ as well to prevent the string following it to be seen as a variable.
-								all_args[$i]="${all_args[$i]//$/\\\$}"
-
-								# For the record.
-								# We're using eval here to get the content of the variable stored itself as simple text in $option_var...
-								# Other ways to get that content would be to use either ${!option_var} or declare -g ${option_var}
-								# But... ${!option_var} can't be used as left part of an assignation.
-								# declare -g ${option_var} will create a local variable (despite -g !) and will not be available for the helper itself.
-								# So... Stop fucking arguing each time that eval is evil... Go find an other working solution if you can find one!
-
-								eval ${option_var}+=\"${all_args[$i]}\"
-								shift_value=$(( shift_value + 1 ))
-							fi
-						done
-					fi
-				fi
-
-				# Shift the parameter and its argument(s)
-				shift $shift_value
-			done
-		}
-
-		# LEGACY MODE
-		# Check if there's getopts arguments
-		if [ "${arguments[0]:0:1}" != "-" ]
-		then
-			# If not, enter in legacy mode and manage the arguments as positionnal ones..
-			# Dot not echo, to prevent to go through a helper output. But print only in the log.
-			set -x; echo "! Helper used in legacy mode !" > /dev/null; set +x
-			local i
-			for i in `seq 0 $(( ${#arguments[@]} -1 ))`
-			do
-				# Try to use legacy_args as a list of option_flag of the array args_array
-				# Otherwise, fallback to getopts_parameters to get the option_flag. But an associative arrays isn't always sorted in the correct order...
-				# Remove all ':' in getopts_parameters
-				getopts_parameters=${legacy_args:-${getopts_parameters//:}}
-				# Get the option_flag from getopts_parameters, by using the option_flag according to the position of the argument.
-				option_flag=${getopts_parameters:$i:1}
-				if [ -z "$option_flag" ]; then
-						ynh_print_warn --message="Too many arguments ! \"${arguments[$i]}\" will be ignored."
-						continue
-				fi
-				# Use the long option, corresponding to the option_flag, as a variable
-				# (e.g. for [u]=user, 'user' will be used as a variable)
-				# Also, remove '=' at the end of the long option
-				# The variable name will be stored in 'option_var'
-				local option_var="${args_array[$option_flag]%=}"
-
-				# Escape double quote to prevent any interpretation during the eval
-				arguments[$i]="${arguments[$i]//\"/\\\"}"
-				# Escape $ as well to prevent the string following it to be seen as a variable.
-				arguments[$i]="${arguments[$i]//$/\\\$}"
-
-				# Store each value given as argument in the corresponding variable
-				# The values will be stored in the same order than $args_array
-				eval ${option_var}+=\"${arguments[$i]}\"
-			done
-			unset legacy_args
-		else
-			# END LEGACY MODE
-			# Call parse_arg and pass the modified list of args as an array of arguments.
-			parse_arg "${arguments[@]}"
-		fi
-	fi
-	set -x
 }

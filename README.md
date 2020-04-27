@@ -1,9 +1,9 @@
 # Discourse for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/discourse.svg)](https://ci-apps.yunohost.org/jenkins/job/discourse%20%28Community%29/lastBuild/consoleFull)
+[![Integration level](https://dash.yunohost.org/integration/discoursediscourse.svg)](https://dash.yunohost.org/appci/app/discourse)  
 [![Install Discourse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=discourse)
 
-> *This package allows you to install discourse quickly and simply on a YunoHost server.
+> *This package allow you to install discourse quickly and simply on a YunoHost server.  
 If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
 
 ## Disclaimer
@@ -23,6 +23,7 @@ Moreover, you should have in mind Discourse [hardware requirements](https://gith
 Finally, if installing on a low-end ARM device (e.g. Raspberry Pi):
 - installation can last up to 3 hours,
 - first access right after installation could take a couple of minutes.
+
 ## Overview
 [Discourse](http://www.discourse.org) is the 100% open source discussion platform built for the next decade of the Internet. Use it as a:
 
@@ -36,12 +37,11 @@ To learn more about the philosophy and goals of the project, [visit **discourse.
 
 ## Screenshots
 
-<a href="https://bbs.boingboing.net"><img alt="Boing Boing" src="https://cloud.githubusercontent.com/assets/1385470/25397876/3fe6cdac-29c0-11e7-8a41-9d0c0279f5a3.png" width="720px"></a>
-<a href="https://twittercommunity.com/"><img src="https://cloud.githubusercontent.com/assets/1385470/25397920/71b24e4c-29c0-11e7-8bcf-7a47b888412e.png" width="720px"></a>
-<a href="http://discuss.howtogeek.com"><img src="https://cloud.githubusercontent.com/assets/1385470/25398049/f0995962-29c0-11e7-99d7-a3b9c4f0b357.png" width="720px"></a>
-<a href="https://talk.turtlerockstudios.com/"><img src="https://cloud.githubusercontent.com/assets/1385470/25398115/2d560d96-29c1-11e7-9a96-b0134a4fedff.png" width="720px"></a>
-
-<img src="https://www.discourse.org/a/img/about/mobile-devices-2x.jpg" alt="Mobile" width="414">
+![](https://cloud.githubusercontent.com/assets/1385470/25397876/3fe6cdac-29c0-11e7-8a41-9d0c0279f5a3.png)
+![](https://cloud.githubusercontent.com/assets/1385470/25397920/71b24e4c-29c0-11e7-8bcf-7a47b888412e.png)
+![](https://cloud.githubusercontent.com/assets/1385470/25398049/f0995962-29c0-11e7-99d7-a3b9c4f0b357.png)
+![](https://cloud.githubusercontent.com/assets/1385470/25398115/2d560d96-29c1-11e7-9a96-b0134a4fedff.png)
+![](https://www.discourse.org/a/img/about/mobile-devices-2x.jpg)
 
 ## Configuration
 
@@ -105,18 +105,17 @@ When disabling Local Login and other authentication services, clicking the `Logi
 
 ![LDAP Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/ldap_popup.png)
 
-
-
 #### Supported architectures
 
-* Tested on x86_64
-* Tested on ARM
+* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/discourse%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/discourse%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/discourse/)
 
 ## Limitations
-### Known problems
+
 * In the administration dashboard, The installed version is shown as `unknown` (due the fact that we don't use git for installation); you can safely ignore that as the YunoHost package will be maintained.
 * On ARM devices, default generated avatars are missing the profile initials (they are only a plain discus)
 
+## Additional information
 ### Known non-impacting log messages
 ```
 fatal: Not a git repository (or any of the parent directories): .git
@@ -136,12 +135,13 @@ systemctl restart discourse
 
  * Report a bug: https://github.com/YunoHost-Apps/discourse_ynh/issues
  * Discourse website: https://discourse.org/
+ * Upstream app repository: https://github.com/discourse/discourse
  * YunoHost website: https://yunohost.org/
 
 ---
 
 Developers info
----------------
+----------------
 
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing).
 
