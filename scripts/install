@@ -312,6 +312,8 @@ else
 	additional_env=""
 	unicorn_workers=3
 fi
+ynh_app_setting_set --app=$app --key=unicorn_workers --value=$unicorn_workers
+
 ynh_replace_string --match_string="__ADDITIONAL_ENV__" --replace_string="$additional_env" --target_file="../conf/systemd.service"
 ynh_replace_string --match_string="__LIBJEMALLOC__" --replace_string="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')" --target_file="../conf/systemd.service"
 ynh_add_systemd_config
