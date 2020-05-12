@@ -263,16 +263,6 @@ INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUE
 "
 
 #=================================================
-# FIX INITIAL POSTS LINKS FOR SUBFOLDER INSTALL
-#=================================================
-ynh_print_info --message="Fixing initial post links..."
-
-if [ "$path_url" != "/" ] ; then
-  exec_login_as $app RAILS_ENV=production bundle exec script/discourse remap /images/welcome/ $path_url/images/welcome/ <<< "YES
-	"
-fi
-
-#=================================================
 # CREATE DISCOURSE ADMIN USER
 #=================================================
 ynh_print_info --message="Creating Discourse admin user..."
