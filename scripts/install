@@ -188,7 +188,7 @@ echo "svgo: false" > $final_path/.image_optim.yml
 #=================================================
 # SETUP UNICORN, A RUBY SERVER
 #=================================================
-ynh_print_info --message="Setuping Unicorn..."
+ynh_print_info --message="Setting up Unicorn..."
 
 unicorn_config_file="$final_path/config/unicorn.conf.rb"
 # Use socket connection

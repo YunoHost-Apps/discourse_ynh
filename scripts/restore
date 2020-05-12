@@ -100,7 +100,7 @@ ynh_install_ruby --ruby_version=$RUBY_VERSION
 #=================================================
 # REINSTALL BUNDLE GEM
 #=================================================
-ynh_print_info --message="Réinstall Bundle Gem..."
+ynh_print_info --message="Reinstall Bundle Gem..."
 
 (cd "$final_path"
 gem install bundler)

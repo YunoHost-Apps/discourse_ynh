@@ -41,7 +41,7 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 ynh_script_progression --message="Ensuring downward compatibility..." --weight=1
 
-# If db_name doesn't exist, create it
+# If unicorn_workers doesn't exist, create it
 if [ -z "$unicorn_workers" ]
 then
 	# We assume for the moment that ARM devices are only dual core, so
@@ -237,7 +237,7 @@ echo "svgo: false" > $final_path/.image_optim.yml
 #=================================================
 # SETUP UNICORN, A RUBY SERVER
 #=================================================
-ynh_print_info --message="Setuping Unicorn..."
+ynh_print_info --message="Setting up Unicorn..."
 
 unicorn_config_file="$final_path/config/unicorn.conf.rb"
 # Use socket connection
