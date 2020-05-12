@@ -119,16 +119,13 @@ fi
 discourse_config_file="$final_path/config/discourse.conf"
 # Configure hostname
 ynh_replace_string --match_string="hostname = .*" --replace_string="hostname = \"$new_domain\"" --target_file="$discourse_config_file"
-ynh_replace_string --match_string="relative_url_root = .*" --replace_string="relative_url_root = ${path_url%/}" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="relative_url_root = .*" --replace_string="relative_url_root = ${new_path%/}" --target_file="$discourse_config_file"
 ynh_replace_string --match_string="smtp_domain = .*" --replace_string="smtp_domain = $new_domain" --target_file="$discourse_config_file"
 
 # Calculate and store the config file checksum
 ynh_store_file_checksum --file="$discourse_config_file"
 
 # Change URL setting
-echo "UPDATE site_settings SET value = replace(value, '${old_path%/}/images/', '${new_path%/}/images/');
-UPDATE site_settings SET value = '${new_path}') WHERE name='long_polling_base_url';"
-
 ynh_psql_connect_as --user=$db_user --password=$db_pwd --database=$db_name <<< "UPDATE site_settings SET value = replace(value, '${old_path%/}/images/', '${new_path%/}/images/');
 UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';"
 
