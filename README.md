@@ -1,10 +1,10 @@
 # Discourse for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/discoursediscourse.svg)](https://dash.yunohost.org/appci/app/discourse)  
+[![Integration level](https://dash.yunohost.org/integration/discourse.svg)](https://dash.yunohost.org/appci/app/discourse) ![](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)  
 [![Install Discourse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=discourse)
 
-> *This package allows you to install discourse quickly and simply on a YunoHost server.  
-If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to know how to install and enjoy it.*
+> *This package allows you to install Discourse quickly and simply on a YunoHost server.  
+If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/install) to learn how to install it.*
 
 ## Disclaimer
 
@@ -45,7 +45,7 @@ To learn more about the philosophy and goals of the project, [visit **discourse.
 
 ## Configuration
 
-Use the admin panel of your discourse to configure this app.
+Use the admin panel of your Discourse to configure this app.
 
 ### Configuring "Reply-By-Email"
 
@@ -89,7 +89,7 @@ Discourse can now receive mail from `foo@theirexternalmail.com` and give it to t
    * private mode: Forum only accessible by YunoHost users
    * public mode: Visible by anyone
 
-#### Multi-users support
+#### Multi-user support
 
 Supported, with LDAP and SSO.
 
@@ -107,7 +107,7 @@ When disabling Local Login and other authentication services, clicking the `Logi
 
 #### Supported architectures
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/discourse%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/)
+* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/discourse%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/)
 * ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/discourse%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/discourse/)
 
 ## Limitations
@@ -139,10 +139,10 @@ systemctl restart discourse
 
 ---
 
-Developers info
+Developer info
 ----------------
 
-Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing).
+Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing).
 
 To try the testing branch, please proceed like that.
 ```
