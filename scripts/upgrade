@@ -178,7 +178,7 @@ ynh_install_ruby --ruby_version=$RUBY_VERSION
 ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app
+ynh_system_user_create --username=$app --home_dir=$final_path --use_shell
 
 #=================================================
 # SPECIFIC UPGRADE
