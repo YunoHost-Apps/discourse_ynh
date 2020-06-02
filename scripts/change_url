@@ -135,10 +135,10 @@ exec_login_as $app RAILS_ENV=production bundle exec script/discourse remap ${old
 rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
 
 # Regenerate assets
-$rake_exec assets:precompile
+ynh_exec_warn_less $rake_exec assets:precompile
 
 # Regenerate all forum posts
-$rake_exec posts:rebake
+ynh_exec_warn_less $rake_exec posts:rebake
 
 #=================================================
 # GENERIC FINALISATION
