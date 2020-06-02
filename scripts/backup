@@ -36,7 +36,6 @@ unicorn_workers=$(ynh_app_setting_get --app=$app --key=unicorn_workers)
 #=================================================
 # DECLARE DATA AND CONF FILES TO BACKUP
 #=================================================
-
 ynh_print_info --message="Declaring files to be backed up..."
 
 #=================================================
