@@ -357,7 +357,7 @@ ynh_script_progression --message="Securing files and directories..."
 
 # Add a pids and socket directory for the systemd script.
 mkdir -p "$final_path/tmp/pids"
-mkdir "$final_path/tmp/sockets"
+mkdir -p "$final_path/tmp/sockets"
 
 # Create specific folders and links for subfolder compatibilityn
 # (see: https://meta.discourse.org/t/subfolder-support-with-docker/30507)
