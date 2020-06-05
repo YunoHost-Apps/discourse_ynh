@@ -364,7 +364,13 @@ mkdir -p "$final_path/tmp/sockets"
 (
 	cd $final_path
 	mkdir -p "public/forum"
-	cd public/forum && ln -s ../uploads && ln -s ../backups
+	cd public/forum
+	if [ ! -L ./uploads ]; then
+		ln -s ../uploads
+	fi
+	if [ ! -L ./backups ]; then
+		ln -s ../backups
+	fi
 )
 
 # Set permissions to app files
