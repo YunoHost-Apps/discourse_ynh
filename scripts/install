@@ -1,14 +1,13 @@
 #!/bin/bash
-shopt -s extglob  # sets extended pattern matching options in the bash shell
 
 #=================================================
-# GENERIC STARTING
+# GENERIC START
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
-source /usr/share/yunohost/helpers
 source _common.sh
+source /usr/share/yunohost/helpers
 
 #=================================================
 # MANAGE SCRIPT FAILURE
@@ -18,34 +17,30 @@ ynh_clean_setup () {
 	# Clean remainings not handled by remove script
 	ynh_clean_check_starting
 }
-ynh_abort_if_errors	# Stop script if an error is detected
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-# Retrieve app id
-app=$YNH_APP_INSTANCE_NAME
-
-# Retrieve arguments
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 admin=$YNH_APP_ARG_ADMIN
 is_public=$YNH_APP_ARG_IS_PUBLIC
 
+app=$YNH_APP_INSTANCE_NAME
+
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-
-path_url=$(ynh_normalize_url_path $path_url)	# Check and normalize path
+ynh_script_progression --message="Validating installation parameters..."
 
 final_path=/var/www/$app
-test ! -e "$final_path" || ynh_die "This path already contains a folder"
+test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
-# Check web path availability
-ynh_webpath_available $domain $path_url
 # Register (book) web path
-ynh_webpath_register $app $domain $path_url
+ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 
 # Check memory requirements
 check_memory_requirements
@@ -53,43 +48,43 @@ check_memory_requirements
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
+ynh_script_progression --message="Storing installation settings..."
 
-ynh_app_setting_set $app admin "$admin"
-ynh_app_setting_set $app is_public "$is_public"
-ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set --app=$app --key=domain --value=$domain
+ynh_app_setting_set --app=$app --key=path --value=$path_url
+ynh_app_setting_set --app=$app --key=admin --value=$admin
+ynh_app_setting_set --app=$app --key=is_public --value=$is_public
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
+ynh_script_progression --message="Installing dependencies..."
 
-ynh_install_app_dependencies "$pkg_dependencies"
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-
-# Create a system user allowing login
-ynh_system_user_create $app $final_path 1
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
-# CREATE A POSTGRES DATABASE
+# CREATE A POSTGRESQL DATABASE
 #=================================================
+ynh_script_progression --message="Creating a PostgreSQL database..."
 
-db_name=$(ynh_sanitize_dbid $app)
+db_name=$(ynh_sanitize_dbid --db_name=$app)
+db_user=$db_name
 db_pwd=$(ynh_string_random)
-ynh_app_setting_set $app db_name $db_name
-ynh_app_setting_set $app db_pwd $db_pwd
+ynh_app_setting_set --app=$app --key=db_name --value=$db_name
+ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
 ynh_psql_test_if_first_run
-ynh_psql_create_db $db_name $db_name $db_pwd
+ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
 # Set extensions
-ynh_psql_execute_as_root "\connect $db_name
-CREATE EXTENSION IF NOT EXISTS hstore; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS hstore;" --database=$db_name
+ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS pg_trgm;" --database=$db_name
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
+ynh_script_progression --message="Setting up source files..."
+
 # Specific actions on ARM architecture
 if [ -n "$(uname -m | grep arm)" ] ; then
   # Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
@@ -99,79 +94,91 @@ if [ -n "$(uname -m | grep arm)" ] ; then
   cp ../sources/patches_arm/* ../sources/patches
 fi
 
+ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 # Download, check integrity, uncompress and patch the source from app.src
-# Use the patch from https://meta.discourse.org/t/uglifier-error-during-assets-precompile/96970/4 to fix the Uglifier error
-ynh_setup_source "$final_path"
+ynh_setup_source --dest_dir="$final_path"
+
 # Install LDAP plugin
 mkdir -p "$final_path/plugins/discourse-ldap-auth"
-ynh_setup_source "$final_path/plugins/discourse-ldap-auth" ldap-auth
+ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_id=ldap-auth
 
 #=================================================
 # INSTALL RUBY
 #=================================================
+ynh_script_progression --message="Installing Ruby..."
 
-ynh_install_ruby $RUBY_VERSION
+ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_script_progression --message="Configuring nginx web server..."
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
 
 # Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
 if [ "$path_url" != "/" ] ; then
-  ynh_replace_string '$proxy_add_x_forwarded_for' '$http_your_original_ip_header' "/etc/nginx/conf.d/$domain.d/$app.conf"
+  ynh_replace_string --match_string='$proxy_add_x_forwarded_for' --replace_string='$http_your_original_ip_header' --target_file="/etc/nginx/conf.d/$domain.d/$app.conf"
 fi
-ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Configuring system user..."
+
+# Create a system user
+ynh_system_user_create --username=$app --home_dir=$final_path --use_shell
 
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-
-#=================================================
 # CONFIGURE DISCOURSE
 #=================================================
+ynh_script_progression --message="Configuring Discourse..."
 
 # Configure database
 discourse_config_file="$final_path/config/discourse.conf"
 cp $final_path/config/discourse_defaults.conf $discourse_config_file
-ynh_replace_string "db_name = discourse" "db_name = $db_name" "$discourse_config_file"
-ynh_replace_string "db_username = discourse" "db_username = $db_name" "$discourse_config_file"
-ynh_replace_string "db_password =" "db_password = $db_pwd" "$discourse_config_file"
+ynh_replace_string --match_string="db_name = discourse" --replace_string="db_name = $db_name" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="db_username = discourse" --replace_string="db_username = $db_name" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="db_password =" --replace_string="db_password = $db_pwd" --target_file="$discourse_config_file"
 
 # Configure hostname
-ynh_replace_string "hostname = \"www.example.com\"" "hostname = \"$domain\"" "$discourse_config_file"
-ynh_replace_string "relative_url_root =" "relative_url_root = ${path_url%/}" "$discourse_config_file"
+ynh_replace_string --match_string="hostname = \"www.example.com\"" --replace_string="hostname = \"$domain\"" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="relative_url_root =" --replace_string="relative_url_root = ${path_url%/}" --target_file="$discourse_config_file"
+
 # Serve static assets (i.e. images, js, etc.)
-ynh_replace_string "serve_static_assets = false" "serve_static_assets = true" "$discourse_config_file"
+ynh_replace_string --match_string="serve_static_assets = false" --replace_string="serve_static_assets = true" --target_file="$discourse_config_file"
+
 # Don't show miniprofiler
-ynh_replace_string "load_mini_profiler = true" "load_mini_profiler = false" "$discourse_config_file"
+ynh_replace_string --match_string="load_mini_profiler = true" --replace_string="load_mini_profiler = false" --target_file="$discourse_config_file"
 
 # Configure e-mail server
 admin_mail=$(ynh_user_get_info "$admin" mail)
-ynh_replace_string "developer_emails =" "developer_emails = $admin_mail" "$discourse_config_file"
-ynh_replace_string "smtp_address =" "smtp_address = localhost" "$discourse_config_file"
-ynh_replace_string "smtp_domain =" "smtp_domain = $domain" "$discourse_config_file"
-ynh_replace_string "smtp_enable_start_tls = true" "smtp_enable_start_tls = false" "$discourse_config_file"
+ynh_replace_string --match_string="developer_emails =" --replace_string="developer_emails = $admin_mail" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="smtp_address =" --replace_string="smtp_address = localhost" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="smtp_domain =" --replace_string="smtp_domain = $domain" --target_file="$discourse_config_file"
+ynh_replace_string --match_string="smtp_enable_start_tls = true" --replace_string="smtp_enable_start_tls = false" --target_file="$discourse_config_file"
 
 # Configure redis
 redis_db=$(ynh_redis_get_free_db)
-ynh_app_setting_set "$app" redis_db "$redis_db"
-ynh_replace_string "redis_db = 0" "redis_db = $redis_db" "$discourse_config_file"
+ynh_app_setting_set --app="$app" --key=redis_db --value="$redis_db"
+ynh_replace_string --match_string="redis_db = 0" --replace_string="redis_db = $redis_db" --target_file="$discourse_config_file"
 
 # Don't notify on new versions (handled by the YunoHost package)
-ynh_replace_string "new_version_emails = true" "new_version_emails = false" "$discourse_config_file"
+ynh_replace_string --match_string="new_version_emails = true" --replace_string="new_version_emails = false" --target_file="$discourse_config_file"
 
 # Calculate and store the config file checksum
-ynh_store_file_checksum "$discourse_config_file"
+ynh_store_file_checksum --file="$discourse_config_file"
 
 # Configure LDAP plugin
 ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
-ynh_replace_string "adfs.example.com" "localhost" "$ldap_config_file"
-ynh_replace_string "dc=example,dc=com" "ou=users,dc=yunohost,dc=org" "$ldap_config_file"
-ynh_replace_string "sAMAccountName" "uid" "$ldap_config_file"
-ynh_store_file_checksum "$ldap_config_file"
+ynh_replace_string --match_string="adfs.example.com" --replace_string="localhost" --target_file="$ldap_config_file"
+ynh_replace_string --match_string="dc=example,dc=com" --replace_string="ou=users,dc=yunohost,dc=org" --target_file="$ldap_config_file"
+ynh_replace_string --match_string="sAMAccountName" --replace_string="uid" --target_file="$ldap_config_file"
+ynh_store_file_checksum --file="$ldap_config_file"
 
 # Disable svgo worker
 echo "svgo: false" > $final_path/.image_optim.yml
@@ -179,34 +186,38 @@ echo "svgo: false" > $final_path/.image_optim.yml
 #=================================================
 # SETUP UNICORN, A RUBY SERVER
 #=================================================
+ynh_script_progression --message="Setting up Unicorn..."
+
 unicorn_config_file="$final_path/config/unicorn.conf.rb"
 # Use socket connection
-ynh_replace_string 'listen (ENV\["UNICORN_PORT"\] || 3000).to_i' '# listen (ENV["UNICORN_PORT"] || 3000).to_i' "$unicorn_config_file"
-ynh_replace_string '# listen "#{discourse_path}/tmp/sockets/unicorn.sock"' 'listen "#{discourse_path}/tmp/sockets/unicorn.sock"' "$unicorn_config_file"
+ynh_replace_string --match_string='listen (ENV\["UNICORN_PORT"\] || 3000).to_i' --replace_string='# listen (ENV["UNICORN_PORT"] || 3000).to_i' "--target_file=$unicorn_config_file"
+ynh_replace_string --match_string='# listen "#{discourse_path}/tmp/sockets/unicorn.sock"' --replace_string='listen "#{discourse_path}/tmp/sockets/unicorn.sock"' --target_file="$unicorn_config_file"
 # Calculate and store the config file checksum
-ynh_store_file_checksum "$unicorn_config_file"
+ynh_store_file_checksum --file="$unicorn_config_file"
 
 # Set a secret value
 cp ../conf/secrets.yml "$final_path/config/secrets.yml"
-ynh_replace_string "__SECRET__" "$(ynh_string_random)" "$final_path/config/secrets.yml"
+ynh_replace_string --match_string="__SECRET__" --replace_string="$(ynh_string_random)" --target_file="$final_path/config/secrets.yml"
 # Calculate and store the config file checksum
-ynh_store_file_checksum "$final_path/config/secrets.yml"
+ynh_store_file_checksum --file="$final_path/config/secrets.yml"
 
 # Set permissions to app files
 chown -R $app: $final_path
 
+pushd "$final_path"
+  # Install bundler, a gems installer
+  gem install bundler
+  # Install without documentation
+  exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+popd
 
-(cd "$final_path"
-# Install bundler, a gems installer
-gem install bundler
-# Install without documentation
-exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc")
 # Specific actions on ARM architecture
 if [ -n "$(uname -m | grep arm)" ] ; then
   # Define the platform specifically to retrieve binaries
   # for libv8 because it currently doesn't compile on ARM devices
   exec_login_as $app bundle config specific_platform arm-linux
 fi
+
 # Install dependencies
 exec_login_as $app bundle config set path 'vendor/bundle'
 exec_login_as $app bundle config set with 'development'
@@ -223,16 +234,19 @@ fi
 #=================================================
 # PREPARE THE DATABASE
 #=================================================
+ynh_script_progression --message="Preparing the database..."
 
 rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
-$rake_exec db:migrate
-$rake_exec assets:precompile
+ynh_exec_warn_less $rake_exec db:migrate
+ynh_exec_warn_less $rake_exec assets:precompile
 
 #=================================================
 # POPULATE THE DATABASE
 #=================================================
+ynh_script_progression --message="Populating the database..."
+
 #Set default data (especially to have correct image URLs for subfolder install)
-ynh_psql_connect_as $db_name $db_pwd $db_name <<< "INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('title', 1, 'YunoHost Forum', 'NOW()', 'NOW()');
+ynh_psql_connect_as --user=$db_user --password=$db_pwd --database=$db_name <<< "INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('title', 1, 'YunoHost Forum', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('site_description', 1, 'YunoHost Forum', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('contact_email', 14, '$admin_mail', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('contact_url', 1, '$domain$path_url', 'NOW()', 'NOW()');
@@ -247,17 +261,9 @@ INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUE
 "
 
 #=================================================
-# FIX INITIAL POSTS LINKS FOR SUBFOLDER INSTALL
+# CREATE DISCOURSE ADMIN USER
 #=================================================
-
-if [ "$path_url" != "/" ] ; then
-  exec_login_as $app RAILS_ENV=production bundle exec script/discourse remap /images/welcome/ $path_url/images/welcome/ <<< "YES
-	"
-fi
-
-#=================================================
-# CREATE ADMIN USER
-#=================================================
+ynh_script_progression --message="Creating Discourse admin user..."
 
 # Create a random password
 admin_pwd=$(ynh_string_random)
@@ -270,6 +276,7 @@ y
 #=================================================
 # CONFIGURE PLUGINS
 #=================================================
+ynh_script_progression --message="Configuring plugins..."
 
 # Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
 # (Can only do that now because we are patching dependencies which have just been downloaded)
@@ -280,8 +287,9 @@ patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
 #=================================================
 # SETUP SYSTEMD
 #=================================================
+ynh_script_progression --message="Configuring a systemd service..."
 
-ynh_replace_string "__RBENVROOT__" "$RBENV_ROOT" "../conf/systemd.service"
+ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/systemd.service"
 
 # We assume for the moment that ARM devices are only dual core, so
 # we restrict the number of workers to 2 (the default is 3)
@@ -292,9 +300,10 @@ else
 	additional_env=""
 	unicorn_workers=3
 fi
+ynh_app_setting_set --app=$app --key=unicorn_workers --value=$unicorn_workers
 
-ynh_replace_string "__ADDITIONAL_ENV__" "$additional_env" "../conf/systemd.service"
-ynh_replace_string "__LIBJEMALLOC__" "$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')" "../conf/systemd.service"
+ynh_replace_string --match_string="__ADDITIONAL_ENV__" --replace_string="$additional_env" --target_file="../conf/systemd.service"
+ynh_replace_string --match_string="__LIBJEMALLOC__" --replace_string="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')" --target_file="../conf/systemd.service"
 ynh_add_systemd_config
 
 #=================================================
@@ -302,6 +311,7 @@ ynh_add_systemd_config
 #=================================================
 # SECURE FILES AND DIRECTORIES
 #=================================================
+ynh_script_progression --message="Securing files and directories..."
 
 # Add a pids and socket directory for the systemd script.
 mkdir -p "$final_path/tmp/pids"
@@ -317,43 +327,56 @@ cd public/forum && ln -s ../uploads && ln -s ../backups
 
 # Set permissions to app files
 chown -R $app: $final_path
+
 # Restrict rights to log directory (needed by logrotate)
 chmod g-w $final_path/log
 
 #=================================================
 # SETUP LOGROTATE
 #=================================================
+ynh_script_progression --message="Configuring log rotation..."
 
 # Use logrotate to manage application logfile(s)
-ynh_use_logrotate "$final_path/log/unicorn.stderr.log"
-ynh_use_logrotate "$final_path/log/unicorn.stdout.log"
-ynh_use_logrotate "$final_path/log/production.log"
+ynh_use_logrotate --logfile="$final_path/log/unicorn.stderr.log"
+ynh_use_logrotate --logfile="$final_path/log/unicorn.stdout.log"
+ynh_use_logrotate --logfile="$final_path/log/production.log"
 
 #=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
 
 yunohost service add $app --log "$final_path/log/unicorn.stderr.log" "$final_path/log/unicorn.stdout.log" "$final_path/log/production.log"
 
 #=================================================
+# START SYSTEMD SERVICE
+#=================================================
+ynh_script_progression --message="Starting a systemd service..."
+
+# Start a systemd service
+ynh_systemd_action --service_name=$app --action="start" --log_path="$final_path/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
+
+#=================================================
 # SETUP SSOWAT
 #=================================================
+ynh_script_progression --message="Configuring SSOwat..."
 
-# If app is public, add url to SSOWat conf as skipped_uris
-if [ $is_public -eq 1 ]; then
-  # unprotected_uris allows SSO credentials to be passed anyway.
-  ynh_app_setting_set "$app" skipped_uris "/"
+# Make app public if necessary
+if [ $is_public -eq 1 ]
+then
+	# unprotected_uris allows SSO credentials to be passed anyway.
+	ynh_app_setting_set --app=$app --key=skipped_uris --value="/"
 fi
 
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_script_progression --message="Reloading nginx web server..."
 
-systemctl reload nginx
+ynh_systemd_action --service_name=nginx --action=reload
 
 #=================================================
-# START UNICORN
+# END OF SCRIPT
 #=================================================
 
-# Wait for discourse to be fully started
-ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "240" "$app"
+ynh_script_progression --message="Installation of $app completed"

@@ -1,73 +1,105 @@
 #!/bin/bash
 
 #=================================================
+# GENERIC START
+#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
-if [ ! -e _common.sh ]; then
-	# Fetch helpers file if not in current directory
-	cp ../settings/scripts/_common.sh ./_common.sh
-	chmod a+rx _common.sh
-fi
+#Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
+source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
-source _common.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
 #=================================================
 
+ynh_clean_setup () {
+	# Clean remainings not handled by remove script
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_script_progression --message="Loading settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get $app domain)
-path_url=$(ynh_app_setting_get $app path)
-is_public=$(ynh_app_setting_get $app is_public)
-final_path=$(ynh_app_setting_get $app final_path)
-db_name=$(ynh_app_setting_get $app db_name)
-db_pwd=$(ynh_app_setting_get $app db_pwd)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
+path_url=$(ynh_app_setting_get --app=$app --key=path)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+db_name=$(ynh_app_setting_get --app=$app --key=db_name)
+db_user=$db_name
 
 #=================================================
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
+ynh_script_progression --message="Validating restoration parameters..."
 
-ynh_webpath_available $domain $path_url \
-	|| ynh_die "Path not available: ${domain}${path_url}"
+ynh_webpath_available --domain=$domain --path_url=$path_url \
+	|| ynh_die --message="Path not available: ${domain}${path_url}"
 test ! -d $final_path \
-	|| ynh_die "There is already a directory: $final_path "
+	|| ynh_die --message="There is already a directory: $final_path "
 
-	# Check memory requirements
-	check_memory_requirements
+# Check memory requirements
+check_memory_requirements
 
 #=================================================
 # STANDARD RESTORATION STEPS
 #=================================================
-# RESTORE ALL FILES
+# RESTORE THE NGINX CONFIGURATION
 #=================================================
+ynh_script_progression --message="Restoring the nginx configuration..."
 
-# Restore all config and data
-ynh_restore
+ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+ynh_script_progression --message="Restoring the app main directory..."
+
+ynh_restore_file --origin_path="$final_path"
+
+#=================================================
+# RECREATE THE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Recreating the dedicated system user..."
+
+# Create the dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir=$final_path --use_shell
+
+#=================================================
+# RESTORE USER RIGHTS
+#=================================================
+ynh_script_progression --message="Restoring user rights..."
+
+# Restore permissions on app files
+chown -R $app: $final_path
+
+#=================================================
+# SPECIFIC RESTORATION
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
+ynh_script_progression --message="Reinstalling dependencies..."
 
-ynh_install_app_dependencies "$pkg_dependencies"
+# Define and install dependencies
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # INSTALL RUBY
 #=================================================
+ynh_script_progression --message="Install Ruby..."
 
-ynh_install_ruby $RUBY_VERSION
+ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================
 # REINSTALL BUNDLE GEM
 #=================================================
+ynh_script_progression --message="Reinstall Bundle Gem..."
 
 (cd "$final_path"
 gem install bundler)
@@ -75,54 +107,64 @@ gem install bundler)
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
 #=================================================
+ynh_script_progression --message="Restoring the PostgreSQL database..."
 
+db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 ynh_psql_test_if_first_run
-ynh_psql_setup_db "$db_name" "$db_name" "$db_pwd"
+ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
 # Set extensions
-ynh_psql_execute_as_root "\connect $db_name
-CREATE EXTENSION IF NOT EXISTS hstore; CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS hstore;" --database=$db_name
+ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS pg_trgm;" --database=$db_name
 # Restore dump
-ynh_psql_execute_file_as_root ./db.sql "$db_name"
+ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
 
 #=================================================
 # RESTORE SYSTEMD
 #=================================================
+ynh_script_progression --message="Restoring the systemd configuration..."
 
+ynh_restore_file --origin_path="/etc/systemd/system/$app.service"
 systemctl daemon-reload
 systemctl enable $app.service
 
 #=================================================
-# RECREATE OF THE DEDICATED USER
+# INTEGRATE SERVICE IN YUNOHOST
 #=================================================
-
-# Create a system user allowing login (if not existing)
-ynh_system_user_create $app $final_path 1
-
-#=================================================
-# RESTORE USER RIGHTS
-#=================================================
-
-chown -R $app: $final_path
-
-#=================================================
-# ADVERTISE SERVICE IN ADMIN PANEL
-#=================================================
+ynh_script_progression --message="Integrating service in YunoHost..."
 
 yunohost service add $app --log "$final_path/log/unicorn.stderr.log" "$final_path/log/unicorn.stdout.log" "$final_path/log/production.log"
 
 #=================================================
-# GENERIC FINALIZATION
+# START SYSTEMD SERVICE
 #=================================================
-# RELOAD NGINX AND DISCOURSE
-#=================================================
+ynh_script_progression --message="Starting a systemd service..."
 
 if [ -n "$(uname -m | grep arm)" ] ; then
 	unicorn_workers=2
 else
 	unicorn_workers=3
 fi
-# Wait for discourse to be fully started
-ynh_check_starting "INFO -- : worker=$((unicorn_workers-1)) ready" "$final_path/log/unicorn.stderr.log" "240" "$app"
+ynh_app_setting_set --app=$app --key=unicorn_workers --value=$unicorn_workers
+ynh_systemd_action --service_name=$app --action="start" --log_path="$final_path/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
+#=================================================
+# RESTORE THE LOGROTATE CONFIGURATION
+#=================================================
+ynh_script_progression --message="Restoring logrotate configuration..."
 
-systemctl reload nginx
+ynh_restore_file --origin_path="/etc/logrotate.d/$app"
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# RELOAD NGINX
+#=================================================
+ynh_script_progression --message="Reloading nginx web server..."
+
+ynh_systemd_action --service_name=nginx --action=reload
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_script_progression --message="Restoration completed for $app"
