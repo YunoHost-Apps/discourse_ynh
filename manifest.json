@@ -6,7 +6,7 @@
         "en": "Discussion platform",
         "fr": "Plateforme de discussion"
     },
-    "version": "2.3.10~ynh1",
+    "version": "2.3.10~ynh2",
     "url": "http://Discourse.org",
     "license": "GPL-2.0",
     "maintainer": {
@@ -15,7 +15,7 @@
         "url": ""
     },
     "requirements": {
-    "yunohost": ">= 2.7.12"
+        "yunohost": ">= 3.5"
     },
     "multi_instance": true,
     "services": [
@@ -27,7 +27,7 @@
                 "name": "domain",
                 "type": "domain",
                 "ask": {
-                    "en": "Choose a domain for Discourse",
+                    "en": "Choose a domain name for Discourse",
                     "fr": "Choisissez un nom de domaine pour Discourse"
                 },
                 "example": "domain.org"
