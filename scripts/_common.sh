@@ -6,7 +6,7 @@
 
 pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-openssl-dev libapr1-dev libxslt1-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
 
-RUBY_VERSION="2.6.5"
+RUBY_VERSION="2.7.1"
 
 #=================================================
 # PERSONAL HELPERS
@@ -183,8 +183,8 @@ SOURCE_SUM=80ad89ffe04c0b481503bd375f05c212bbc7d44ef5f5e649e0acdf25eba86736" > "
 
   # Build an app.src for ruby-build
   mkdir -p "../conf"
-  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20191004.tar.gz
-SOURCE_SUM=6f053957acb0af6d621ebf2b9dacc9c265844b2dc6842a021eb10f0a70094fe8" > "../conf/ruby-build.src"
+  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20200727.tar.gz
+SOURCE_SUM=71679d49d9190250059eaa0bc0bedd080c00a523ec47662f559f7629f71772ea" > "../conf/ruby-build.src"
   # Download and extract ruby-build
   ynh_setup_source "$rbenv_install_dir/plugins/ruby-build" ruby-build
 
