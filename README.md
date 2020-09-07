@@ -33,7 +33,7 @@ Finally, if installing on a low-end ARM device (e.g. Raspberry Pi):
 
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
-**Shipped version:** 2.5.0
+**Shipped version:** 2.5.1
 
 ## Screenshots
 
@@ -139,8 +139,7 @@ systemctl restart discourse
 
 ---
 
-Developer info
-----------------
+## Developer info
 
 Please send your pull request to the [testing branch](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing).
 
