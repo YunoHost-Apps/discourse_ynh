@@ -183,8 +183,8 @@ SOURCE_SUM=80ad89ffe04c0b481503bd375f05c212bbc7d44ef5f5e649e0acdf25eba86736" > "
 
   # Build an app.src for ruby-build
   mkdir -p "../conf"
-  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20200727.tar.gz
-SOURCE_SUM=71679d49d9190250059eaa0bc0bedd080c00a523ec47662f559f7629f71772ea" > "../conf/ruby-build.src"
+  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20201005.tar.gz
+SOURCE_SUM=bfccff5baeecb6adda20c86fb232652f4f859eadc1b385ae6911fb4f7f0a56d3" > "../conf/ruby-build.src"
   # Download and extract ruby-build
   ynh_setup_source "$rbenv_install_dir/plugins/ruby-build" ruby-build
 
@@ -241,6 +241,9 @@ ynh_install_ruby () {
   then
     ynh_install_rbenv
   elif dpkg --compare-versions "$(/opt/rbenv/bin/rbenv --version | cut -d" " -f2)" lt "1.1.2"
+  then
+    ynh_install_rbenv
+  elif [ -z "$(rbenv versions|grep $ruby_version)" ]
   then
     ynh_install_rbenv
   fi
