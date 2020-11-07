@@ -183,8 +183,8 @@ SOURCE_SUM=80ad89ffe04c0b481503bd375f05c212bbc7d44ef5f5e649e0acdf25eba86736" > "
 
   # Build an app.src for ruby-build
   mkdir -p "../conf"
-  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20201005.tar.gz
-SOURCE_SUM=bfccff5baeecb6adda20c86fb232652f4f859eadc1b385ae6911fb4f7f0a56d3" > "../conf/ruby-build.src"
+  echo "SOURCE_URL=https://github.com/rbenv/ruby-build/archive/v20200520.tar.gz
+SOURCE_SUM=52be6908a94fbd4a94f5064e8b19d4a3baa4b773269c3884165518d83bcc8922" > "../conf/ruby-build.src"
   # Download and extract ruby-build
   ynh_setup_source "$rbenv_install_dir/plugins/ruby-build" ruby-build
 
@@ -240,10 +240,10 @@ ynh_install_ruby () {
   if ! type rbenv > /dev/null 2>&1
   then
     ynh_install_rbenv
-  elif dpkg --compare-versions "$(/opt/rbenv/bin/rbenv --version | cut -d" " -f2)" lt "1.1.2"
+  elif dpkg --compare-versions "$($rbenv_install_dir/bin/rbenv --version | cut -d" " -f2)" lt "1.1.2"
   then
     ynh_install_rbenv
-  elif [ -z "$(rbenv versions|grep $ruby_version)" ]
+  elif dpkg --compare-versions "$($rbenv_install_dir/plugins/ruby-build/bin/ruby-build --version | cut -d" " -f2)" lt "20200520"
   then
     ynh_install_rbenv
   fi
@@ -255,7 +255,7 @@ ynh_install_ruby () {
   test -x /usr/bin/ruby_rbenv && mv /usr/bin/ruby_rbenv /usr/bin/ruby
 
   # Install the requested version of ruby
-  CONFIGURE_OPTS="--disable-install-doc" MAKE_OPTS="-j2" rbenv install --skip-existing $ruby_version
+  CONFIGURE_OPTS="--disable-install-doc --with-jemalloc" MAKE_OPTS="-j2" rbenv install --skip-existing $ruby_version
 
   # Store the ID of this app and the version of ruby requested for it
   echo "$YNH_APP_ID:$ruby_version" | tee --append "$rbenv_install_dir/ynh_app_version"
@@ -275,6 +275,35 @@ eval \"\$(rbenv init -)\"
 
   (cd $final_path
   rbenv local $ruby_version)
+}
+
+# Remove the version of ruby used by the app.
+#
+# This helper will check if another app uses the same version of ruby,
+# if not, this version of ruby will be removed.
+# If no other app uses ruby, rbenv will be also removed.
+#
+# usage: ynh_remove_ruby
+ynh_remove_ruby () {
+  ruby_version=$(ynh_app_setting_get $app ruby_version)
+
+  # Remove the line for this app
+  sed --in-place "/$YNH_APP_ID:$ruby_version/d" "$rbenv_install_dir/ynh_app_version"
+
+  # If no other app uses this version of ruby, remove it.
+  if ! grep --quiet "$ruby_version" "$rbenv_install_dir/ynh_app_version"
+  then
+    $rbenv_install_dir/bin/rbenv uninstall --force $ruby_version
+  fi
+
+  # Remove rbenv environment configuration
+  rm /etc/profile.d/rbenv.sh
+
+  # If no other app uses rbenv, remove rbenv and dedicated group
+  if [ ! -s "$rbenv_install_dir/ynh_app_version" ]
+  then
+    ynh_secure_remove "$rbenv_install_dir"
+  fi
 }
 
 # Remove the version of ruby used by the app.
