@@ -91,7 +91,7 @@ Discourse can now receive mail from `foo@theirexternalmail.com` and give it to t
 
 #### Multi-user support
 
-Supported, with LDAP and SSO.
+Supported, with LDAP (no SSO).
 
 ![Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/login.png)
 
