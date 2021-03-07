@@ -262,19 +262,11 @@ then
 	# Make a backup of the original config file if modified
 	ynh_backup_if_checksum_is_different "$unicorn_config_file"
 
-		# Calculate and store the config file checksum
+	# Calculate and store the config file checksum
 	ynh_store_file_checksum --file="$unicorn_config_file"
 
-	secret_config_file="$final_path/config/secrets.yml"
-	# Make a backup of the original config file if modified
-	ynh_backup_if_checksum_is_different "$secret_config_file"
-
-	# Set a secret value
-	cp ../conf/secrets.yml "$final_path/config/secrets.yml"
-	ynh_replace_string --match_string="__SECRET__" --replace_string="$(ynh_string_random)" --target_file="$secret_config_file"
-
-	# Calculate and store the config file checksum
-	ynh_store_file_checksum --file="$secret_config_file"
+	secret="$(ynh_string_random)"
+	ynh_add_config --template="../conf/secrets.yml" --destination="$final_path/config/secrets.yml"
 
 	# Set permissions to app files
 	chown -R $app: $final_path
