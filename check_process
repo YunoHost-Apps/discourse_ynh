@@ -19,13 +19,8 @@
 		backup_restore=1
 		# Activate multi-instance test only if you have more than 2Gb RAM!
 		multi_instance=1
-		# This test is no longer necessary since the version 2.7 (PR: https://github.com/YunoHost/yunohost/pull/304), you can still do it if your app could be installed with this version.
-		# incorrect_path=1
 		port_already_use=0
 		change_url=1
-;;; Levels
-	# If the level 5 (Package linter) is forced to 1. Please add justifications here.
-	Level 5=auto
 ;;; Options
 Email=
 Notification=none

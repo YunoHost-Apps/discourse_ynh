@@ -19,7 +19,6 @@ app=$YNH_APP_INSTANCE_NAME
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
-is_public=$(ynh_app_setting_get --app=$app --key=is_public)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
@@ -55,6 +54,13 @@ then
 	ynh_app_setting_set --app=$app --key=unicorn_workers --value=$unicorn_workers
 fi
 
+# Cleaning legacy permissions
+if ynh_legacy_permissions_exists; then
+	ynh_legacy_permissions_delete_all
+
+	ynh_app_setting_delete --app=$app --key=is_public
+fi
+
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
@@ -63,7 +69,8 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
-	# restore it if the upgrade fails
+	ynh_clean_check_starting
+	# Restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
@@ -151,9 +158,9 @@ fi
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Upgrading nginx web server configuration..."
+ynh_script_progression --message="Upgrading NGINX web server configuration..."
 
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config
 
 # Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
@@ -167,7 +174,7 @@ ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 ynh_script_progression --message="Upgrading dependencies..."
 
-ynh_install_app_dependencies "$pkg_dependencies"
+ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # INSTALL RUBY
@@ -332,6 +339,7 @@ fi
 #=================================================
 # SETUP SYSTEMD
 #=================================================
+
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Configuring a systemd service..."
@@ -375,16 +383,14 @@ chown -R $app: $final_path
 chmod g-w $final_path/log
 
 #=================================================
-# SETUP SSOWAT
+# SETUP LOGROTATE
 #=================================================
-ynh_script_progression --message="Upgrading SSOwat configuration..."
+ynh_script_progression --message="Upgrading logrotate configuration..."
 
-# If app is public, add url to SSOWat conf as skipped_uris
-if [ $is_public -eq 1 ]
-then
-	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set "$app" skipped_uris "/"
-fi
+# Use logrotate to manage app-specific logfile(s)
+ynh_use_logrotate --logfile="$final_path/log/unicorn.stderr.log"
+ynh_use_logrotate --logfile="$final_path/log/unicorn.stdout.log"
+ynh_use_logrotate --logfile="$final_path/log/production.log"
 
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
@@ -398,7 +404,6 @@ yunohost service add $app --log "$final_path/log/unicorn.stderr.log" "$final_pat
 #=================================================
 ynh_script_progression --message="Starting a systemd service..."
 
-# Wait for discourse to be fully started
 ynh_systemd_action --service_name=$app --action="start" --log_path="$final_path/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
@@ -411,7 +416,7 @@ ynh_maintenance_mode_OFF
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --service_name=nginx --action=reload
 
