@@ -167,7 +167,7 @@ ynh_add_nginx_config
 
 # Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
 if [ "$path_url" != "/" ] ; then
-  ynh_replace_string --match_string='$proxy_add_x_forwarded_for' --replace_string='$http_your_original_ip_header' --target_file="/etc/nginx/conf.d/$domain.d/$app.conf"
+	ynh_replace_string --match_string='$proxy_add_x_forwarded_for' --replace_string='$http_your_original_ip_header' --target_file="/etc/nginx/conf.d/$domain.d/$app.conf"
 fi
 ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
 
@@ -288,9 +288,9 @@ then
 	)
 	# Specific actions on ARM architecture
 	if [ -n "$(uname -m | grep arm)" ] ; then
-  		# Define the platform specifically to retrieve binaries
-  		# for libv8 because it currently doesn't compile on ARM devices
-  		exec_login_as $app bundle config specific_platform arm-linux
+		# Define the platform specifically to retrieve binaries
+		# for libv8 because it currently doesn't compile on ARM devices
+		exec_login_as $app bundle config specific_platform arm-linux
 	fi
 	# Install dependencies
 	exec_login_as $app bundle config set path 'vendor/bundle'
@@ -300,11 +300,11 @@ then
 	# On ARM architecture, replace bundled libpsl by system native libpsl
 	# because the provided binary isn't compatible
 	if [ -n "$(uname -m | grep arm)" ] ; then
-  		(
-  			cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
-  			rm libpsl.so
-  			ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so
-  		)
+		(
+			cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
+			rm libpsl.so
+			ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so
+		)
 	fi
 fi
 

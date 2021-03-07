@@ -43,8 +43,8 @@ test ! -e "$final_path" || ynh_die --message="This path already contains a folde
 ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 0 ]; then
-  # Check memory requirements
-  check_memory_requirements
+	# Check memory requirements
+	check_memory_requirements
 fi
 
 #=================================================
@@ -88,11 +88,11 @@ ynh_script_progression --message="Setting up source files..."
 
 # Specific actions on ARM architecture
 if [ -n "$(uname -m | grep arm)" ] ; then
-  # Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
-  # compatibility by pointing to a recent libv8 version
-  # This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
-  # that prevents it from being compiled on ARM hence no binary gem is available yet
-  cp ../sources/patches_arm/* ../sources/patches
+	# Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
+	# compatibility by pointing to a recent libv8 version
+	# This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
+	# that prevents it from being compiled on ARM hence no binary gem is available yet
+	cp ../sources/patches_arm/* ../sources/patches
 fi
 
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
@@ -120,7 +120,7 @@ ynh_add_nginx_config
 
 # Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
 if [ "$path_url" != "/" ] ; then
-  ynh_replace_string --match_string='$proxy_add_x_forwarded_for' --replace_string='$http_your_original_ip_header' --target_file="/etc/nginx/conf.d/$domain.d/$app.conf"
+	ynh_replace_string --match_string='$proxy_add_x_forwarded_for' --replace_string='$http_your_original_ip_header' --target_file="/etc/nginx/conf.d/$domain.d/$app.conf"
 fi
 ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
 
@@ -199,17 +199,17 @@ ynh_store_file_checksum --file="$final_path/config/secrets.yml"
 chown -R $app: $final_path
 
 pushd "$final_path"
-  # Install bundler, a gems installer
-  gem install bundler
-  # Install without documentation
-  exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+	# Install bundler, a gems installer
+	gem install bundler
+	# Install without documentation
+	exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
 popd
 
 # Specific actions on ARM architecture
 if [ -n "$(uname -m | grep arm)" ] ; then
-  # Define the platform specifically to retrieve binaries
-  # for libv8 because it currently doesn't compile on ARM devices
-  exec_login_as $app bundle config specific_platform arm-linux
+	# Define the platform specifically to retrieve binaries
+	# for libv8 because it currently doesn't compile on ARM devices
+	exec_login_as $app bundle config specific_platform arm-linux
 fi
 
 # Install dependencies
@@ -220,9 +220,9 @@ exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2
 # On ARM architecture, replace bundled libpsl by system native libpsl
 # because the provided binary isn't compatible
 if [ -n "$(uname -m | grep arm)" ] ; then
-  (cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
-  rm libpsl.so
-  ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so)
+	(cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
+	rm libpsl.so
+	ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so)
 fi
 
 #=================================================

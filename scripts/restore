@@ -45,8 +45,8 @@ test ! -d $final_path \
 	|| ynh_die --message="There is already a directory: $final_path "
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 0 ]; then
-  # Check memory requirements
-  check_memory_requirements
+	# Check memory requirements
+	check_memory_requirements
 fi
 
 #=================================================
