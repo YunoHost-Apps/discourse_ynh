@@ -25,10 +25,8 @@ db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
 redis_db=$(ynh_app_setting_get --app=$app --key=redis_db)
 unicorn_workers=$(ynh_app_setting_get --app=$app --key=unicorn_workers)
 
-if [ ${PACKAGE_CHECK_EXEC:-0} -eq 0 ]; then
-	# Check memory requirements
-	check_memory_requirements_upgrade
-fi
+# Check memory requirements
+check_memory_requirements_upgrade
 
 #=================================================
 # CHECK VERSION
