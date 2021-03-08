@@ -90,12 +90,6 @@ ynh_script_progression --message="Reinstalling dependencies..."
 
 # Define and install dependencies
 ynh_install_app_dependencies $pkg_dependencies
-
-#=================================================
-# INSTALL RUBY
-#=================================================
-ynh_script_progression --message="Install Ruby..."
-
 ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================
@@ -104,7 +98,8 @@ ynh_install_ruby --ruby_version=$RUBY_VERSION
 ynh_script_progression --message="Reinstall Bundle Gem..."
 
 (cd "$final_path"
-gem install bundler)
+ynh_use_ruby
+ynh_gem install bundler)
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE

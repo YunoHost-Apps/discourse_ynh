@@ -64,6 +64,7 @@ ynh_app_setting_set --app=$app --key=admin --value=$admin
 ynh_script_progression --message="Installing dependencies..."
 
 ynh_install_app_dependencies $pkg_dependencies
+ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================
 # CREATE A POSTGRESQL DATABASE
@@ -102,13 +103,6 @@ ynh_setup_source --dest_dir="$final_path"
 # Install LDAP plugin
 mkdir -p "$final_path/plugins/discourse-ldap-auth"
 ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_id=ldap-auth
-
-#=================================================
-# INSTALL RUBY
-#=================================================
-ynh_script_progression --message="Installing Ruby..."
-
-ynh_install_ruby --ruby_version=$RUBY_VERSION
 
 #=================================================
 # NGINX CONFIGURATION
@@ -197,8 +191,9 @@ ynh_add_config --template="../conf/secrets.yml" --destination="$final_path/confi
 chown -R $app: $final_path
 
 pushd "$final_path"
+	ynh_use_ruby
 	# Install bundler, a gems installer
-	gem install bundler
+	ynh_gem install bundler
 	# Install without documentation
 	exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
 popd
@@ -207,13 +202,13 @@ popd
 if [ -n "$(uname -m | grep arm)" ] ; then
 	# Define the platform specifically to retrieve binaries
 	# for libv8 because it currently doesn't compile on ARM devices
-	exec_login_as $app bundle config specific_platform arm-linux
+	exec_login_as $app bin/bundle config specific_platform arm-linux
 fi
 
 # Install dependencies
-exec_login_as $app bundle config set path 'vendor/bundle'
-exec_login_as $app bundle config set with 'development'
-exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2
+exec_login_as $app bin/bundle config set path 'vendor/bundle'
+exec_login_as $app bin/bundle config set with 'development'
+exec_login_as $app MAKEFLAGS=-j2 bin/bundle install --jobs 2
 
 # On ARM architecture, replace bundled libpsl by system native libpsl
 # because the provided binary isn't compatible
