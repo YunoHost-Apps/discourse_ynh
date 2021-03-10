@@ -263,14 +263,14 @@ then
 	# Set permissions to app files
 	chown -R $app: $final_path
 
-	(
-		cd "$final_path"
+	pushd "$final_path"
 		ynh_use_ruby
 		# Install bundler, a gems installer
 		ynh_gem install bundler
 		# Install without documentation
 		exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
-	)
+	popd
+	
 	# Specific actions on ARM architecture
 	if [ -n "$(uname -m | grep arm)" ] ; then
 		# Define the platform specifically to retrieve binaries

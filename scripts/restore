@@ -95,9 +95,10 @@ ynh_install_ruby --ruby_version=$RUBY_VERSION
 #=================================================
 ynh_script_progression --message="Reinstall Bundle Gem..."
 
-(cd "$final_path"
-ynh_use_ruby
-ynh_gem install bundler)
+pushd "$final_path"
+	ynh_use_ruby
+	ynh_gem install bundler
+popd
 
 #=================================================
 # RESTORE THE POSTGRESQL DATABASE
