@@ -273,8 +273,9 @@ ynh_use_ruby () {
     ynh_ruby_load_path="PATH=$PATH"
 
     # Sets the local application-specific Ruby version
-    (cd $final_path
-    rbenv local $ruby_version)
+    pushd $final_path
+        rbenv local $ruby_version
+    popd
 }
 
 # Install a specific version of Ruby
