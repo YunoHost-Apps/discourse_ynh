@@ -93,6 +93,14 @@ ynh_script_progression --message="Stopping a systemd service..."
 ynh_systemd_action --service_name=$app --action="stop" --log_path="$final_path/log/unicorn.stderr.log"
 
 #=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Making sure dedicated system user exists..."
+
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir="$final_path" --use_shell
+
+#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
@@ -155,6 +163,10 @@ then
 	ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_id=ldap-auth
 fi
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R root:$app "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
@@ -177,14 +189,6 @@ ynh_script_progression --message="Upgrading dependencies..."
 ynh_install_app_dependencies $pkg_dependencies
 ynh_install_ruby --ruby_version=$RUBY_VERSION
 ynh_use_ruby
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..."
-
-# Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir=$final_path --use_shell
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -384,7 +388,7 @@ ynh_use_logrotate --logfile="$final_path/log/production.log"
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add $app --log "$final_path/log/unicorn.stderr.log" "$final_path/log/unicorn.stdout.log" "$final_path/log/production.log"
+yunohost service add $app --log="$final_path/log/unicorn.stderr.log" "$final_path/log/unicorn.stdout.log" "$final_path/log/production.log"
 
 #=================================================
 # START SYSTEMD SERVICE
