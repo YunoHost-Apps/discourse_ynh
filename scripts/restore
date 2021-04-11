@@ -122,7 +122,7 @@ systemctl enable $app.service --quiet
 #=================================================
 ynh_script_progression --message="Integrating service in YunoHost..."
 
-yunohost service add $app --log="$final_path/log/unicorn.stderr.log" "$final_path/log/unicorn.stdout.log" "$final_path/log/production.log"
+yunohost service add $app --log "$final_path/log/unicorn.stderr.log" "$final_path/log/unicorn.stdout.log" "$final_path/log/production.log"
 
 #=================================================
 # START SYSTEMD SERVICE
