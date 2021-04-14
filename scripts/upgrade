@@ -165,7 +165,7 @@ fi
 
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
-chown -R $app:$app "$final_path"
+chown -R $app:www-data "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -335,7 +335,7 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Configuring a systemd service..."
 
-	ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/systemd.service"
+	ynh_replace_string --match_string="__RBENV_ROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/systemd.service"
 
 	additional_env="UNICORN_WORKERS=$unicorn_workers"
 	ynh_replace_string --match_string="__ADDITIONAL_ENV__" --replace_string="$additional_env" --target_file="../conf/systemd.service"

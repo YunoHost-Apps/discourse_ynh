@@ -112,7 +112,7 @@ ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_i
 
 chmod 750 "$final_path"
 chmod -R o-rwx "$final_path"
-chown -R $app:$app "$final_path"
+chown -R $app:www-data "$final_path"
 
 #=================================================
 # NGINX CONFIGURATION
@@ -278,7 +278,7 @@ patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
 #=================================================
 ynh_script_progression --message="Configuring a systemd service..."
 
-ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/systemd.service"
+ynh_replace_string --match_string="__RBENV_ROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/systemd.service"
 
 # We assume for the moment that ARM devices are only dual core, so
 # we restrict the number of workers to 2 (the default is 3)
