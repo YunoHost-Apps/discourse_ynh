@@ -266,7 +266,9 @@ then
 	ynh_add_config --template="../conf/secrets.yml" --destination="$final_path/config/secrets.yml"
 
 	# Set permissions to app files
-	chown -R $app: $final_path
+	chmod 750 "$final_path"
+	chmod -R o-rwx "$final_path"
+	chown -R $app:www-data "$final_path"
 
 	pushd "$final_path"
 		# Install bundler, a gems installer
@@ -369,9 +371,9 @@ mkdir -p "$final_path/tmp/sockets"
 )
 
 # Set permissions to app files
-chown -R $app: $final_path
-# Restrict rights to log directory (needed by logrotate)
-chmod g-w $final_path/log
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
 
 #=================================================
 # SETUP LOGROTATE
