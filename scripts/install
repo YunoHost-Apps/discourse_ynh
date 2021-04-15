@@ -110,7 +110,7 @@ ynh_setup_source --dest_dir="$final_path"
 mkdir -p "$final_path/plugins/discourse-ldap-auth"
 ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_id=ldap-auth
 
-chmod 750 "$final_path"
+chmod -R 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
@@ -190,7 +190,7 @@ secret="$(ynh_string_random)"
 ynh_add_config --template="../conf/secrets.yml" --destination="$final_path/config/secrets.yml"
 
 # Set permissions to app files
-chmod 750 "$final_path"
+chmod -R 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
@@ -316,7 +316,7 @@ mkdir -p "public/forum"
 cd public/forum && ln -s ../uploads && ln -s ../backups
 )
 
-chmod 750 "$final_path"
+chmod -R 750 "$final_path"
 chmod -R o-rwx "$final_path"
 chown -R $app:www-data "$final_path"
 
