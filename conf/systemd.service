@@ -14,7 +14,7 @@ Environment=RAILS_ENV=production
 Environment=UNICORN_SIDEKIQS=1
 Environment=LD_PRELOAD=__LIBJEMALLOC__
 Environment=UNICORN_LISTENER=__FINALPATH__/tmp/sockets/unicorn.sock
-ExecStart=__RBENVROOT__/shims/bundle exec unicorn --config config/unicorn.conf.rb -E production
+ExecStart=__RBENV_ROOT__/shims/bundle exec unicorn --config config/unicorn.conf.rb -E production
 Restart=always
 RestartSec=10
 
