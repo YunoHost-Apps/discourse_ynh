@@ -1,7 +1,7 @@
 # Discourse for YunoHost
 
 [![Integration level](https://dash.yunohost.org/integration/discourse.svg)](https://dash.yunohost.org/appci/app/discourse) ![](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)  
-[![Install Discourse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=discourse)
+[![Install Discourse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 
 > *This package allows you to install Discourse quickly and simply on a YunoHost server.  
 If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/install) to learn how to install it.*
@@ -33,7 +33,7 @@ Finally, if installing on a low-end ARM device (e.g. Raspberry Pi):
 
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
-**Shipped version:** 2.6.0
+**Shipped version:** 2.6.1
 
 ## Screenshots
 
@@ -107,8 +107,8 @@ When disabling Local Login and other authentication services, clicking the `Logi
 
 #### Supported architectures
 
-* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/discourse%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/discourse%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/discourse/)
+* x86-64 - [![Build Status](https://ci-apps.yunohost.org/ci/logs/discourse.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/discourse.svg)](https://ci-apps-arm.yunohost.org/ci/apps/discourse/)
 
 ## Limitations
 
@@ -133,7 +133,7 @@ systemctl restart discourse
 ## Links
 
  * Report a bug: https://github.com/YunoHost-Apps/discourse_ynh/issues
- * Discourse website: https://discourse.org/
+ * App website: https://discourse.org/
  * Upstream app repository: https://github.com/discourse/discourse
  * YunoHost website: https://yunohost.org/
 
