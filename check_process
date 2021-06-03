@@ -29,3 +29,5 @@ Notification=none
 		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&is_public=1&
 	; commit=086de718f49a506c66498d2f7610f5fd0ce07d50
 		name=2.3.10~ynh1
+	; commit=b2e6633e0145c7eed2eb8c645ca7dbbd6c26fc06
+		name=2.6.0~ynh1
