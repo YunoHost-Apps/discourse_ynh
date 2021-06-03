@@ -93,6 +93,14 @@ ynh_script_progression --message="Stopping a systemd service..."
 ynh_systemd_action --service_name=$app --action="stop" --log_path="$final_path/log/unicorn.stderr.log"
 
 #=================================================
+# CREATE DEDICATED USER
+#=================================================
+ynh_script_progression --message="Making sure dedicated system user exists..."
+
+# Create a dedicated user (if not existing)
+ynh_system_user_create --username=$app --home_dir=$final_path --use_shell
+
+#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
@@ -182,14 +190,6 @@ ynh_install_app_dependencies $pkg_dependencies
 ynh_script_progression --message="Installing Ruby..."
 
 ynh_install_ruby --ruby_version=$RUBY_VERSION
-
-#=================================================
-# CREATE DEDICATED USER
-#=================================================
-ynh_script_progression --message="Making sure dedicated system user exists..."
-
-# Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir=$final_path --use_shell
 
 #=================================================
 # SPECIFIC UPGRADE
