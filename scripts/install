@@ -63,7 +63,7 @@ ynh_app_setting_set --app=$app --key=email --value=$email
 #=================================================
 ynh_script_progression --message="Installing dependencies..."
 
-ynh_install_app_dependencies $pkg_dependencies
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # CREATE A POSTGRESQL DATABASE
@@ -72,7 +72,7 @@ ynh_script_progression --message="Creating a PostgreSQL database..."
 
 db_name=$(ynh_sanitize_dbid --db_name=$app)
 db_user=$db_name
-db_pwd=$(ynh_string_random)
+db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 ynh_app_setting_set --app=$app --key=db_name --value=$db_name
 ynh_app_setting_set --app=$app --key=db_pwd --value=$db_pwd
 ynh_psql_test_if_first_run
@@ -159,10 +159,8 @@ echo "svgo: false" > $final_path/.image_optim.yml
 ynh_script_progression --message="Setting up Unicorn..."
 
 # Set a secret value
-cp ../conf/secrets.yml "$final_path/config/secrets.yml"
-ynh_replace_string --match_string="__SECRET__" --replace_string="$(ynh_string_random)" --target_file="$final_path/config/secrets.yml"
-# Calculate and store the config file checksum
-ynh_store_file_checksum --file="$final_path/config/secrets.yml"
+secret=$(ynh_string_random)
+ynh_add_config --template="../conf/secrets.yml" --destination="$final_path/config/secrets.yml"
 
 # Set permissions to app files
 chown -R $app: $final_path
@@ -334,7 +332,7 @@ fi
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..."
+ynh_script_progression --message="Reloading NGINX web server..."
 
 ynh_systemd_action --service_name=nginx --action=reload
 
