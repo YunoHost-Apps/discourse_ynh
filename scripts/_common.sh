@@ -20,6 +20,7 @@ exec_login_as() {
   shift 1
   exec_as $user --login "$@"
 }
+
 # Execute a command as another user
 # usage: exec_as USER COMMAND [ARG ...]
 exec_as() {
