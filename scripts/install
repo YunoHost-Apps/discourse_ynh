@@ -190,9 +190,9 @@ secret="$(ynh_string_random)"
 ynh_add_config --template="../conf/secrets.yml" --destination="$final_path/config/secrets.yml"
 
 # Set permissions to app files
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+# chmod 750 "$final_path"
+# chmod -R o-rwx "$final_path"
+# chown -R $app:www-data "$final_path"
 
 pushd "$final_path"
 	ynh_use_ruby
@@ -316,9 +316,9 @@ mkdir -p "public/forum"
 cd public/forum && ln -s ../uploads && ln -s ../backups
 )
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+# chmod 750 "$final_path"
+# chmod -R o-rwx "$final_path"
+# chown -R $app:www-data "$final_path"
 
 #=================================================
 # SETUP LOGROTATE
