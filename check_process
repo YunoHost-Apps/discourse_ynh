@@ -16,9 +16,11 @@
 		#upgrade=1 from_commit=de467cfa38791f43215ffea88d4b85460e5c0457
 		# 2.3.10~ynh1
 		#upgrade=1 from_commit=086de718f49a506c66498d2f7610f5fd0ce07d50
+		# 2.6.1~ynh1
+		upgrade=1 from_commit=c40349020d98356d24b8f534722839fe35cf41fd
 		backup_restore=1
 		# Activate multi-instance test only if you have more than 2Gb RAM!
-		#multi_instance=1
+		multi_instance=0
 		change_url=1
 ;;; Options
 Email=
@@ -29,5 +31,5 @@ Notification=none
 		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&is_public=1&
 	; commit=086de718f49a506c66498d2f7610f5fd0ce07d50
 		name=2.3.10~ynh1
-	; commit=b2e6633e0145c7eed2eb8c645ca7dbbd6c26fc06
-		name=2.6.0~ynh1
+	; commit=c40349020d98356d24b8f534722839fe35cf41fd
+		name=Merge pull request #70

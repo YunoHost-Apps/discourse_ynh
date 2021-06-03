@@ -286,9 +286,9 @@ mkdir -p "public/forum"
 cd public/forum && ln -s ../uploads && ln -s ../backups
 )
 
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
+# chmod 750 "$final_path"
+# chmod -R o-rwx "$final_path"
+# chown -R $app:www-data "$final_path"
 
 #=================================================
 # SETUP LOGROTATE
