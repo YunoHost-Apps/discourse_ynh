@@ -24,7 +24,7 @@ db_name=$(ynh_app_setting_get --app=$app --key=db_name)
 db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 redis_db=$(ynh_app_setting_get --app=$app --key=redis_db)
 unicorn_workers=$(ynh_app_setting_get --app=$app --key=unicorn_workers)
-admin_mail=$(ynh_app_setting_get --app=$app --key=admin_mail)
+email=$(ynh_app_setting_get --app=$app --key=email)
 
 # Check memory requirements
 #check_memory_requirements_upgrade

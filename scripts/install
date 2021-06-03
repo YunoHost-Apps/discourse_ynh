@@ -28,7 +28,7 @@ domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 admin=$YNH_APP_ARG_ADMIN
 is_public=$YNH_APP_ARG_IS_PUBLIC
-admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
+email=$(ynh_user_get_info --username=$admin --key=mail)
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -54,7 +54,7 @@ ynh_script_progression --message="Storing installation settings..."
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
 ynh_app_setting_set --app=$app --key=admin --value=$admin
-ynh_app_setting_set --app=$app --key=admin_mail --value=$admin_mail
+ynh_app_setting_set --app=$app --key=email --value=$email
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -209,7 +209,7 @@ ynh_script_progression --message="Populating the database..."
 #Set default data (especially to have correct image URLs for subfolder install)
 ynh_psql_connect_as --user=$db_user --password=$db_pwd --database=$db_name <<< "INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('title', 1, 'YunoHost Forum', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('site_description', 1, 'YunoHost Forum', 'NOW()', 'NOW()');
-INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('contact_email', 14, '$admin_mail', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('contact_email', 14, '$email', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('contact_url', 1, '$domain$path_url', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('site_contact_username', 15, '$admin', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('logo_url', 1, '${path_url%/}/images/d-logo-sketch.png', 'NOW()', 'NOW()');
@@ -228,7 +228,7 @@ ynh_script_progression --message="Creating Discourse admin user..."
 
 # Create a random password
 admin_pwd=$(ynh_string_random)
-$rake_exec admin:create <<< "$admin_mail
+$rake_exec admin:create <<< "$email
 $admin_pwd
 $admin_pwd
 y
