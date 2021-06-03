@@ -28,6 +28,7 @@ domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 admin=$YNH_APP_ARG_ADMIN
 is_public=$YNH_APP_ARG_IS_PUBLIC
+email=$(ynh_user_get_info --username=$admin --key=mail)
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -53,6 +54,7 @@ ynh_script_progression --message="Storing installation settings..."
 ynh_app_setting_set --app=$app --key=domain --value=$domain
 ynh_app_setting_set --app=$app --key=path --value=$path_url
 ynh_app_setting_set --app=$app --key=admin --value=$admin
+ynh_app_setting_set --app=$app --key=email --value=$email
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -137,47 +139,16 @@ ynh_system_user_create --username=$app --home_dir=$final_path --use_shell
 #=================================================
 ynh_script_progression --message="Configuring Discourse..."
 
-# Configure database
-discourse_config_file="$final_path/config/discourse.conf"
-cp $final_path/config/discourse_defaults.conf $discourse_config_file
-ynh_replace_string --match_string="db_name = discourse" --replace_string="db_name = $db_name" --target_file="$discourse_config_file"
-ynh_replace_string --match_string="db_username = discourse" --replace_string="db_username = $db_name" --target_file="$discourse_config_file"
-ynh_replace_string --match_string="db_password =" --replace_string="db_password = $db_pwd" --target_file="$discourse_config_file"
-
-# Configure hostname
-ynh_replace_string --match_string="hostname = \"www.example.com\"" --replace_string="hostname = \"$domain\"" --target_file="$discourse_config_file"
-ynh_replace_string --match_string="relative_url_root =" --replace_string="relative_url_root = ${path_url%/}" --target_file="$discourse_config_file"
-
-# Serve static assets (i.e. images, js, etc.)
-ynh_replace_string --match_string="serve_static_assets = false" --replace_string="serve_static_assets = true" --target_file="$discourse_config_file"
-
-# Don't show miniprofiler
-ynh_replace_string --match_string="load_mini_profiler = true" --replace_string="load_mini_profiler = false" --target_file="$discourse_config_file"
-
-# Configure e-mail server
-admin_mail=$(ynh_user_get_info "$admin" mail)
-ynh_replace_string --match_string="developer_emails =" --replace_string="developer_emails = $admin_mail" --target_file="$discourse_config_file"
-ynh_replace_string --match_string="smtp_address =" --replace_string="smtp_address = localhost" --target_file="$discourse_config_file"
-ynh_replace_string --match_string="smtp_domain =" --replace_string="smtp_domain = $domain" --target_file="$discourse_config_file"
-ynh_replace_string --match_string="smtp_enable_start_tls = true" --replace_string="smtp_enable_start_tls = false" --target_file="$discourse_config_file"
-
 # Configure redis
 redis_db=$(ynh_redis_get_free_db)
 ynh_app_setting_set --app="$app" --key=redis_db --value="$redis_db"
-ynh_replace_string --match_string="redis_db = 0" --replace_string="redis_db = $redis_db" --target_file="$discourse_config_file"
 
-# Don't notify on new versions (handled by the YunoHost package)
-ynh_replace_string --match_string="new_version_emails = true" --replace_string="new_version_emails = false" --target_file="$discourse_config_file"
-
-# Calculate and store the config file checksum
-ynh_store_file_checksum --file="$discourse_config_file"
+ynh_add_config --template="../conf/discourse_defaults.conf" --destination="$final_path/config/discourse.conf"
+chmod 400 "$final_path/config/discourse.conf"
+chown $app:$app "$final_path/config/discourse.conf"
 
 # Configure LDAP plugin
-ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
-ynh_replace_string --match_string="adfs.example.com" --replace_string="localhost" --target_file="$ldap_config_file"
-ynh_replace_string --match_string="dc=example,dc=com" --replace_string="ou=users,dc=yunohost,dc=org" --target_file="$ldap_config_file"
-ynh_replace_string --match_string="sAMAccountName" --replace_string="uid" --target_file="$ldap_config_file"
-ynh_store_file_checksum --file="$ldap_config_file"
+ynh_add_config --template="../conf/settings.yml" --destination="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
 
 # Disable svgo worker
 echo "svgo: false" > $final_path/.image_optim.yml
