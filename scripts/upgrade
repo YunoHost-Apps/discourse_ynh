@@ -70,7 +70,8 @@ ynh_script_progression --message="Backing up the app before upgrading (may take 
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
-	# restore it if the upgrade fails
+	ynh_clean_check_starting
+	# Restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
 # Exit if an error occurs during the execution of the script
@@ -98,7 +99,7 @@ ynh_systemd_action --service_name=$app --action="stop" --log_path="$final_path/l
 ynh_script_progression --message="Making sure dedicated system user exists..."
 
 # Create a dedicated user (if not existing)
-ynh_system_user_create --username=$app --home_dir=$final_path --use_shell
+ynh_system_user_create --username=$app --home_dir="$final_path" --use_shell
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -163,17 +164,21 @@ then
 	ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_id=ldap-auth
 fi
 
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
 ynh_script_progression --message="Upgrading NGINX web server configuration..."
 
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config
 
 # Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
 if [ "$path_url" != "/" ] ; then
-  ynh_replace_string --match_string='$proxy_add_x_forwarded_for' --replace_string='$http_your_original_ip_header' --target_file="/etc/nginx/conf.d/$domain.d/$app.conf"
+	ynh_replace_string --match_string='$proxy_add_x_forwarded_for' --replace_string='$http_your_original_ip_header' --target_file="/etc/nginx/conf.d/$domain.d/$app.conf"
 fi
 ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
 
@@ -183,13 +188,8 @@ ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
 ynh_script_progression --message="Upgrading dependencies..."
 
 ynh_install_app_dependencies $pkg_dependencies
-
-#=================================================
-# INSTALL RUBY
-#=================================================
-ynh_script_progression --message="Installing Ruby..."
-
 ynh_install_ruby --ruby_version=$RUBY_VERSION
+ynh_use_ruby
 
 #=================================================
 # SPECIFIC UPGRADE
@@ -225,49 +225,43 @@ then
 	# Make a backup of the original config file if modified
 	ynh_backup_if_checksum_is_different "$unicorn_config_file"
 
-		# Calculate and store the config file checksum
+	# Calculate and store the config file checksum
 	ynh_store_file_checksum --file="$unicorn_config_file"
 
-	secret_config_file="$final_path/config/secrets.yml"
-	# Make a backup of the original config file if modified
-	ynh_backup_if_checksum_is_different "$secret_config_file"
-
-	# Set a secret value
-	cp ../conf/secrets.yml "$final_path/config/secrets.yml"
-	ynh_replace_string --match_string="__SECRET__" --replace_string="$(ynh_string_random)" --target_file="$secret_config_file"
-
-	# Calculate and store the config file checksum
-	ynh_store_file_checksum --file="$secret_config_file"
+	secret="$(ynh_string_random)"
+	ynh_add_config --template="../conf/secrets.yml" --destination="$final_path/config/secrets.yml"
 
 	# Set permissions to app files
-	chown -R $app: $final_path
+	chmod 750 "$final_path"
+	chmod -R o-rwx "$final_path"
+	chown -R $app:www-data "$final_path"
 
-	(
-		cd "$final_path"
+	pushd "$final_path"
 		# Install bundler, a gems installer
-		gem install bundler
+		ynh_gem install bundler
 		# Install without documentation
-		ynh_exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
-	)
+		exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+	popd
+	
 	# Specific actions on ARM architecture
 	if [ -n "$(uname -m | grep arm)" ] ; then
-  		# Define the platform specifically to retrieve binaries
-  		# for libv8 because it currently doesn't compile on ARM devices
-  		exec_login_as $app bundle config specific_platform arm-linux
+		# Define the platform specifically to retrieve binaries
+		# for libv8 because it currently doesn't compile on ARM devices
+		exec_login_as $app bin/bundle config specific_platform arm-linux
 	fi
 	# Install dependencies
-	exec_login_as $app bundle config set path 'vendor/bundle'
-	exec_login_as $app bundle config set with 'development'
-	exec_login_as $app MAKEFLAGS=-j2 bundle install --jobs 2
+	exec_login_as $app bin/bundle config set path 'vendor/bundle'
+	exec_login_as $app bin/bundle config set with 'development'
+	exec_login_as $app MAKEFLAGS=-j2 bin/bundle install --jobs 2
 
 	# On ARM architecture, replace bundled libpsl by system native libpsl
 	# because the provided binary isn't compatible
 	if [ -n "$(uname -m | grep arm)" ] ; then
-  		(
-  			cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
-  			rm libpsl.so
-  			ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so
-  		)
+		(
+			cd $final_path/vendor/bundle/ruby/*/gems/mini_suffix-*/vendor
+			rm libpsl.so
+			ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so
+		)
 	fi
 fi
 
@@ -304,11 +298,12 @@ fi
 #=================================================
 # SETUP SYSTEMD
 #=================================================
+
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Configuring a systemd service..."
 
-	ynh_replace_string --match_string="__RBENVROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/systemd.service"
+	ynh_replace_string --match_string="__RBENV_ROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/systemd.service"
 
 	additional_env="UNICORN_WORKERS=$unicorn_workers"
 	ynh_replace_string --match_string="__ADDITIONAL_ENV__" --replace_string="$additional_env" --target_file="../conf/systemd.service"
@@ -342,9 +337,19 @@ mkdir -p "$final_path/tmp/sockets"
 )
 
 # Set permissions to app files
-chown -R $app: $final_path
-# Restrict rights to log directory (needed by logrotate)
-chmod g-w $final_path/log
+chmod 750 "$final_path"
+chmod -R o-rwx "$final_path"
+chown -R $app:www-data "$final_path"
+
+#=================================================
+# SETUP LOGROTATE
+#=================================================
+ynh_script_progression --message="Upgrading logrotate configuration..."
+
+# Use logrotate to manage app-specific logfile(s)
+ynh_use_logrotate --logfile="$final_path/log/unicorn.stderr.log"
+ynh_use_logrotate --logfile="$final_path/log/unicorn.stdout.log"
+ynh_use_logrotate --logfile="$final_path/log/production.log"
 
 #=================================================
 # INTEGRATE SERVICE IN YUNOHOST
@@ -358,7 +363,6 @@ yunohost service add $app --log "$final_path/log/unicorn.stderr.log" "$final_pat
 #=================================================
 ynh_script_progression --message="Starting a systemd service..."
 
-# Wait for discourse to be fully started
 ynh_systemd_action --service_name=$app --action="start" --log_path="$final_path/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
