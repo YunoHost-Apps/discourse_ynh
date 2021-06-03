@@ -18,7 +18,7 @@ RUBY_VERSION="3.0.1"
 exec_login_as() {
   local user=$1
   shift 1
-  exec_as $user --login "$@"
+  ynh_exec_as $user --login "$@"
 }
 
 # Returns true if a swap partition is enabled, false otherwise
