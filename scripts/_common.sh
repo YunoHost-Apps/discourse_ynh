@@ -21,19 +21,6 @@ exec_login_as() {
   exec_as $user --login "$@"
 }
 
-# Execute a command as another user
-# usage: exec_as USER COMMAND [ARG ...]
-exec_as() {
-  local user=$1
-  shift 1
-
-  if [[ $user = $(whoami) ]]; then
-    eval "$@"
-  else
-    sudo -u "$user" "$@"
-  fi
-}
-
 # Returns true if a swap partition is enabled, false otherwise
 # usage: is_swap_present
 is_swap_present() {

@@ -247,7 +247,7 @@ then
 		# Install bundler, a gems installer
 		gem install bundler
 		# Install without documentation
-		exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+		ynh_exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
 	)
 	# Specific actions on ARM architecture
 	if [ -n "$(uname -m | grep arm)" ] ; then
