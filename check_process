@@ -13,9 +13,9 @@
 		setup_public=1
 		upgrade=1
 		# 2.2.3~ynh1
-		upgrade=1 from_commit=de467cfa38791f43215ffea88d4b85460e5c0457
+		#upgrade=1 from_commit=de467cfa38791f43215ffea88d4b85460e5c0457
 		# 2.3.10~ynh1
-		upgrade=1 from_commit=086de718f49a506c66498d2f7610f5fd0ce07d50
+		#upgrade=1 from_commit=086de718f49a506c66498d2f7610f5fd0ce07d50
 		backup_restore=1
 		# Activate multi-instance test only if you have more than 2Gb RAM!
 		#multi_instance=1

@@ -26,7 +26,7 @@ redis_db=$(ynh_app_setting_get --app=$app --key=redis_db)
 unicorn_workers=$(ynh_app_setting_get --app=$app --key=unicorn_workers)
 
 # Check memory requirements
-check_memory_requirements_upgrade
+#check_memory_requirements_upgrade
 
 #=================================================
 # CHECK VERSION
