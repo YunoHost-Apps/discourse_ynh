@@ -30,7 +30,7 @@ $ RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails c
 $ UserEmail.create!(user: User.find_by_username("foo"), email: "foo@theirexternalmail.com")
 ```
 
-Discourse can now receive email from `foo@theirexternalmail.com` and give it to the user account with mail address `foo@myyunohostdomain.org`.
+Discourse can now receive mail from `foo@theirexternalmail.com` and give it to the user account with mail address `foo@myyunohostdomain.org`.
 
 #### Multi-user support
 
@@ -47,3 +47,4 @@ When disabling Local Login and other authentication services, clicking the `Logi
 ![Disable Local](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/disable_local.png)
 
 ![LDAP Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/ldap_popup.png)
+

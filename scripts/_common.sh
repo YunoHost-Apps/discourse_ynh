@@ -270,11 +270,11 @@ ynh_install_ruby () {
         ynh_print_info --message="rbenv already seems installed in \`$rbenv'."
         pushd "${rbenv%/*/*}"
             if git remote -v 2>/dev/null | grep "https://github.com/rbenv/rbenv.git"; then
-                ynh_print_info --message="Trying to update with Git..."
+                ynh_print_info --message="Trying to update with git..."
                 git pull -q --tags origin master
                 ynh_ruby_try_bash_extension
             else
-                ynh_print_info --message="Reinstalling rbenv with Git..."
+                ynh_print_info --message="Reinstalling rbenv with git..."
                 cd ..
                 ynh_secure_remove --file=$rbenv_install_dir
                 mkdir -p $rbenv_install_dir
@@ -287,7 +287,7 @@ ynh_install_ruby () {
             fi
         popd
     else
-        ynh_print_info --message="Installing rbenv with Git..."
+        ynh_print_info --message="Installing rbenv with git..."
         mkdir -p $rbenv_install_dir
         pushd $rbenv_install_dir
             git init -q
@@ -308,7 +308,7 @@ ynh_install_ruby () {
             fi
         popd
     else
-        ynh_print_info --message="Installing ruby-build with Git..."
+        ynh_print_info --message="Installing ruby-build with git..."
         mkdir -p "${rbenv_install_dir}/plugins"
         git clone -q https://github.com/rbenv/ruby-build.git "${rbenv_install_dir}/plugins/ruby-build"
     fi
@@ -323,7 +323,7 @@ ynh_install_ruby () {
             fi
         popd
     else
-        ynh_print_info --message="Installing rbenv-aliases with Git..."
+        ynh_print_info --message="Installing rbenv-aliases with git..."
         mkdir -p "${rbenv_install_dir}/plugins"
         git clone -q https://github.com/tpope/rbenv-aliases.git "${rbenv_install_dir}/plugins/rbenv-aliase"
     fi
@@ -338,7 +338,7 @@ ynh_install_ruby () {
             fi
         popd
     else
-        ynh_print_info --message="Installing xxenv-latest with Git..."
+        ynh_print_info --message="Installing xxenv-latest with git..."
         mkdir -p "${rbenv_install_dir}/plugins"
         git clone -q https://github.com/momo-lab/xxenv-latest.git "${rbenv_install_dir}/plugins/xxenv-latest"
     fi
@@ -380,10 +380,10 @@ ynh_install_ruby () {
 
     # Set environment for Ruby users
     echo  "#rbenv
-    export RBENV_ROOT=$rbenv_install_dir
-    export PATH=\"$rbenv_install_dir/bin:$PATH\"
-    eval \"\$(rbenv init -)\"
-    #rbenv" > /etc/profile.d/rbenv.sh
+export RBENV_ROOT=$rbenv_install_dir
+export PATH=\"$rbenv_install_dir/bin:$PATH\"
+eval \"\$(rbenv init -)\"
+#rbenv" > /etc/profile.d/rbenv.sh
 
     # Load the environment
     eval "$(rbenv init -)"
