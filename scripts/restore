@@ -45,7 +45,7 @@ test ! -d $final_path \
 	|| ynh_die --message="There is already a directory: $final_path "
 
 # Check memory requirements
-#check_memory_requirements
+check_memory_requirements
 
 #=================================================
 # STANDARD RESTORATION STEPS
