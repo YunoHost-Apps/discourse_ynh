@@ -13,7 +13,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 Plateforme de discussion
 
-**Version incluse :** 2.8.0~ynh1
+**Version incluse :** 2.7.3~ynh1
 
 **Démo :** https://try.discourse.org
 

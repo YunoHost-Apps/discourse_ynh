@@ -17,7 +17,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Discussion platform
 
-**Shipped version:** 2.8.0~ynh1
+**Shipped version:** 2.7.3~ynh1
 
 **Demo:** https://try.discourse.org
 
