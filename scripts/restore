@@ -43,8 +43,12 @@ ynh_webpath_available --domain=$domain --path_url=$path_url \
 test ! -d $final_path \
 	|| ynh_die --message="There is already a directory: $final_path "
 
-# Check memory requirements
-check_memory_requirements
+if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
+	:
+else
+	# Check memory requirements
+	check_memory_requirements
+fi
 
 #=================================================
 # STANDARD RESTORATION STEPS
