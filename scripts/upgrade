@@ -30,7 +30,7 @@ if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
 	:
 else
 	# Check memory requirements
-	check_memory_requirements
+	check_memory_requirements_upgrade
 fi
 
 #=================================================
