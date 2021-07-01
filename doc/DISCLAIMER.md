@@ -53,7 +53,7 @@ Here's how to setup a secondary mail address for a user account:
 
 ```bash
 $ cd /var/www/discourse
-$ RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails c
+$ RAILS_ENV=production /opt/rbenv/versions/2.7.1/bin/bundle exec rails c
 $ UserEmail.create!(user: User.find_by_username("foo"), email: "foo@theirexternalmail.com")
 ```
 
