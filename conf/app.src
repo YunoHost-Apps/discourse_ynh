@@ -1,5 +1,5 @@
-SOURCE_URL=https://github.com/discourse/discourse/archive/v2.6.1.tar.gz
-SOURCE_SUM=f62f50c7491e114be42ece5d5d8e4072fe98bdd7955b962dbe6b241b38f453c7
+SOURCE_URL=https://github.com/discourse/discourse/archive/v2.7.4.tar.gz
+SOURCE_SUM=df0c7d35357dd8669fc5047bf289c68cda9647f5d088a1953051a251547da04c
 SOURCE_SUM_PRG=sha256sum
 SOURCE_FORMAT=tar.gz
 SOURCE_IN_SUBDIR=true
