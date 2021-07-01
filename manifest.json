@@ -8,6 +8,12 @@
     },
     "version": "2.7.4~ynh1",
     "url": "http://Discourse.org",
+    "upstream": {
+        "license": "GPL-2.0",
+        "website": "http://Discourse.org",
+        "demo": "https://try.discourse.org",
+        "code": "https://github.com/discourse/discourse"
+    },
     "license": "GPL-2.0",
     "maintainer": {
         "name": "JimboJoe",
