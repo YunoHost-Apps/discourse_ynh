@@ -15,7 +15,7 @@ Plateforme de discussion
 
 **Version incluse :** 2.7.4~ynh1
 
-
+**Démo :** https://try.discourse.org
 
 ## Avertissements / informations importantes
 
@@ -123,6 +123,8 @@ systemctl restart discourse
 
 ## Documentations et ressources
 
+* Site officiel de l'app : http://Discourse.org
+* Dépôt de code officiel de l'app : https://github.com/discourse/discourse
 * Documentation YunoHost pour cette app : https://yunohost.org/app_discourse
 * Signaler un bug : https://github.com/YunoHost-Apps/discourse_ynh/issues
 

@@ -19,7 +19,7 @@ Discussion platform
 
 **Shipped version:** 2.7.4~ynh1
 
-
+**Demo:** https://try.discourse.org
 
 ## Disclaimers / important information
 
@@ -127,6 +127,8 @@ systemctl restart discourse
 
 ## Documentation and resources
 
+* Official app website: http://Discourse.org
+* Upstream app code repository: https://github.com/discourse/discourse
 * YunoHost documentation for this app: https://yunohost.org/app_discourse
 * Report a bug: https://github.com/YunoHost-Apps/discourse_ynh/issues
 
