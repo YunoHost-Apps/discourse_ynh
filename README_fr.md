@@ -17,6 +17,10 @@ Plateforme de discussion
 
 **Démo :** https://try.discourse.org
 
+## Captures d'écran
+
+![](./doc/screenshots/screenshot.png)
+
 ## Avertissements / informations importantes
 
 ## Avertissement

@@ -21,6 +21,10 @@ Discussion platform
 
 **Demo:** https://try.discourse.org
 
+## Screenshots
+
+![](./doc/screenshots/screenshot.png)
+
 ## Disclaimers / important information
 
 ## Disclaimer
