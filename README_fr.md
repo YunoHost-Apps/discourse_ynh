@@ -19,107 +19,170 @@ Plateforme de discussion
 
 ## Avertissements / informations importantes
 
-## Disclaimer
+## Avertissement
 
-This package installs Discourse without Docker, for several reasons (mostly to support ARM architecture and low-profile servers, to mutualize nginx/postgresql/redis services and to simplify e-mail setup).
-As stated by the Discourse team:
-> The only officially supported installs of Discourse are [Docker](https://www.docker.io/) based. You must have SSH access to a 64-bit Linux server **with Docker support**. We regret that we cannot support any other methods of installation including cpanel, plesk, webmin, etc.
+Ce package installe Discourse sans Docker, pour plusieurs raisons (principalement pour prendre en charge l'architecture ARM et les serveurs discrets, pour mutualiser les services nginx/postgresql/redis et pour simplifier la configuration de la messagerie).
+Comme indiqué par l'équipe Discourse :
+> Les seules installations officiellement prises en charge de Discourse sont basées sur [Docker](https://www.docker.io/). Vous devez avoir un accès SSH à un serveur Linux 64 bits **avec prise en charge Docker**. Nous regrettons de ne pouvoir prendre en charge aucune autre méthode d'installation, notamment cpanel, plesk, webmin, etc.
 
-So please have this in mind when considering asking for Discourse support.
+Veuillez donc avoir cela à l'esprit lorsque vous envisagez de demander de l'aide à Discourse.
 
-Moreover, you should have in mind Discourse [hardware requirements](https://github.com/discourse/discourse/blob/master/docs/INSTALL.md#hardware-requirements):
-- modern single core CPU, dual core recommended
-- 1 GB RAM minimum (with swap)
-- 64 bit Linux compatible with Docker
-- 10 GB disk space minimum
+De plus, vous devriez avoir à l'esprit Discourse [exigences matérielles](https://github.com/discourse/discourse/blob/master/docs/INSTALL.md#hardware-requirements) :
+- CPU monocœur moderne, double cœur recommandé
+- 1 Go de RAM minimum (avec swap)
+- Linux 64 bits compatible avec Docker
+- 10 Go d'espace disque minimum
 
-Finally, if installing on a low-end ARM device (e.g. Raspberry Pi):
-- installation can last up to 3 hours,
-- first access right after installation could take a couple of minutes.
+Enfin, si vous installez sur un appareil ARM bas de gamme (par exemple Raspberry Pi) :
+- l'installation peut durer jusqu'à 3 heures,
+- le premier accès juste après l'installation peut prendre quelques minutes.
 
-## Overview
-[Discourse](http://www.discourse.org) is the 100% open source discussion platform built for the next decade of the Internet. Use it as a:
+## Aperçu
+[Discourse](http://www.discourse.org) est la plate-forme de discussion 100% open source conçue pour la prochaine décennie d'Internet. Utilisez-le comme :
 
-- mailing list
-- discussion forum
-- long-form chat room
+- liste de diffusion
+- forum de discussion
+- salle de discussion longue durée
 
-To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
+Pour en savoir plus sur la philosophie et les objectifs du projet, [visitez **discourse.org**](http://www.discourse.org).
 
 ## Configuration
 
-Use the admin panel of your Discourse to configure this app.
+Utilisez le panneau d'administration de votre Discourse pour configurer cette application.
 
-### Configuring "Reply-By-Email"
+### Configuration de "Répondre par e-mail"
 
-* You should create a dedicated Yunohost user for Discourse whose mailbox will be used by the Discourse application. You can do this with `yunohost user create response`, for example. You should ensure that the email address is configured to be on your Discourse domain.
+* Vous devez créer un utilisateur Yunohost dédié pour Discourse dont la boîte aux lettres sera utilisée par l'application Discourse. Vous pouvez le faire avec `yunohost user create response`, par exemple. Vous devez vous assurer que l'adresse e-mail est configurée pour être sur votre domaine Discourse.
 
-* You should then configure your Discourse `/var/www/discourse/config/discourse.conf` file with the correct SMTP configuration values. Please see [this comment](https://github.com/YunoHost-Apps/discourse_ynh/issues/2#issuecomment-409510325) for an explanation of what values to change. Please be aware, when you update the application, you will have to re-apply this configuration.
+* Vous devez ensuite configurer votre fichier Discourse `/var/www/discourse/config/discourse.conf` avec les valeurs de configuration SMTP correctes. Veuillez consulter [ce commentaire](https://github.com/YunoHost-Apps/discourse_ynh/issues/2#issuecomment-409510325) pour une explication des valeurs à modifier. Attention, lors de la mise à jour de l'application, vous devrez réappliquer cette configuration.
 
-* You must enable the Pop3 configuration for Dovecot. See [this thread](https://forum.yunohost.org/t/how-to-enable-pop3-in-yunohost/1662/2) on how to do that. You can validate your configuration with `systemctl restart dovecot && dovecot -n`. Don't forget to open the ports you need (`995` is the default). You can validate that with `nmap -p 995 yunohostdomain.org`.
+* Vous devez activer la configuration Pop3 pour Dovecot. Voir [ce fil](https://forum.yunohost.org/t/how-to-enable-pop3-in-yunohost/1662/2) pour savoir comment procéder. Vous pouvez valider votre configuration avec `systemctl restart dovecot && dovecot -n`. N'oubliez pas d'ouvrir les ports dont vous avez besoin ('995' est la valeur par défaut). Vous pouvez valider cela avec `nmap -p 995 yunohostdomain.org`.
 
-* You should then configure the Pop3 polling in the Discourse admin interface. Please see [this comment](https://meta.discourse.org/t/set-up-reply-via-email-support/14003) for how to do so. You will need to follow step 5 in that comment. You can specify your main Yunohost domain for the `pop3_polling_host`.
+* Vous devez ensuite configurer le sondage Pop3 dans l'interface d'administration de Discourse. Veuillez consulter [ce commentaire](https://meta.discourse.org/t/set-up-reply-via-email-support/14003) pour savoir comment procéder. Vous devrez suivre l'étape 5 de ce commentaire. Vous pouvez spécifier votre domaine Yunohost principal pour le `pop3_polling_host`.
 
-You should now be able to start testing. Try using the `/admin/email` "Send Test Email" and then view the "Sent" or "Skipped" etc. tabs. You should see a report on what happened with the email. You may also want to look in `/var/www/discourse/log/production.log` as well as `/var/www/mail.err`. You should perhaps also use [Rainloop](https://github.com/YunoHost-Apps/rainloop_ynh) or another Yunohost email client application to quickly test that both your user and the dedicated Yunohost Discourse user (`response@...`) is receiving mail.
+Vous devriez maintenant pouvoir commencer à tester. Essayez d'utiliser le `/admin/email` « Envoyer un e-mail de test », puis affichez les onglets « Envoyé » ou « Ignoré », etc. Vous devriez voir un rapport sur ce qui s'est passé avec l'e-mail. Vous pouvez également regarder dans `/var/www/discourse/log/production.log` ainsi que `/var/www/mail.err`. Vous devriez peut-être également utiliser [Rainloop](https://github.com/YunoHost-Apps/rainloop_ynh) ou une autre application client de messagerie Yunohost pour tester rapidement que votre utilisateur et l'utilisateur dédié Yunohost Discourse (`response@...` ) reçoit du courrier.
 
-### "Reply-By-Email" and mail forwarding
+### "Réponse par e-mail" et transfert de courrier
 
-If you use the administration UI in YunoHost to setup a mail forwarding address for your users then you may face the problem whereby your users are replying by email from the forwarded email address and the Discourse software is not able to understand how to receive that email.
+Si vous utilisez l'interface utilisateur d'administration de YunoHost pour configurer une adresse de transfert de courrier pour vos utilisateurs, vous risquez de rencontrer le problème selon lequel vos utilisateurs répondent par e-mail à partir de l'adresse e-mail transférée et le logiciel Discourse n'est pas capable de comprendre comment recevoir cet e-mail.
 
-For example, your user has email address `foo@myyunohostdomain.org` and all mail is forwarded to `foo@theirexternalmail.com`. Discourse receives replies from `foo@theirexternalmail.com` but cannot understand how to deliver this to the user account with `foo@myyunohostdomain.org` configured.
+Par exemple, votre utilisateur a l'adresse e-mail "foo@myyunohostdomain.org" et tout le courrier est transféré à "foo@theirexternalmail.com". Discourse reçoit des réponses de `foo@theirexternalmail.com` mais ne peut pas comprendre comment les envoyer au compte utilisateur avec `foo@myyunohostdomain.org` configuré.
 
-Their is on-going work to allow for [multiple email addresses for one user](https://meta.discourse.org/t/additional-email-address-per-user-account-support/59847) in Discourse development but at current major version (2.3 as of 2019-08-06), there is no web interface for this functionality. It is possible to set it up via the command-line interface but it is **experimental** and you should not undertake this work unless you take some time to understand what it is you are going to do.
+Leur travail est en cours pour permettre [plusieurs adresses e-mail pour un utilisateur](https://meta.discourse.org/t/additional-email-address-per-user-account-support/59847) dans le développement de discours mais dans la version majeure actuelle (2.3 au 06-08-2019), il n'y a pas d'interface Web pour cette fonctionnalité. Il est possible de le configurer via l'interface de ligne de commande mais c'est **expérimental** et vous ne devriez pas entreprendre ce travail à moins de prendre le temps de comprendre ce que vous allez faire.
 
-Here's how to setup a secondary mail address for a user account:
+Voici comment configurer une adresse e-mail secondaire pour un compte utilisateur :
 
 ```bash
-$ cd /var/www/discourse
+$ cd /var/www/discours
 $ RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails c
 $ UserEmail.create!(user: User.find_by_username("foo"), email: "foo@theirexternalmail.com")
 ```
 
-## YunoHost specific features
+## Fonctionnalités spécifiques à YunoHost
 
- * Integration with YunoHost users and SSO:
-   * LDAP integration: on the login pop-up, you can choose "Login with LDAP" and use your YunoHost credentials
-   * private mode: Forum only accessible by YunoHost users
-   * public mode: Visible by anyone
+ * Intégration avec les utilisateurs YunoHost et SSO :
+   * Intégration LDAP : dans la pop-up de connexion, vous pouvez choisir "Se connecter avec LDAP" et utiliser vos identifiants YunoHost
+   * mode privé : Forum uniquement accessible ## Disclaimer
 
-#### Multi-user support
+Ce package installe Discourse sans Docker, pour plusieurs raisons (principalement pour prendre en charge l'architecture ARM et les serveurs discrets, pour mutualiser les services nginx/postgresql/redis et pour simplifier la configuration de la messagerie).
+Comme indiqué par l'équipe Discourse :
+> Les seules installations officiellement prises en charge de Discourse sont basées sur [Docker](https://www.docker.io/). Vous devez avoir un accès SSH à un serveur Linux 64 bits **avec prise en charge Docker**. Nous regrettons de ne pouvoir prendre en charge aucune autre méthode d'installation, notamment cpanel, plesk, webmin, etc.
 
-Supported, with LDAP (no SSO).
+Veuillez donc avoir cela à l'esprit lorsque vous envisagez de demander de l'aide à Discourse.
+
+De plus, vous devriez avoir à l'esprit Discourse [exigences matérielles](https://github.com/discourse/discourse/blob/master/docs/INSTALL.md#hardware-requirements) :
+- CPU monocœur moderne, double cœur recommandé
+- 1 Go de RAM minimum (avec swap)
+- Linux 64 bits compatible avec Docker
+- 10 Go d'espace disque minimum
+
+Enfin, si vous installez sur un appareil ARM bas de gamme (par exemple Raspberry Pi) :
+- l'installation peut durer jusqu'à 3 heures,
+- le premier accès juste après l'installation peut prendre quelques minutes.
+
+## Aperçu
+[Discourse](http://www.discourse.org) est la plate-forme de discussion 100% open source conçue pour la prochaine décennie d'Internet. Utilisez-le comme :
+
+- liste de diffusion
+- forum de discussion
+- salle de discussion longue durée
+
+Pour en savoir plus sur la philosophie et les objectifs du projet, [visitez **discourse.org**](http://www.discourse.org).
+
+## Configuration
+
+Utilisez le panneau d'administration de votre Discourse pour configurer cette application.
+
+### Configuration de "Répondre par e-mail"
+
+* Vous devez créer un utilisateur Yunohost dédié pour Discourse dont la boîte aux lettres sera utilisée par l'application Discourse. Vous pouvez le faire avec `yunohost user create response`, par exemple. Vous devez vous assurer que l'adresse e-mail est configurée pour être sur votre domaine Discourse.
+
+* Vous devez ensuite configurer votre fichier Discourse `/var/www/discourse/config/discourse.conf` avec les valeurs de configuration SMTP correctes. Veuillez consulter [ce commentaire](https://github.com/YunoHost-Apps/discourse_ynh/issues/2#issuecomment-409510325) pour une explication des valeurs à modifier. Attention, lors de la mise à jour de l'application, vous devrez réappliquer cette configuration.
+
+* Vous devez activer la configuration Pop3 pour Dovecot. Voir [ce fil](https://forum.yunohost.org/t/how-to-enable-pop3-in-yunohost/1662/2) pour savoir comment procéder. Vous pouvez valider votre configuration avec `systemctl restart dovecot && dovecot -n`. N'oubliez pas d'ouvrir les ports dont vous avez besoin ('995' est la valeur par défaut). Vous pouvez valider cela avec `nmap -p 995 yunohostdomain.org`.
+
+* Vous devez ensuite configurer le sondage Pop3 dans l'interface d'administration de Discourse. Veuillez consulter [ce commentaire](https://meta.discourse.org/t/set-up-reply-via-email-support/14003) pour savoir comment procéder. Vous devrez suivre l'étape 5 de ce commentaire. Vous pouvez spécifier votre domaine Yunohost principal pour le `pop3_polling_host`.
+
+Vous devriez maintenant pouvoir commencer à tester. Essayez d'utiliser le `/admin/email` « Envoyer un e-mail de test », puis affichez les onglets « Envoyé » ou « Ignoré », etc. Vous devriez voir un rapport sur ce qui s'est passé avec l'e-mail. Vous pouvez également regarder dans `/var/www/discourse/log/production.log` ainsi que `/var/www/mail.err`. Vous devriez peut-être également utiliser [Rainloop](https://github.com/YunoHost-Apps/rainloop_ynh) ou une autre application client de messagerie Yunohost pour tester rapidement que votre utilisateur et l'utilisateur dédié Yunohost Discourse (`response@...` ) reçoit du courrier.
+
+### "Réponse par e-mail" et transfert de courrier
+
+Si vous utilisez l'interface utilisateur d'administration de YunoHost pour configurer une adresse de transfert de courrier pour vos utilisateurs, vous risquez de rencontrer le problème selon lequel vos utilisateurs répondent par e-mail à partir de l'adresse e-mail transférée et le logiciel Discourse n'est pas capable de comprendre comment recevoir cet e-mail.
+
+Par exemple, votre utilisateur a l'adresse e-mail "foo@myyunohostdomain.org" et tout le courrier est transféré à "foo@theirexternalmail.com". Discourse reçoit des réponses de `foo@theirexternalmail.com` mais ne peut pas comprendre comment les envoyer au compte utilisateur avec `foo@myyunohostdomain.org` configuré.
+
+Leur travail est en cours pour permettre [plusieurs adresses e-mail pour un utilisateur](https://meta.discourse.org/t/additional-email-address-per-user-account-support/59847) dans le développement de discours mais dans la version majeure actuelle (2.3 au 06-08-2019), il n'y a pas d'interface Web pour cette fonctionnalité. Il est possible de le configurer via l'interface de ligne de commande mais c'est **expérimental** et vous ne devriez pas entreprendre ce travail à moins de prendre le temps de comprendre ce que vous allez faire.
+
+Voici comment configurer une adresse e-mail secondaire pour un compte utilisateur :
+
+```bash
+$ cd /var/www/discourse
+$ RAILS_ENV=production /opt/rbenv/versions/2.7.1/bin/bundle exec rails c
+$ UserEmail.create!(user: User.find_by_username("foo"), email: "foo@theirexternalmail.com")
+```
+
+## Fonctionnalités spécifiques à YunoHost
+
+ * Intégration avec les utilisateurs YunoHost et SSO :
+   * Intégration LDAP : dans la pop-up de connexion, vous pouvez choisir "Se connecter avec LDAP" et utiliser vos identifiants YunoHost
+   * mode privé : Forum accessible uniquement par les utilisateurs de YunoHost
+   * mode public : Visible par tous
+
+#### Prise en charge multi-utilisateurs
+
+Pris en charge, avec LDAP (pas de SSO).
 
 ![Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/login.png)
 
-Default administrator and YunoHost users must login using LDAP:
-* click on the "with LDAP" button
-* use your YunoHost credentials
+L'administrateur par défaut et les utilisateurs YunoHost doivent se connecter via LDAP :
+* cliquez sur le bouton "avec LDAP"
+* utilisez vos identifiants YunoHost
 
-When disabling Local Login and other authentication services, clicking the `Login` or `Sign Up` button will directly bring up the LDAP Login popup.
+Lors de la désactivation de la connexion locale et d'autres services d'authentification, cliquez sur le bouton « Connexion » ou « Inscription » pour afficher directement la fenêtre contextuelle de connexion LDAP.
 
-![Disable Local](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/disable_local.png)
+![Désactiver Local](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/disable_local.png)
 
-![LDAP Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/ldap_popup.png)
+![Popup de connexion LDAP](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/ldap_popup.png)
 
-## Limitations
+## Limites
 
-None at the moment.
+Aucun pour le moment.
 
-## Additional information
-### Known non-impacting log messages
+## Informations Complémentaires
+### Messages de journal connus sans impact
 ```
 fatal: Not a git repository (or any of the parent directories): .git
 
 bash: BASH_XTRACEFD: 7: invalid value for trace file descriptor
 ```
-## How-tos
-### Install plugins
+## Mode d'emploi
+### Installer des plugins
 ```
 cd /var/www/discourse
 sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved (for example)
 sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
 systemctl restart discourse
-```
+``` 
 
 ## Documentations et ressources
 
