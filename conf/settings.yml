@@ -1,0 +1,24 @@
+plugins:
+  ldap_enabled:
+    default: true
+  ldap_user_create_mode:
+    default: 'auto'
+  ldap_lookup_users_by:
+    default: 'email'
+  ldap_hostname:
+    default: 'localhost'
+  ldap_port:
+    default: 389
+  ldap_method:
+    default: 'plain'
+  ldap_base:
+    default: 'ou=users,dc=yunohost,dc=org'
+  ldap_uid:
+    default: 'uid'
+  ldap_bind_dn:
+    default: ''
+  ldap_password:
+    default: ''
+    secret: true
+  ldap_filter:
+    default: ''
