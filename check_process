@@ -12,8 +12,6 @@
 		setup_private=1
 		setup_public=1
 		upgrade=1
-		# 2.6.0~ynh1
-		upgrade=1	from_commit=b2e6633e0145c7eed2eb8c645ca7dbbd6c26fc06
 		# 2.6.1~ynh2
 		upgrade=1	from_commit=c626379c98bb7f052061446cd152e4406979d49d
 		backup_restore=1
@@ -25,8 +23,6 @@
 Email=
 Notification=none
 ;;; Upgrade options
-	; commit=b2e6633e0145c7eed2eb8c645ca7dbbd6c26fc06
-		name=2.6.0~ynh1
 	; commit=c626379c98bb7f052061446cd152e4406979d49d
 		name=2.6.1~ynh2
 		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&is_public=1&
