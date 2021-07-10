@@ -192,7 +192,8 @@ ynh_script_progression --message="Upgrading dependencies..."
 
 ynh_install_app_dependencies $pkg_dependencies 2>/dev/null
 ynh_install_ruby --ruby_version=$RUBY_VERSION 2>/dev/null
-
+ynh_use_ruby
+`
 #=================================================
 # SPECIFIC UPGRADE
 #=================================================
@@ -274,7 +275,6 @@ then
 	chown -R $app:www-data "$final_path"
 
 	pushd "$final_path"
-		ynh_use_ruby
 		# Install bundler, a gems installer
 		ynh_gem install bundler
 		# Install without documentation
