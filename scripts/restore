@@ -86,8 +86,8 @@ chown -R $app:www-data "$final_path"
 ynh_script_progression --message="Reinstalling dependencies..."
 
 # Define and install dependencies
-ynh_install_app_dependencies $pkg_dependencies
-ynh_install_ruby --ruby_version=$RUBY_VERSION
+ynh_install_app_dependencies $pkg_dependencies 2>/dev/null
+ynh_install_ruby --ruby_version=$RUBY_VERSION 2>/dev/null
 
 #=================================================
 # REINSTALL BUNDLE GEM
