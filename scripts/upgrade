@@ -278,7 +278,7 @@ then
 		# Install bundler, a gems installer
 		ynh_gem install bundler
 		# Install without documentation
-		exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+		ynh_exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
 	popd
 	
 	# Specific actions on ARM architecture
