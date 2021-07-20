@@ -65,8 +65,8 @@ ynh_app_setting_set --app=$app --key=admin --value=$admin
 #=================================================
 ynh_script_progression --message="Installing dependencies..."
 
-ynh_install_app_dependencies $pkg_dependencies
-ynh_install_ruby --ruby_version=$RUBY_VERSION
+ynh_install_app_dependencies $pkg_dependencies 2>/dev/null
+ynh_install_ruby --ruby_version=$RUBY_VERSION 2>/dev/null
 
 #=================================================
 # CREATE DEDICATED USER
@@ -203,7 +203,7 @@ pushd "$final_path"
 	# Install bundler, a gems installer
 	ynh_gem install bundler
 	# Install without documentation
-	exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
+	ynh_exec_as $app echo "gem: --no-ri --no-rdoc" >> "$final_path/.gemrc"
 popd
 
 # Specific actions on ARM architecture
