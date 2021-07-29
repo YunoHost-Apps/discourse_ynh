@@ -1,3 +1,29 @@
+## Avertissement
+
+Ce package installe Discourse sans Docker, pour plusieurs raisons (principalement pour prendre en charge l'architecture ARM et les serveurs discrets, pour mutualiser les services nginx/postgresql/redis et pour simplifier la configuration de la messagerie).
+Comme indiqué par l'équipe Discourse :
+> Les seules installations officiellement prises en charge de Discourse sont basées sur [Docker](https://www.docker.io/). Vous devez avoir un accès SSH à un serveur Linux 64 bits **avec prise en charge Docker**. Nous regrettons de ne pouvoir prendre en charge aucune autre méthode d'installation, notamment cpanel, plesk, webmin, etc.
+
+Veuillez donc avoir cela à l'esprit lorsque vous envisagez de demander de l'aide à Discourse.
+
+De plus, vous devriez avoir à l'esprit Discourse [exigences matérielles](https://github.com/discourse/discourse/blob/master/docs/INSTALL.md#hardware-requirements) :
+- CPU monocœur moderne, double cœur recommandé
+- 1 Go de RAM minimum (avec swap)
+- Linux 64 bits compatible avec Docker
+- 10 Go d'espace disque minimum
+
+Enfin, si vous installez sur un appareil ARM bas de gamme (par exemple Raspberry Pi) :
+- l'installation peut durer jusqu'à 3 heures,
+- le premier accès juste après l'installation peut prendre quelques minutes.
+
+## Aperçu
+[Discourse](http://www.discourse.org) est la plate-forme de discussion 100% open source conçue pour la prochaine décennie d'Internet. Utilisez-le comme :
+
+- liste de diffusion
+- forum de discussion
+- salle de discussion longue durée
+
+Pour en savoir plus sur la philosophie et les objectifs du projet, [visitez **discourse.org**](http://www.discourse.org).
 ## Configuration
 
 Utilisez le panneau d'administration de votre Discourse pour configurer cette application.
@@ -46,4 +72,24 @@ Lors de la désactivation de la connexion locale et d'autres services d'authenti
 
 ![Désactiver Local](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/disable_local.png)
 
-![Popup de connexion LDAP](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/ldap_popup.png) 
+![Popup de connexion LDAP](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/ldap_popup.png)
+
+## Limites
+
+Aucun pour le moment.
+
+## Informations Complémentaires
+### Messages de journal connus sans impact
+```
+fatal: Not a git repository (or any of the parent directories): .git
+
+bash: BASH_XTRACEFD: 7: invalid value for trace file descriptor
+```
+## Mode d'emploi
+### Installer des plugins
+```
+cd /var/www/discourse
+sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved (for example)
+sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
+systemctl restart discourse
+``` 

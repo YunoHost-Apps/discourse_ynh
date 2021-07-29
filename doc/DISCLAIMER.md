@@ -36,6 +36,7 @@ Discourse can now receive mail from `foo@theirexternalmail.com` and give it to t
 
 Supported, with LDAP and SSO.
 
+
 ![Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/login.png)
 
 Default administrator and YunoHost users must login using LDAP:
@@ -48,3 +49,22 @@ When disabling Local Login and other authentication services, clicking the `Logi
 
 ![LDAP Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/ldap_popup.png)
 
+## Limitations
+
+None at the moment.
+
+## Additional information
+### Known non-impacting log messages
+```
+fatal: Not a git repository (or any of the parent directories): .git
+
+bash: BASH_XTRACEFD: 7: invalid value for trace file descriptor
+```
+## How-tos
+### Install plugins
+```
+cd /var/www/discourse
+sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved (for example)
+sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
+systemctl restart discourse
+```
