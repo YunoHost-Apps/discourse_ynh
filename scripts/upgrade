@@ -21,9 +21,10 @@ path_url=$(ynh_app_setting_get --app=$app --key=path)
 admin=$(ynh_app_setting_get --app=$app --key=admin)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
+db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 redis_db=$(ynh_app_setting_get --app=$app --key=redis_db)
 unicorn_workers=$(ynh_app_setting_get --app=$app --key=unicorn_workers)
+email=$(ynh_app_setting_get --app=$app --key=email)
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
 	:
@@ -204,51 +205,16 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Configuring Discourse..."
 
-	# Configure Discourse
-	discourse_config_file="$final_path/config/discourse.conf"
-	# Make a backup of the original config file if modified
-	ynh_backup_if_checksum_is_different --file="$discourse_config_file"
-
-	cp $final_path/config/discourse_defaults.conf $discourse_config_file
-
-	ynh_replace_string --match_string="db_name = discourse" --replace_string="db_name = $db_name" --target_file="$discourse_config_file"
-	ynh_replace_string --match_string="db_username = discourse" --replace_string="db_username = $db_name" --target_file="$discourse_config_file"
-	ynh_replace_string --match_string="db_password =" --replace_string="db_password = $db_pwd" --target_file="$discourse_config_file"
-	# Configure hostname
-	ynh_replace_string --match_string="hostname = \"www.example.com\"" --replace_string="hostname = \"$domain\"" --target_file="$discourse_config_file"
-	ynh_replace_string --match_string="relative_url_root =" --replace_string="relative_url_root = ${path_url%/}" --target_file="$discourse_config_file"
-	# Serve static assets (i.e. images, js, etc.)
-	ynh_replace_string --match_string="serve_static_assets = false" --replace_string="serve_static_assets = true" --target_file="$discourse_config_file"
-	# Don't show miniprofiler
-	ynh_replace_string --match_string="load_mini_profiler = true" --replace_string="load_mini_profiler = false" --target_file="$discourse_config_file"
-	# Configure e-mail server
-	admin_mail=$(ynh_user_get_info "$admin" mail)
-	ynh_replace_string --match_string="developer_emails =" --replace_string="developer_emails = $admin_mail" --target_file="$discourse_config_file"
-	ynh_replace_string --match_string="smtp_address =" --replace_string="smtp_address = localhost" --target_file="$discourse_config_file"
-	ynh_replace_string --match_string="smtp_domain =" --replace_string="smtp_domain = $domain" --target_file="$discourse_config_file"
-	ynh_replace_string --match_string="smtp_enable_start_tls = true" --replace_string="smtp_enable_start_tls = false" --target_file="$discourse_config_file"
-	# Configure redis
-	ynh_replace_string --match_string="redis_db = 0" --replace_string="redis_db = $redis_db" --target_file="$discourse_config_file"
-	# Don't notify on new versions (handled by the YunoHost package)
-	ynh_replace_string --match_string="new_version_emails = true" --replace_string="new_version_emails = false" --target_file="$discourse_config_file"
-
-	# Calculate and store the config file checksum
-	ynh_store_file_checksum --file="$discourse_config_file"
+	ynh_add_config --template="../conf/discourse_defaults.conf" --destination="$final_path/config/discourse.conf"
+	chmod 400 "$final_path/config/discourse.conf"
+	chown $app "$final_path/config/discourse.conf"
 
 	# Configure LDAP plugin
-	ldap_config_file="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
-	# Make a backup of the original config file if modified
-	ynh_backup_if_checksum_is_different "$ldap_config_file"
-
-	ynh_replace_string --match_string="adfs.example.com" --replace_string="localhost" --target_file="$ldap_config_file"
-	ynh_replace_string --match_string="dc=example,dc=com" --replace_string="ou=users,dc=yunohost,dc=org" --target_file="$ldap_config_file"
-	ynh_replace_string --match_string="sAMAccountName" --replace_string="uid" --target_file="$ldap_config_file"
-
-	# Calculate and store the config file checksum
-	ynh_store_file_checksum --file="$ldap_config_file"
+	ynh_add_config --template="../conf/settings.yml" --destination="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
 
 	# Disable svgo worker
 	echo "svgo: false" > $final_path/.image_optim.yml
+
 fi
 
 #=================================================
@@ -268,11 +234,6 @@ then
 
 	secret="$(ynh_string_random)"
 	ynh_add_config --template="../conf/secrets.yml" --destination="$final_path/config/secrets.yml"
-
-	# Set permissions to app files
-	chmod 750 "$final_path"
-	chmod -R o-rwx "$final_path"
-	chown -R $app:www-data "$final_path"
 
 	pushd "$final_path"
 		# Install bundler, a gems installer
@@ -402,6 +363,7 @@ yunohost service add $app --log "$final_path/log/unicorn.stderr.log" "$final_pat
 ynh_script_progression --message="Starting a systemd service..."
 
 ynh_systemd_action --service_name=$app --action="start" --log_path="$final_path/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
+sleep 60
 
 #=================================================
 # DISABLE MAINTENANCE MODE
