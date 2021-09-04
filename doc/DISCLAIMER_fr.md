@@ -36,13 +36,13 @@ Utilisez le panneau d'administration de votre Discourse pour configurer cette ap
 
 * Vous devez activer la configuration POP3 pour *Dovecot*. Voir [ce fil](https://forum.yunohost.org/t/how-to-enable-pop3-in-yunohost/1662/2) pour savoir comment procéder. Vous pouvez valider votre configuration avec `systemctl restart dovecot && dovecot -n`. N'oubliez pas d'ouvrir les ports dont vous avez besoin (`995` est la valeur par défaut). Vous pouvez valider cela avec `nmap -p 995 domain.ltd`.
 
-* Vous devez ensuite configurer le sondage Pop3 dans l'interface d'administration de *Discourse*. Veuillez consulter [ce commentaire](https://meta.discourse.org/t/set-up-reply-via-email-support/14003) pour savoir comment procéder. Vous devrez suivre l'étape 5 de ce commentaire. Vous pouvez spécifier votre domaine Yunohost principal pour le `pop3_polling_host`.
+* Vous devez ensuite configurer le sondage Pop3 dans l'interface d'administration de *Discourse*. Veuillez consulter [ce commentaire](https://meta.discourse.org/t/set-up-reply-via-email-support/14003) pour savoir comment procéder. Vous devrez suivre l'étape 5 de ce commentaire. Vous pouvez spécifier votre domaine YunoHost principal pour le `pop3_polling_host`.
 
 Vous devriez maintenant pouvoir commencer à tester. Essayez d'utiliser le `/admin/email` « Envoyer un email de test », puis affichez les onglets « Envoyé » ou « Ignoré », etc. Vous devriez voir un rapport sur ce qui s'est passé avec l'email. Vous pouvez également regarder dans `/var/www/discourse/log/production.log` ainsi que `/var/www/mail.err`. Vous devriez peut-être également utiliser [Rainloop](https://github.com/YunoHost-Apps/rainloop_ynh) ou une autre application client de messagerie YunoHost pour tester rapidement que votre utilisateur et l'utilisateur dédié YunoHost *Discourse* (`response@...`) reçoit du courrier.
 
 ### "Réponse par email" et transfert de courrier
 
-Si vous utilisez l'interface utilisateur d'administration de YunoHost pour configurer une adresse de transfert de courrier pour vos utilisateurs, vous risquez de rencontrer le problème selon lequel vos utilisateurs répondent par email à partir de l'adresse e-mail transférée et le logiciel *Discourse* n'est pas en mesure de comprendre comment recevoir cet email.
+Si vous utilisez l'interface utilisateur d'administration de YunoHost pour configurer une adresse de transfert de courrier pour vos utilisateurs, vous risquez de rencontrer le problème selon lequel vos utilisateurs répondent par email à partir de l'adresse email transférée et le logiciel *Discourse* n'est pas en mesure de comprendre comment recevoir cet email.
 
 Par exemple, votre utilisateur a l'adresse email "foo@myyunohostdomain.org" et tout le courrier est transféré à `foo@theirexternalmail.com`. *Discourse* reçoit des réponses de `foo@theirexternalmail.com` mais ne peut pas comprendre comment les envoyer au compte utilisateur avec `foo@myyunohostdomain.org` configuré.
 
