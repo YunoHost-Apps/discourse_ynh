@@ -11,7 +11,11 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 ## Vue d'ensemble
 
-Plateforme de discussion
+Discourse est la plate-forme de discussion 100% open source construite pour la prochaine décennie d'Internet. Utilisez-le comme :
+
+- liste de diffusion
+- forum de discussion
+- salle de discussion
 
 **Version incluse :** 2.7.9~ynh1
 
