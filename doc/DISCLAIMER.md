@@ -1,3 +1,9 @@
+## Disclaimer
+
+This package installs Discourse without Docker, for several reasons (mostly to support ARM architecture and low-profile servers, to mutualize nginx/postgresql/redis services and to simplify e-mail setup).
+As stated by the Discourse team:
+> The only officially supported installs of Discourse are [Docker](https://www.docker.io/) based. You must have SSH access to a 64-bit Linux server **with Docker support**. We regret that we cannot support any other methods of installation including cpanel, plesk, webmin, etc.
+
 ## Configuration
 
 Use the admin panel of your Discourse to configure this app.
