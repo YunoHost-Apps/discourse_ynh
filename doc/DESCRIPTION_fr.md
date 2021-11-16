@@ -1,0 +1,1 @@
+Discourse est un logiciel de forum moderne pour votre communauté. Utilisez-le comme liste de diffusion, forum de discussion, salle de discussion longue durée, et plus encore !
