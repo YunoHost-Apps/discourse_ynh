@@ -11,7 +11,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 ## Vue d'ensemble
 
-Plateforme de discussion
+Discourse est un logiciel de forum moderne pour votre communauté. Utilisez-le comme liste de diffusion, forum de discussion, salle de discussion longue durée, et plus encore !
 
 **Version incluse :** 2.7.10~ynh1
 
