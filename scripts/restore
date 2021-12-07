@@ -38,8 +38,7 @@ db_user=$db_name
 #=================================================
 ynh_script_progression --message="Validating restoration parameters..."
 
-test ! -d $final_path \
-	|| ynh_die --message="There is already a directory: $final_path "
+test ! -d $final_path || ynh_die --message="There is already a directory: $final_path "
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
 	:
