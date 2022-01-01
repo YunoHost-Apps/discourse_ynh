@@ -6,7 +6,7 @@
         "en": "Discussion platform",
         "fr": "Plateforme de discussion"
     },
-    "version": "2.7.9~ynh1",
+    "version": "2.7.12~ynh1",
     "url": "http://Discourse.org",
     "upstream": {
         "license": "GPL-2.0",
@@ -21,7 +21,7 @@
         "url": ""
     },
     "requirements": {
-        "yunohost": ">= 4.2.4"
+        "yunohost": ">= 4.3.0"
     },
     "multi_instance": true,
     "services": [
