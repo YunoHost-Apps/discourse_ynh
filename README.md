@@ -21,6 +21,8 @@ Discourse is the 100% open source discussion platform built for the next decade 
 - discussion forum
 - long-form chat room
 
+
+
 **Shipped version:** 2.7.12~ynh1
 
 **Demo:** https://try.discourse.org
