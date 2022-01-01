@@ -13,7 +13,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 Discourse est un logiciel de forum moderne pour votre communauté. Utilisez-le comme liste de diffusion, forum de discussion, salle de discussion longue durée, et plus encore !
 
-**Version incluse :** 2.7.11~ynh1
+**Version incluse :** 2.7.12~ynh1
 
 **Démo :** https://try.discourse.org
 
