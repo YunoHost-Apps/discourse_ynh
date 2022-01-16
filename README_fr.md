@@ -18,7 +18,7 @@ Discourse est la plate-forme de discussion 100% open source construite pour la p
 - salle de discussion
 
 
-**Version incluse :** 2.7.12~ynh1
+**Version incluse :** 2.7.13~ynh1
 
 **Démo :** https://try.discourse.org
 

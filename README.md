@@ -23,7 +23,7 @@ Discourse is the 100% open source discussion platform built for the next decade 
 
 
 
-**Shipped version:** 2.7.12~ynh1
+**Shipped version:** 2.7.13~ynh1
 
 **Demo:** https://try.discourse.org
 
