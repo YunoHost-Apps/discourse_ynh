@@ -12,8 +12,8 @@
 		setup_private=1
 		setup_public=1
 		upgrade=1
-		# 2.6.1~ynh2
-		upgrade=1	from_commit=c626379c98bb7f052061446cd152e4406979d49d
+		# 2.7.13
+		upgrade=1	from_commit=0a9ab8ee823c7ef6602f80374cb396bac6487760
 		backup_restore=1
 		# Activate multi-instance test only if you have more than 2Gb RAM!
 		multi_instance=0
@@ -23,6 +23,6 @@
 Email=
 Notification=none
 ;;; Upgrade options
-	; commit=c626379c98bb7f052061446cd152e4406979d49d
-		name=2.6.1~ynh2
+	; commit=0a9ab8ee823c7ef6602f80374cb396bac6487760
+		name=2.7.13
 		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&is_public=1&
