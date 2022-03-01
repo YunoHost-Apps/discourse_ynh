@@ -24,3 +24,4 @@ Notification=none
 ;;; Upgrade options
 	; commit=0a9ab8ee823c7ef6602f80374cb396bac6487760
 		name=2.7.13
+		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&is_public=1&
