@@ -2,9 +2,9 @@ diff --git a/lib/tasks/assets.rake b/lib/tasks/assets.rake
 index 7b47f21658..ea6d0da2c4 100644
 --- a/lib/tasks/assets.rake
 +++ b/lib/tasks/assets.rake
-@@ -116,9 +116,21 @@ def gzip(path)
+@@ -174,9 +174,21 @@
  end
-
+ 
  # different brotli versions use different parameters
 -def brotli_command(path, max_compress)
 -  compression_quality = max_compress ? "11" : "6"
@@ -25,5 +25,5 @@ index 7b47f21658..ea6d0da2c4 100644
 +  # not sure what to do here, not expecting this
 +  raise "cannot determine brotli version"
  end
-
+ 
  def brotli(path, max_compress)
