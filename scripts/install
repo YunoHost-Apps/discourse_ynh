@@ -232,6 +232,7 @@ fi
 ynh_script_progression --message="Preparing the database..."
 
 rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
+ynh_exec_warn_less $rake_exec db:create 
 ynh_exec_warn_less $rake_exec db:migrate
 ynh_exec_warn_less $rake_exec assets:precompile
 
