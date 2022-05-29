@@ -2,8 +2,8 @@
 	; Manifest
 		domain="domain.tld"
 		path="/path"
-		admin="john"
 		is_public=1
+		admin="john"
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=1
@@ -25,4 +25,4 @@ Notification=none
 ;;; Upgrade options
 	; commit=c626379c98bb7f052061446cd152e4406979d49d
 		name=2.6.1~ynh2
-		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&is_public=1&
+		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&is_public=1

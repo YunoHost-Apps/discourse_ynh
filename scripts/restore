@@ -38,7 +38,8 @@ db_user=$db_name
 #=================================================
 ynh_script_progression --message="Validating restoration parameters..."
 
-test ! -d $final_path || ynh_die --message="There is already a directory: $final_path "
+test ! -d $final_path \
+	|| ynh_die --message="There is already a directory: $final_path "
 
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
 	:
@@ -83,8 +84,20 @@ chown -R $app:www-data "$final_path"
 ynh_script_progression --message="Reinstalling dependencies..."
 
 # Define and install dependencies
-ynh_install_app_dependencies $pkg_dependencies 2>/dev/null
-ynh_install_ruby --ruby_version=$RUBY_VERSION 2>/dev/null
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dependencies
+ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
+
+#=================================================
+# RESTORE THE POSTGRESQL DATABASE
+#=================================================
+ynh_script_progression --message="Restoring the PostgreSQL database..."
+
+ynh_psql_test_if_first_run
+db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
+ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
+ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS hstore;" --database=$db_name
+ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS pg_trgm;" --database=$db_name
+ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
 
 #=================================================
 # REINSTALL BUNDLE GEM
@@ -95,20 +108,6 @@ pushd "$final_path"
 	ynh_use_ruby
 	ynh_gem install bundler
 popd
-
-#=================================================
-# RESTORE THE POSTGRESQL DATABASE
-#=================================================
-ynh_script_progression --message="Restoring the PostgreSQL database..."
-
-db_pwd=$(ynh_app_setting_get --app=$app --key=db_pwd)
-ynh_psql_test_if_first_run
-ynh_psql_setup_db --db_user=$db_user --db_name=$db_name --db_pwd=$db_pwd
-# Set extensions
-ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS hstore;" --database=$db_name
-ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS pg_trgm;" --database=$db_name
-# Restore dump
-ynh_psql_execute_file_as_root --file="./db.sql" --database="$db_name"
 
 #=================================================
 # RESTORE SYSTEMD

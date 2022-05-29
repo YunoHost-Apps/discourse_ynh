@@ -133,13 +133,11 @@ ynh_use_ruby
 exec_login_as $app RAILS_ENV=production bin/bundle exec script/discourse remap ${old_path%/}/uploads ${new_path%/}/uploads <<< "YES
 # "
 
-rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
-
 # Regenerate assets
-ynh_exec_warn_less $rake_exec assets:precompile
+ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake assets:precompile
 
 # Regenerate all forum posts
-ynh_exec_warn_less $rake_exec posts:rebake
+ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake posts:rebake
 
 #=================================================
 # GENERIC FINALISATION
