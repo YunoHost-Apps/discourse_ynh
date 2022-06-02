@@ -205,6 +205,7 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Updating a config file..."
 
+	admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 	ynh_add_config --template="../conf/discourse_defaults.conf" --destination="$final_path/config/discourse.conf"
 
 	ynh_add_config --template="../conf/settings.yml" --destination="$final_path/plugins/discourse-ldap-auth/config/settings.yml"
