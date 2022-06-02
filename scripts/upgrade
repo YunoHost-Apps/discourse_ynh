@@ -278,6 +278,9 @@ then
 	ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake assets:precompile
 fi
 
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
+ynh_package_autoremove
+
 #=================================================
 # CONFIGURE PLUGINS
 #=================================================
