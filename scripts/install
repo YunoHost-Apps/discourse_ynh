@@ -14,7 +14,6 @@ source /usr/share/yunohost/helpers
 #=================================================
 
 ynh_clean_setup () {
-	# Clean remainings not handled by remove script
 	ynh_clean_check_starting
 }
 # Exit if an error occurs during the execution of the script
@@ -26,8 +25,8 @@ ynh_abort_if_errors
 
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
-admin=$YNH_APP_ARG_ADMIN
 is_public=$YNH_APP_ARG_IS_PUBLIC
+admin=$YNH_APP_ARG_ADMIN
 email=$(ynh_user_get_info --username="$admin" --key=mail)
 
 app=$YNH_APP_INSTANCE_NAME
@@ -67,10 +66,8 @@ ynh_app_setting_set --app=$app --key=email --value=$email
 #=================================================
 ynh_script_progression --message="Installing dependencies..."
 
-ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
-ynh_exec_warn_less ynh_install_ruby --ruby_version=$RUBY_VERSION
-
-# Install Yarn
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dependencies
+ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
 ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 
 #=================================================
@@ -94,6 +91,7 @@ ynh_psql_setup_db --db_user=$db_user --db_name=$db_name
 # Set extensions
 ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS hstore;" --database=$db_name
 ynh_psql_execute_as_root --sql="CREATE EXTENSION IF NOT EXISTS pg_trgm;" --database=$db_name
+db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -138,9 +136,9 @@ ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 # SPECIFIC SETUP
 #=================================================
-# CONFIGURE DISCOURSE
+# ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring Discourse..."
+ynh_script_progression --message="Adding a configuration file..."
 
 # Configure redis
 redis_db=$(ynh_redis_get_free_db)
@@ -164,11 +162,6 @@ ynh_script_progression --message="Setting up Unicorn..."
 # Set a secret value
 secret="$(ynh_string_random)"
 ynh_add_config --template="../conf/secrets.yml" --destination="$final_path/config/secrets.yml"
-
-# Set permissions to app files
-chmod 750 "$final_path"
-chmod -R o-rwx "$final_path"
-chown -R $app:www-data "$final_path"
 
 pushd "$final_path"
 	ynh_use_ruby
@@ -203,9 +196,11 @@ fi
 #=================================================
 ynh_script_progression --message="Preparing the database..."
 
-rake_exec="exec_login_as $app RAILS_ENV=production bin/rake"
-ynh_exec_warn_less $rake_exec db:migrate
-ynh_exec_warn_less $rake_exec assets:precompile
+ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake db:migrate
+ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake assets:precompile
+
+ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
+ynh_package_autoremove
 
 #=================================================
 # POPULATE THE DATABASE
@@ -234,7 +229,7 @@ ynh_script_progression --message="Creating Discourse admin user..."
 
 # Create a random password
 admin_pwd=$(ynh_string_random)
-$rake_exec admin:create <<< "$email
+exec_login_as $app RAILS_ENV=production bin/rake admin:create <<< "$email
 $admin_pwd
 $admin_pwd
 y
@@ -248,15 +243,13 @@ ynh_script_progression --message="Configuring plugins..."
 # Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
 # (Can only do that now because we are patching dependencies which have just been downloaded)
 # Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
-(cd $final_path/plugins/discourse-ldap-auth/gems/${RUBY_VERSION}/gems/omniauth-ldap*/
+(cd $final_path/plugins/discourse-ldap-auth/gems/${ruby_version}/gems/omniauth-ldap*/
 patch -p1 < $YNH_CWD/../conf/ldap-auth-fix-subfolder.patch)
 
 #=================================================
 # SETUP SYSTEMD
 #=================================================
 ynh_script_progression --message="Configuring a systemd service..."
-
-ynh_replace_string --match_string="__RBENV_ROOT__" --replace_string="$RBENV_ROOT" --target_file="../conf/systemd.service"
 
 # We assume for the moment that ARM devices are only dual core, so
 # we restrict the number of workers to 2 (the default is 3)
@@ -268,9 +261,7 @@ else
 	unicorn_workers=3
 fi
 ynh_app_setting_set --app=$app --key=unicorn_workers --value=$unicorn_workers
-
-ynh_replace_string --match_string="__ADDITIONAL_ENV__" --replace_string="$additional_env" --target_file="../conf/systemd.service"
-ynh_replace_string --match_string="__LIBJEMALLOC__" --replace_string="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')" --target_file="../conf/systemd.service"
+libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 ynh_add_systemd_config
 
 #=================================================

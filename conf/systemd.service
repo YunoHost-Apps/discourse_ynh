@@ -14,7 +14,8 @@ Environment=RAILS_ENV=production
 Environment=UNICORN_SIDEKIQS=1
 Environment=LD_PRELOAD=__LIBJEMALLOC__
 Environment=UNICORN_LISTENER=__FINALPATH__/tmp/sockets/unicorn.sock
-ExecStart=__RBENV_ROOT__/shims/bundle exec unicorn --config config/unicorn.conf.rb -E production
+Environment="__YNH_RUBY_LOAD_PATH__"
+ExecStart=__FINALPATH__/bin/bundle exec unicorn --config config/unicorn.conf.rb -E production
 Restart=always
 RestartSec=10
 
@@ -25,7 +26,7 @@ RestartSec=10
 NoNewPrivileges=yes
 PrivateTmp=yes
 PrivateDevices=yes
-RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 RestrictNamespaces=yes
 RestrictRealtime=yes
 DevicePolicy=closed

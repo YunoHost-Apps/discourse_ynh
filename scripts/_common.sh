@@ -5,8 +5,9 @@
 #=================================================
 
 pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
+build_pkg_dependencies=""
 
-RUBY_VERSION="2.7.2"
+ruby_version="2.7.2"
 
 #=================================================
 # PERSONAL HELPERS
@@ -163,6 +164,12 @@ rbenv_install_dir="/opt/rbenv"
 ruby_version_path="$rbenv_install_dir/versions"
 # RBENV_ROOT is the directory of rbenv, it needs to be loaded as a environment variable.
 export RBENV_ROOT="$rbenv_install_dir"
+export rbenv_root="$rbenv_install_dir"
+
+ruby_dependencies=""
+build_ruby_dependencies="libjemalloc-dev curl build-essential libreadline-dev zlib1g-dev libsqlite3-dev libssl-dev libxml2-dev libxslt-dev autoconf automake bison libtool"
+pkg_dependencies="$pkg_dependencies $ruby_dependencies"
+build_pkg_dependencies="$build_pkg_dependencies $build_ruby_dependencies"
 
 # Load the version of Ruby for an app, and set variables.
 #
@@ -187,9 +194,9 @@ export RBENV_ROOT="$rbenv_install_dir"
 # Finally, to start a Ruby service with the correct version, 2 solutions
 #  Either the app is dependent of Ruby or gem, but does not called it directly.
 #  In such situation, you need to load PATH
-#    `Environment="__YNH_RUBY_LOAD_ENV_PATH__"`
+#    `Environment="__YNH_RUBY_LOAD_PATH__"`
 #    `ExecStart=__FINALPATH__/my_app`
-#     You will replace __YNH_RUBY_LOAD_ENV_PATH__ with $ynh_ruby_load_path
+#     You will replace __YNH_RUBY_LOAD_PATH__ with $ynh_ruby_load_path
 #
 #  Or Ruby start the app directly, then you don't need to load the PATH variable
 #    `ExecStart=__YNH_RUBY__ my_app run`
@@ -201,7 +208,7 @@ export RBENV_ROOT="$rbenv_install_dir"
 #
 # usage: ynh_use_ruby
 #
-# Requires YunoHost version 2.7.12 or higher.
+# Requires YunoHost version 3.2.2 or higher.
 ynh_use_ruby () {
     ruby_version=$(ynh_app_setting_get --app=$app --key=ruby_version)
 
@@ -246,7 +253,7 @@ ynh_use_ruby () {
 # usage: ynh_install_ruby --ruby_version=ruby_version
 # | arg: -v, --ruby_version= - Version of ruby to install.
 #
-# Requires YunoHost version 2.7.12 or higher.
+# Requires YunoHost version 3.2.2 or higher.
 ynh_install_ruby () {
     # Declare an array to define the options of this helper.
     local legacy_args=v

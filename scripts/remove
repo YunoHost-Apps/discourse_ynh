@@ -44,6 +44,14 @@ ynh_script_progression --message="Stopping and removing the systemd service..."
 ynh_remove_systemd_config
 
 #=================================================
+# REMOVE LOGROTATE CONFIGURATION
+#=================================================
+ynh_script_progression --message="Removing logrotate configuration..."
+
+# Remove the app-specific logrotate config
+ynh_remove_logrotate
+
+#=================================================
 # REMOVE THE POSTGRESQL DATABASE
 #=================================================
 ynh_script_progression --message="Removing the PostgreSQL database..."
@@ -52,26 +60,11 @@ ynh_script_progression --message="Removing the PostgreSQL database..."
 ynh_psql_remove_db --db_user="$db_user" --db_name="$db_name"
 
 #=================================================
-# REMOVE RUBY
-#=================================================
-ynh_script_progression --message="Removing Ruby..."
-
-ynh_remove_ruby
-
-#=================================================
 # REMOVE THE REDIS DATABASE
 #=================================================
 ynh_script_progression --message="Removing the redis database..."
 
 ynh_redis_remove_db "$redis_db"
-
-#=================================================
-# REMOVE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Removing dependencies..."
-
-# Remove metapackage and its dependencies
-ynh_remove_app_dependencies
 
 #=================================================
 # REMOVE APP MAIN DIR
@@ -90,12 +83,13 @@ ynh_script_progression --message="Removing NGINX web server configuration..."
 ynh_remove_nginx_config
 
 #=================================================
-# REMOVE LOGROTATE CONFIGURATION
+# REMOVE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Removing logrotate configuration..."
+ynh_script_progression --message="Removing dependencies..."
 
-# Remove the app-specific logrotate config
-ynh_remove_logrotate
+# Remove metapackage and its dependencies
+ynh_remove_ruby
+ynh_remove_app_dependencies
 
 #=================================================
 # GENERIC FINALIZATION
