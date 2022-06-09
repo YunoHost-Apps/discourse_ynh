@@ -6,7 +6,7 @@
         "en": "Discussion platform",
         "fr": "Plateforme de discussion"
     },
-    "version": "2.7.13~ynh1",
+    "version": "2.7.13~ynh2",
     "url": "http://Discourse.org",
     "upstream": {
         "license": "GPL-2.0",
@@ -28,7 +28,7 @@
         "nginx"
     ],
     "arguments": {
-        "install" : [
+        "install": [
             {
                 "name": "domain",
                 "type": "domain"
@@ -40,13 +40,13 @@
                 "default": "/forum"
             },
             {
-                "name": "admin",
-                "type": "user"
-            },
-            {
                 "name": "is_public",
                 "type": "boolean",
                 "default": true
+            },
+            {
+                "name": "admin",
+                "type": "user"
             }
         ]
     }
