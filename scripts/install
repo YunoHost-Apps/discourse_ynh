@@ -140,6 +140,7 @@ ynh_script_progression --message="Adding a configuration file..."
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 redis_db=$(ynh_redis_get_free_db)
 ynh_app_setting_set --app="$app" --key=redis_db --value="$redis_db"
+relative_url_root=${path_url%/}
 
 ynh_add_config --template="../conf/discourse_defaults.conf" --destination="$final_path/config/discourse.conf"
 
