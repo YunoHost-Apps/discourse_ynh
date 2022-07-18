@@ -4,6 +4,7 @@
 # COMMON VARIABLES
 #=================================================
 
+# dependencies used by the app
 pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
 build_pkg_dependencies=""
 
