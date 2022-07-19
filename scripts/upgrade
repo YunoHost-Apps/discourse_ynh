@@ -161,11 +161,16 @@ then
 	)
 	cp -Rp $tmpdir/log $final_path
 	cp -p $tmpdir/discourse.conf $final_path/config
+	ynh_secure_remove --file="$tmpdir"
 
 	# Install LDAP plugin
+	tmpdir=$(mktemp -d)
+	cp -Rp "$final_path/plugins/discourse-ldap-auth/config/settings.yml" $tmpdir
 	ynh_secure_remove --file="$final_path/plugins/discourse-ldap-auth"
 	mkdir -p "$final_path/plugins/discourse-ldap-auth"
 	ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_id=ldap-auth
+	cp -p $tmpdir/settings.yml $final_path/plugins/discourse-ldap-auth/config
+	ynh_secure_remove --file="$tmpdir"
 fi
 
 chmod 750 "$final_path"
