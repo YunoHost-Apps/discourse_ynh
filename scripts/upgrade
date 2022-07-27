@@ -183,7 +183,9 @@ chown -R $app:www-data "$final_path"
 ynh_script_progression --message="Upgrading dependencies..."
 
 ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies $build_pkg_dependencies
+ynh_exec_warn_less ynh_install_extra_app_dependencies --repo="deb https://dl.yarnpkg.com/debian/ stable main" --package="yarn" --key="https://dl.yarnpkg.com/debian/pubkey.gpg"
 ynh_exec_warn_less ynh_install_ruby --ruby_version=$ruby_version
+ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
 ynh_use_ruby
 
 #=================================================
@@ -270,6 +272,14 @@ then
 			ln -s $(ldconfig -p | grep libpsl | awk 'END {print $NF}') libpsl.so
 		)
 	fi
+
+	pushd "$final_path"
+		ynh_use_nodejs
+		ynh_npm install --location=global terser
+		ynh_npm install --location=global uglify-js
+		ynh_exec_warn_less ynh_exec_as $app $ynh_node_load_PATH yarn install --production --frozen-lockfile
+		ynh_exec_warn_less ynh_exec_as $app $ynh_node_load_PATH yarn cache clean
+	popd
 fi
 
 #=================================================
@@ -280,8 +290,8 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Preparing the database..."
 
-	ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake db:migrate
-	ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake assets:precompile
+	ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/bundle exec rake db:migrate
+	ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/bundle exec rake themes:update assets:precompile
 fi
 
 ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
