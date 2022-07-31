@@ -14,6 +14,8 @@
 		upgrade=1
 		# 2.6.1~ynh2
 		upgrade=1	from_commit=c626379c98bb7f052061446cd152e4406979d49d
+		# 2.7.13~ynh5
+		upgrade=1	from_commit=c1a386fa83c9278ba7bd58875b51e03606f84f13
 		backup_restore=1
 		# Activate multi-instance test only if you have more than 2Gb RAM!
 		multi_instance=0
