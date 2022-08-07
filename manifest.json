@@ -12,7 +12,8 @@
         "license": "GPL-2.0",
         "website": "http://Discourse.org",
         "demo": "https://try.discourse.org",
-        "code": "https://github.com/discourse/discourse"
+        "code": "https://github.com/discourse/discourse",
+        "cpe": "cpe:2.3:a:discourse:discourse"
     },
     "license": "GPL-2.0",
     "maintainer": {
