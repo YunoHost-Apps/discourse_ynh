@@ -19,6 +19,7 @@ Discourse is modern forum software for your community. Use it as a mailing list,
 
 **Shipped version:** 2.8.7~ynh1
 
+
 **Demo:** https://try.discourse.org
 
 ## Screenshots
