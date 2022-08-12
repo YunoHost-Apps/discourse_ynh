@@ -17,7 +17,8 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Discourse is modern forum software for your community. Use it as a mailing list, discussion forum, long-form chat room, and more!
 
-**Shipped version:** 2.8.7~ynh1
+**Shipped version:** 2.8.8~ynh1
+
 
 **Demo:** https://try.discourse.org
 
