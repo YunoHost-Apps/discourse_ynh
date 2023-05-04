@@ -4,10 +4,6 @@
 # COMMON VARIABLES
 #=================================================
 
-# dependencies used by the app
-#REMOVEME? #pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
-#REMOVEME? pkg_dependencies="postgresql postgresql-client postgresql-contrib imagemagick libjemalloc1|libjemalloc2"
-#REMOVEME? build_pkg_dependencies="libcurl4-openssl-dev libyaml-dev libxml2-dev libpq-dev libreadline-dev brotli libunwind-dev libtcmalloc-minimal4 cmake pngcrush pngquant advancecomp jhead jpegoptim libjpeg-turbo-progs optipng"
 
 ruby_version="2.7.6"
 
