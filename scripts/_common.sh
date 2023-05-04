@@ -5,9 +5,9 @@
 #=================================================
 
 # dependencies used by the app
-#pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
-pkg_dependencies="postgresql postgresql-client postgresql-contrib imagemagick libjemalloc1|libjemalloc2"
-build_pkg_dependencies="libcurl4-openssl-dev libyaml-dev libxml2-dev libpq-dev libreadline-dev brotli libunwind-dev libtcmalloc-minimal4 cmake pngcrush pngquant advancecomp jhead jpegoptim libjpeg-turbo-progs optipng"
+#REMOVEME? #pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
+#REMOVEME? pkg_dependencies="postgresql postgresql-client postgresql-contrib imagemagick libjemalloc1|libjemalloc2"
+#REMOVEME? build_pkg_dependencies="libcurl4-openssl-dev libyaml-dev libxml2-dev libpq-dev libreadline-dev brotli libunwind-dev libtcmalloc-minimal4 cmake pngcrush pngquant advancecomp jhead jpegoptim libjpeg-turbo-progs optipng"
 
 ruby_version="2.7.6"
 
@@ -68,12 +68,12 @@ check_memory_requirements_upgrade() {
 }
 
 ynh_maintenance_mode_ON () {
-	# Load value of $path_url and $domain from the config if their not set
-	if [ -z $path_url ]; then
-		path_url=$(ynh_app_setting_get $app path)
+	# Load value of $path and $domain from the config if their not set
+	if [ -z $path ]; then
+#REMOVEME? 		path=$(ynh_app_setting_get $app path)
 	fi
 	if [ -z $domain ]; then
-		domain=$(ynh_app_setting_get $app domain)
+#REMOVEME? 		domain=$(ynh_app_setting_get $app domain)
 	fi
 
 	# Create an html to serve as maintenance notice
@@ -98,10 +98,10 @@ ynh_maintenance_mode_ON () {
 </html>" > "/var/www/html/maintenance.$app.html"
 
 	# Create a new nginx config file to redirect all access to the app to the maintenance notice instead.
-	echo "# All request to the app will be redirected to ${path_url}_maintenance and fall on the maintenance notice
-rewrite ^${path_url}/(.*)$ ${path_url}_maintenance/? redirect;
+	echo "# All request to the app will be redirected to ${path}_maintenance and fall on the maintenance notice
+rewrite ^${path}/(.*)$ ${path}_maintenance/? redirect;
 # Use another location, to not be in conflict with the original config file
-location ${path_url}_maintenance/ {
+location ${path}_maintenance/ {
 alias /var/www/html/ ;
 
 try_files maintenance.$app.html =503;
@@ -112,7 +112,7 @@ include conf.d/yunohost_panel.conf.inc;
 
 	# The current config file will redirect all requests to the root of the app.
 	# To keep the full path, we can use the following rewrite rule:
-	# 	rewrite ^${path_url}/(.*)$ ${path_url}_maintenance/\$1? redirect;
+	# 	rewrite ^${path}/(.*)$ ${path}_maintenance/\$1? redirect;
 	# The difference will be in the $1 at the end, which keep the following queries.
 	# But, if it works perfectly for a html request, there's an issue with any php files.
 	# This files are treated as simple files, and will be downloaded by the browser.
@@ -122,16 +122,16 @@ include conf.d/yunohost_panel.conf.inc;
 }
 
 ynh_maintenance_mode_OFF () {
-	# Load value of $path_url and $domain from the config if their not set
-	if [ -z $path_url ]; then
-		path_url=$(ynh_app_setting_get $app path)
+	# Load value of $path and $domain from the config if their not set
+	if [ -z $path ]; then
+#REMOVEME? 		path=$(ynh_app_setting_get $app path)
 	fi
 	if [ -z $domain ]; then
-		domain=$(ynh_app_setting_get $app domain)
+#REMOVEME? 		domain=$(ynh_app_setting_get $app domain)
 	fi
 
-	# Rewrite the nginx config file to redirect from ${path_url}_maintenance to the real url of the app.
-	echo "rewrite ^${path_url}_maintenance/(.*)$ ${path_url}/\$1 redirect;" > "/etc/nginx/conf.d/$domain.d/maintenance.$app.conf"
+	# Rewrite the nginx config file to redirect from ${path}_maintenance to the real url of the app.
+	echo "rewrite ^${path}_maintenance/(.*)$ ${path}/\$1 redirect;" > "/etc/nginx/conf.d/$domain.d/maintenance.$app.conf"
 	systemctl reload nginx
 
 	# Sleep 4 seconds to let the browser reload the pages and redirect the user to the app.
@@ -170,10 +170,10 @@ ruby_version_path="$rbenv_install_dir/versions"
 export RBENV_ROOT="$rbenv_install_dir"
 export rbenv_root="$rbenv_install_dir"
 
-ruby_dependencies=""
-build_ruby_dependencies="libjemalloc-dev curl build-essential libreadline-dev zlib1g-dev libsqlite3-dev libssl-dev libxml2-dev libxslt-dev autoconf automake bison libtool"
-pkg_dependencies="$pkg_dependencies $ruby_dependencies"
-build_pkg_dependencies="$build_pkg_dependencies $build_ruby_dependencies"
+#REMOVEME? ruby_dependencies=""
+#REMOVEME? build_ruby_dependencies="libjemalloc-dev curl build-essential libreadline-dev zlib1g-dev libsqlite3-dev libssl-dev libxml2-dev libxslt-dev autoconf automake bison libtool"
+#REMOVEME? pkg_dependencies="$pkg_dependencies $ruby_dependencies"
+#REMOVEME? build_pkg_dependencies="$build_pkg_dependencies $build_ruby_dependencies"
 
 # Load the version of Ruby for an app, and set variables.
 #
@@ -192,14 +192,14 @@ build_pkg_dependencies="$build_pkg_dependencies $build_ruby_dependencies"
 # However, $PATH is duplicated into $ruby_path to outlast any manipulation of $PATH
 # You can use the variable `$ynh_ruby_load_path` to quickly load your Ruby version
 #  in $PATH for an usage into a separate script.
-# Exemple: $ynh_ruby_load_path $final_path/script_that_use_gem.sh`
+# Exemple: $ynh_ruby_load_path $install_dir/script_that_use_gem.sh`
 #
 #
 # Finally, to start a Ruby service with the correct version, 2 solutions
 #  Either the app is dependent of Ruby or gem, but does not called it directly.
 #  In such situation, you need to load PATH
 #    `Environment="__YNH_RUBY_LOAD_PATH__"`
-#    `ExecStart=__FINALPATH__/my_app`
+#    `ExecStart=__INSTALL_DIR__/my_app`
 #     You will replace __YNH_RUBY_LOAD_PATH__ with $ynh_ruby_load_path
 #
 #  Or Ruby start the app directly, then you don't need to load the PATH variable
@@ -214,10 +214,10 @@ build_pkg_dependencies="$build_pkg_dependencies $build_ruby_dependencies"
 #
 # Requires YunoHost version 3.2.2 or higher.
 ynh_use_ruby () {
-    ruby_version=$(ynh_app_setting_get --app=$app --key=ruby_version)
+#REMOVEME?     ruby_version=$(ynh_app_setting_get --app=$app --key=ruby_version)
 
     # Get the absolute path of this version of Ruby
-    ruby_path="$ruby_version_path/$YNH_APP_INSTANCE_NAME/bin"
+#REMOVEME?     ruby_path="$ruby_version_path/$YNH_APP_INSTANCE_NAME/bin"
 
     # Allow alias to be used into bash script
     shopt -s expand_aliases
@@ -237,7 +237,7 @@ ynh_use_ruby () {
     ynh_ruby_load_path="PATH=$PATH"
 
     # Sets the local application-specific Ruby version
-    pushd $final_path
+    pushd $install_dir
         $rbenv_install_dir/bin/rbenv local $ruby_version
     popd
 }
@@ -375,16 +375,16 @@ ynh_install_ruby () {
     CONFIGURE_OPTS="--disable-install-doc --with-jemalloc" MAKE_OPTS="-j2" rbenv install --skip-existing $final_ruby_version > /dev/null 2>&1
 
     # Store ruby_version into the config of this app
-    ynh_app_setting_set --app=$YNH_APP_INSTANCE_NAME --key=ruby_version --value=$final_ruby_version
+#REMOVEME?     ynh_app_setting_set --app=$YNH_APP_INSTANCE_NAME --key=ruby_version --value=$final_ruby_version
 
     # Remove app virtualenv
-    if  `rbenv alias --list | grep --quiet "$YNH_APP_INSTANCE_NAME " 1>/dev/null 2>&1`
+#REMOVEME?     if  `rbenv alias --list | grep --quiet "$YNH_APP_INSTANCE_NAME " 1>/dev/null 2>&1`
     then
-        rbenv alias $YNH_APP_INSTANCE_NAME --remove
+#REMOVEME?         rbenv alias $YNH_APP_INSTANCE_NAME --remove
     fi
 
     # Create app virtualenv
-    rbenv alias $YNH_APP_INSTANCE_NAME $final_ruby_version
+#REMOVEME?     rbenv alias $YNH_APP_INSTANCE_NAME $final_ruby_version
 
     # Cleanup Ruby versions
     ynh_cleanup_ruby
@@ -406,7 +406,7 @@ eval \"\$(rbenv init -)\"
 #
 # usage: ynh_remove_ruby
 ynh_remove_ruby () {
-    local ruby_version=$(ynh_app_setting_get --app=$YNH_APP_INSTANCE_NAME --key=ruby_version)
+#REMOVEME? #REMOVEME?     local ruby_version=$(ynh_app_setting_get --app=$YNH_APP_INSTANCE_NAME --key=ruby_version)
 
     # Load rbenv path in PATH
     local CLEAR_PATH="$rbenv_install_dir/bin:$PATH"
@@ -414,10 +414,10 @@ ynh_remove_ruby () {
     # Remove /usr/local/bin in PATH in case of Ruby prior installation
     PATH=$(echo $CLEAR_PATH | sed 's@/usr/local/bin:@@')
 
-    rbenv alias $YNH_APP_INSTANCE_NAME --remove
+#REMOVEME?     rbenv alias $YNH_APP_INSTANCE_NAME --remove
 
     # Remove the line for this app
-    ynh_app_setting_delete --app=$YNH_APP_INSTANCE_NAME --key=ruby_version
+#REMOVEME?     ynh_app_setting_delete --app=$YNH_APP_INSTANCE_NAME --key=ruby_version
 
     # Cleanup Ruby versions
     ynh_cleanup_ruby
@@ -437,7 +437,7 @@ ynh_cleanup_ruby () {
     local required_ruby_versions=""
     for installed_app in $installed_apps
     do
-        local installed_app_ruby_version=$(ynh_app_setting_get --app=$installed_app --key="ruby_version")
+#REMOVEME?         local installed_app_ruby_version=$(ynh_app_setting_get --app=$installed_app --key="ruby_version")
         if [[ $installed_app_ruby_version ]]
         then
             required_ruby_versions="${installed_app_ruby_version}\n${required_ruby_versions}"
