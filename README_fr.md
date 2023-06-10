@@ -5,25 +5,26 @@ It shall NOT be edited by hand.
 
 # Discourse pour YunoHost
 
-[![Niveau d'intégration](https://dash.yunohost.org/integration/discourse.svg)](https://dash.yunohost.org/appci/app/discourse) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)  
+[![Niveau d’intégration](https://dash.yunohost.org/integration/discourse.svg)](https://dash.yunohost.org/appci/app/discourse) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+
 [![Installer Discourse avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 
 *[Read this readme in english.](./README.md)*
 
-> *Ce package vous permet d'installer Discourse rapidement et simplement sur un serveur YunoHost.
-Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l'installer et en profiter.*
+> *Ce package vous permet d’installer Discourse rapidement et simplement sur un serveur YunoHost.
+Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour savoir comment l’installer et en profiter.*
 
-## Vue d'ensemble
+## Vue d’ensemble
 
 Discourse est un logiciel de forum moderne pour votre communauté. Utilisez-le comme liste de diffusion, forum de discussion, salle de discussion longue durée, et plus encore !
 
-**Version incluse :** 2.8.13~ynh1
+**Version incluse :** 2.8.14~ynh1
 
 **Démo :** https://try.discourse.org
 
-## Captures d'écran
+## Captures d’écran
 
-![Capture d'écran de Discourse](./doc/screenshots/screenshot.png)
+![Capture d’écran de Discourse](./doc/screenshots/screenshot.png)
 
 ## Avertissements / informations importantes
 
@@ -194,8 +195,8 @@ systemctl restart discourse
 
 ## Documentations et ressources
 
-* Site officiel de l'app : <http://Discourse.org>
-* Dépôt de code officiel de l'app : <https://github.com/discourse/discourse>
+* Site officiel de l’app : <http://Discourse.org>
+* Dépôt de code officiel de l’app : <https://github.com/discourse/discourse>
 * Documentation YunoHost pour cette app : <https://yunohost.org/app_discourse>
 * Signaler un bug : <https://github.com/YunoHost-Apps/discourse_ynh/issues>
 
@@ -211,4 +212,4 @@ ou
 sudo yunohost app upgrade discourse -u https://github.com/YunoHost-Apps/discourse_ynh/tree/testing --debug
 ```
 
-**Plus d'infos sur le packaging d'applications :** <https://yunohost.org/packaging_apps>
+**Plus d’infos sur le packaging d’applications :** <https://yunohost.org/packaging_apps>
