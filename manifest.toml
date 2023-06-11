@@ -16,7 +16,7 @@ demo = "https://try.discourse.org"
 code = "https://github.com/discourse/discourse"
 
 [integration]
-yunohost = ">= 11.1.21"
+yunohost = ">= 11.1.20"
 architectures = "all"
 multi_instance = true
 ldap = true
@@ -62,11 +62,9 @@ ram.runtime = "50M"
 
     [resources.apt]
     packages = "g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli postgresql postgresql-client imagemagick libjemalloc1|libjemalloc2 libcurl4-openssl-dev libyaml-dev libxml2-dev libpq-dev libreadline-dev brotli libunwind-dev libtcmalloc-minimal4 cmake pngcrush pngquant advancecomp jhead jpegoptim libjpeg-turbo-progs optipng"
-
-                  [[resources.apt.extras]]
-        repo = "deb https://dl.yarnpkg.com/debian/ stable main"
-        key = "https://dl.yarnpkg.com/debian/pubkey.gpg"
-        packages = "yarn"
+    extras.yarn.repo = "deb https://dl.yarnpkg.com/debian/ stable main"
+    extras.yarn.key = "https://dl.yarnpkg.com/debian/pubkey.gpg"
+    extras.yarn.packages = "yarn"
 
     [resources.database]
     type = "postgresql"
