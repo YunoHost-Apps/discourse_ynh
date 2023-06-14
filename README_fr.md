@@ -18,7 +18,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 
 Discourse est un logiciel de forum moderne pour votre communauté. Utilisez-le comme liste de diffusion, forum de discussion, salle de discussion longue durée, et plus encore !
 
-**Version incluse :** 2.8.14~ynh1
+**Version incluse :** 3.0.4~ynh1
 
 **Démo :** https://try.discourse.org
 
