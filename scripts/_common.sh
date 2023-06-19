@@ -9,7 +9,7 @@
 pkg_dependencies="postgresql postgresql-client postgresql-contrib imagemagick libjemalloc1|libjemalloc2"
 build_pkg_dependencies="libcurl4-openssl-dev libyaml-dev libxml2-dev libpq-dev libreadline-dev brotli libunwind-dev libtcmalloc-minimal4 cmake pngcrush pngquant advancecomp jhead jpegoptim libjpeg-turbo-progs optipng"
 
-ruby_version="2.7.6"
+ruby_version="3.2.1"
 
 nodejs_version="16"
 
