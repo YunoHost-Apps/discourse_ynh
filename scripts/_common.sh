@@ -5,9 +5,9 @@
 #=================================================
 
 
-ruby_version="3.2.1"
+ruby_version="3.1"
 
-nodejs_version="18"
+nodejs_version="16"
 
 #=================================================
 # PERSONAL HELPERS
