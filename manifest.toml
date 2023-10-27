@@ -5,7 +5,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2.8.14~ynh1"
+version = "3.1.2~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -16,7 +16,7 @@ demo = "https://try.discourse.org"
 code = "https://github.com/discourse/discourse"
 
 [integration]
-yunohost = ">= 11.1.20"
+yunohost = ">= 11.2"
 architectures = "all"
 multi_instance = true
 ldap = true
@@ -48,10 +48,9 @@ ram.runtime = "1G"
         autoupdate.strategy = "latest_github_tag"
 
         [resources.sources.main]
-        url = "https://github.com/discourse/discourse/archive/v2.8.14.tar.gz"
-        sha256 = "b4b9a2857515ab79b2bc71cc0bdd09f9bf749d506c095b76d86846c9adf62623"
+        url = "https://github.com/discourse/discourse/archive/v3.1.2.tar.gz"
+        sha256 = "7094df4fff5ce06a67179ee485bc7b656300e18dbfe4f1c4a07bdcbe9592f9a8"
         autoupdate.strategy = "latest_github_tag"
-
 
     [resources.system_user]
 
@@ -61,7 +60,7 @@ ram.runtime = "1G"
     main.url = "/"
 
     [resources.apt]
-    packages = "g++ libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli postgresql postgresql-client imagemagick libjemalloc1|libjemalloc2 libcurl4-openssl-dev libyaml-dev libxml2-dev libpq-dev libreadline-dev brotli libunwind-dev libtcmalloc-minimal4 cmake pngcrush pngquant advancecomp jhead jpegoptim libjpeg-turbo-progs optipng"
+    packages = "g++, libjemalloc2, libjemalloc-dev, zlib1g-dev, libreadline-dev, libpq-dev, libssl-dev, libyaml-dev, libcurl4-dev, libapr1-dev, libxslt1-dev, libxml2-dev, imagemagick, postgresql, postgresql-server-dev-all, postgresql-contrib, optipng, jhead, jpegoptim, gifsicle, brotli, postgresql-client, imagemagick, libjemalloc1|libjemalloc2, libcurl4-openssl-dev, libyaml-dev, libxml2-dev, libpq-dev, libreadline-dev, brotli, libunwind-dev, libtcmalloc-minimal4, cmake, pngcrush, pngquant, advancecomp, jhead, jpegoptim, libjpeg-turbo-progs, optipng, vim"
     extras.yarn.repo = "deb https://dl.yarnpkg.com/debian/ stable main"
     extras.yarn.key = "https://dl.yarnpkg.com/debian/pubkey.gpg"
     extras.yarn.packages = "yarn"
