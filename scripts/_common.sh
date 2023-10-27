@@ -31,7 +31,7 @@ is_swap_present() {
 # Returns true if swappiness higher than 50
 # usage: is_swappiness_sufficient
 is_swappiness_sufficient() {
-  [ $(cat /proc/sys/vm/swappiness)  -gt 50 ]
+  [ $(cat /proc/sys/vm/swappiness)  -gt 10 ]
 }
 
 # Returns true if specified free memory is available (RAM + swap)
