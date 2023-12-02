@@ -18,7 +18,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Discourse is modern forum software for your community. Use it as a mailing list, discussion forum, long-form chat room, and more!
 
-**Shipped version:** 2.8.14~ynh1
+**Shipped version:** 3.1.2~ynh1
 
 **Demo:** https://try.discourse.org
 
@@ -30,7 +30,7 @@ Discourse is modern forum software for your community. Use it as a mailing list,
 
 * Official app website: <http://Discourse.org>
 * Upstream app code repository: <https://github.com/discourse/discourse>
-* YunoHost documentation for this app: <https://yunohost.org/app_discourse>
+* YunoHost Store: <https://apps.yunohost.org/app/discourse>
 * Report a bug: <https://github.com/YunoHost-Apps/discourse_ynh/issues>
 
 ## Developer info
