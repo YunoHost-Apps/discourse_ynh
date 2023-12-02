@@ -64,13 +64,6 @@ check_memory_requirements_upgrade() {
 }
 
 ynh_maintenance_mode_ON () {
-	# Load value of $path and $domain from the config if their not set
-	if [ -z $path ]; then
-#REMOVEME? 		path=$(ynh_app_setting_get $app path)
-	fi
-	if [ -z $domain ]; then
-#REMOVEME? 		domain=$(ynh_app_setting_get $app domain)
-	fi
 
 	# Create an html to serve as maintenance notice
 	echo "<!DOCTYPE html>
@@ -118,14 +111,6 @@ include conf.d/yunohost_panel.conf.inc;
 }
 
 ynh_maintenance_mode_OFF () {
-	# Load value of $path and $domain from the config if their not set
-	if [ -z $path ]; then
-#REMOVEME? 		path=$(ynh_app_setting_get $app path)
-	fi
-	if [ -z $domain ]; then
-#REMOVEME? 		domain=$(ynh_app_setting_get $app domain)
-	fi
-
 	# Rewrite the nginx config file to redirect from ${path}_maintenance to the real url of the app.
 	echo "rewrite ^${path}_maintenance/(.*)$ ${path}/\$1 redirect;" > "/etc/nginx/conf.d/$domain.d/maintenance.$app.conf"
 	systemctl reload nginx
@@ -210,10 +195,10 @@ export rbenv_root="$rbenv_install_dir"
 #
 # Requires YunoHost version 3.2.2 or higher.
 ynh_use_ruby () {
-#REMOVEME?     ruby_version=$(ynh_app_setting_get --app=$app --key=ruby_version)
+    #ruby_version=$(ynh_app_setting_get --app=$app --key=ruby_version)
 
     # Get the absolute path of this version of Ruby
-#REMOVEME?     ruby_path="$ruby_version_path/$YNH_APP_INSTANCE_NAME/bin"
+    ruby_path="$ruby_version_path/$YNH_APP_INSTANCE_NAME/bin"
 
     # Allow alias to be used into bash script
     shopt -s expand_aliases
@@ -371,16 +356,16 @@ ynh_install_ruby () {
     CONFIGURE_OPTS="--disable-install-doc --with-jemalloc" MAKE_OPTS="-j2" rbenv install --skip-existing $final_ruby_version > /dev/null 2>&1
 
     # Store ruby_version into the config of this app
-#REMOVEME?     ynh_app_setting_set --app=$YNH_APP_INSTANCE_NAME --key=ruby_version --value=$final_ruby_version
+    ynh_app_setting_set --app=$YNH_APP_INSTANCE_NAME --key=ruby_version --value=$final_ruby_version
 
     # Remove app virtualenv
-#REMOVEME?     if  `rbenv alias --list | grep --quiet "$YNH_APP_INSTANCE_NAME " 1>/dev/null 2>&1`
+    if  `rbenv alias --list | grep --quiet "$YNH_APP_INSTANCE_NAME " 1>/dev/null 2>&1`
     then
-#REMOVEME?         rbenv alias $YNH_APP_INSTANCE_NAME --remove
+         rbenv alias $YNH_APP_INSTANCE_NAME --remove
     fi
 
     # Create app virtualenv
-#REMOVEME?     rbenv alias $YNH_APP_INSTANCE_NAME $final_ruby_version
+    rbenv alias $YNH_APP_INSTANCE_NAME $final_ruby_version
 
     # Cleanup Ruby versions
     ynh_cleanup_ruby
@@ -402,7 +387,6 @@ eval \"\$(rbenv init -)\"
 #
 # usage: ynh_remove_ruby
 ynh_remove_ruby () {
-#REMOVEME? #REMOVEME?     local ruby_version=$(ynh_app_setting_get --app=$YNH_APP_INSTANCE_NAME --key=ruby_version)
 
     # Load rbenv path in PATH
     local CLEAR_PATH="$rbenv_install_dir/bin:$PATH"
@@ -410,10 +394,10 @@ ynh_remove_ruby () {
     # Remove /usr/local/bin in PATH in case of Ruby prior installation
     PATH=$(echo $CLEAR_PATH | sed 's@/usr/local/bin:@@')
 
-#REMOVEME?     rbenv alias $YNH_APP_INSTANCE_NAME --remove
+    rbenv alias $YNH_APP_INSTANCE_NAME --remove
 
     # Remove the line for this app
-#REMOVEME?     ynh_app_setting_delete --app=$YNH_APP_INSTANCE_NAME --key=ruby_version
+    ynh_app_setting_delete --app=$YNH_APP_INSTANCE_NAME --key=ruby_version
 
     # Cleanup Ruby versions
     ynh_cleanup_ruby
@@ -433,7 +417,7 @@ ynh_cleanup_ruby () {
     local required_ruby_versions=""
     for installed_app in $installed_apps
     do
-#REMOVEME?         local installed_app_ruby_version=$(ynh_app_setting_get --app=$installed_app --key="ruby_version")
+        local installed_app_ruby_version=$(ynh_app_setting_get --app=$installed_app --key="ruby_version")
         if [[ $installed_app_ruby_version ]]
         then
             required_ruby_versions="${installed_app_ruby_version}\n${required_ruby_versions}"
