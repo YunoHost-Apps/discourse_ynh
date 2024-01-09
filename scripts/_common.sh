@@ -28,7 +28,7 @@ is_swap_present() {
   [ $(awk '/^SwapTotal:/{print $2}' /proc/meminfo)  -gt 0 ]
 }
 
-# Returns true if swappiness higher than 50
+# Returns true if swappiness higher than 10
 # usage: is_swappiness_sufficient
 is_swappiness_sufficient() {
   [ $(cat /proc/sys/vm/swappiness)  -gt 10 ]
@@ -47,11 +47,11 @@ is_memory_available() {
 # terminates installation if requirements not met
 check_memory_requirements() {
   if ! is_swap_present ; then
-    ynh_die --message="You must have a swap partition in order to install and use this application"
+    ynh_print_warn --message="You must have a swap partition in order to install and use this application"
   elif ! is_swappiness_sufficient ; then
-    ynh_die --message="Your swappiness must be higher than 50; please see https://en.wikipedia.org/wiki/Swappiness"
+    ynh_print_warn --message="Your swappiness must be higher than 50; please see https://en.wikipedia.org/wiki/Swappiness"
   elif ! is_memory_available 1000000 ; then
-    ynh_die --message="You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
+    ynh_print_warn --message="You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
   fi
 }
 # Checks discourse upgrade memory requirements
