@@ -5,7 +5,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "3.1.2~ynh1"
+version = "3.1.4~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -19,8 +19,11 @@ code = "https://github.com/discourse/discourse"
 yunohost = ">= 11.2"
 architectures = "all"
 multi_instance = true
+
 ldap = true
+
 sso = true
+
 disk = "50M"
 ram.build = "50M"
 ram.runtime = "1G"
@@ -48,8 +51,8 @@ ram.runtime = "1G"
         autoupdate.strategy = "latest_github_tag"
 
         [resources.sources.main]
-        url = "https://github.com/discourse/discourse/archive/v3.1.2.tar.gz"
-        sha256 = "7094df4fff5ce06a67179ee485bc7b656300e18dbfe4f1c4a07bdcbe9592f9a8"
+        url = "https://github.com/discourse/discourse/archive/v3.1.4.tar.gz"
+        sha256 = "15a4648fe39411cce6036056a8e806802c35ca3ae016e8751dd375831f3df104"
         autoupdate.strategy = "latest_github_tag"
 
     [resources.system_user]
