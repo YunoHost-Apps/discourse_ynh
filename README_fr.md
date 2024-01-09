@@ -18,7 +18,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 
 Discourse est un logiciel de forum moderne pour votre communauté. Utilisez-le comme liste de diffusion, forum de discussion, salle de discussion longue durée, et plus encore !
 
-**Version incluse :** 2.8.14~ynh1
+**Version incluse :** 3.1.4~ynh1
 
 **Démo :** https://try.discourse.org
 
@@ -197,7 +197,7 @@ systemctl restart discourse
 
 * Site officiel de l’app : <http://Discourse.org>
 * Dépôt de code officiel de l’app : <https://github.com/discourse/discourse>
-* Documentation YunoHost pour cette app : <https://yunohost.org/app_discourse>
+* YunoHost Store: <https://apps.yunohost.org/app/discourse>
 * Signaler un bug : <https://github.com/YunoHost-Apps/discourse_ynh/issues>
 
 ## Informations pour les développeurs
