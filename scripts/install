@@ -90,9 +90,9 @@ redis_db=$(ynh_redis_get_free_db)
 ynh_app_setting_set --app="$app" --key=redis_db --value="$redis_db"
 relative_url_root=${path%/}
 
-ynh_add_config --template="../conf/discourse_defaults.conf" --destination="$install_dir/config/discourse.conf"
+ynh_add_config --template="discourse_defaults.conf" --destination="$install_dir/config/discourse.conf"
 
-ynh_add_config --template="../conf/settings.yml" --destination="$install_dir/plugins/discourse-ldap-auth/config/settings.yml"
+ynh_add_config --template="settings.yml" --destination="$install_dir/plugins/discourse-ldap-auth/config/settings.yml"
 
 # Disable svgo worker
 echo "svgo: false" > $install_dir/.image_optim.yml
@@ -104,7 +104,7 @@ ynh_script_progression --message="Setting up Unicorn..."
 
 # Set a secret value
 secret="$(ynh_string_random)"
-ynh_add_config --template="../conf/secrets.yml" --destination="$install_dir/config/secrets.yml"
+ynh_add_config --template="secrets.yml" --destination="$install_dir/config/secrets.yml"
 
 pushd "$install_dir"
 	ynh_use_ruby

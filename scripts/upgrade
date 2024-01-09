@@ -167,9 +167,9 @@ then
 
 	admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 	relative_url_root=${path%/}
-	ynh_add_config --template="../conf/discourse_defaults.conf" --destination="$install_dir/config/discourse.conf"
+	ynh_add_config --template="discourse_defaults.conf" --destination="$install_dir/config/discourse.conf"
 
-	ynh_add_config --template="../conf/settings.yml" --destination="$install_dir/plugins/discourse-ldap-auth/config/settings.yml"
+	ynh_add_config --template="settings.yml" --destination="$install_dir/plugins/discourse-ldap-auth/config/settings.yml"
 
 	# Disable svgo worker
 	echo "svgo: false" > $install_dir/.image_optim.yml
@@ -191,7 +191,7 @@ then
 	ynh_store_file_checksum --file="$unicorn_config_file"
 
 	secret="$(ynh_string_random)"
-	ynh_add_config --template="../conf/secrets.yml" --destination="$install_dir/config/secrets.yml"
+	ynh_add_config --template="secrets.yml" --destination="$install_dir/config/secrets.yml"
 
 	# Set permissions to app files
 	chmod 750 "$install_dir"

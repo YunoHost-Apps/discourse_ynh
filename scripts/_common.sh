@@ -7,7 +7,7 @@
 
 ruby_version="3.1"
 
-nodejs_version="16"
+nodejs_version="18"
 
 #=================================================
 # PERSONAL HELPERS
