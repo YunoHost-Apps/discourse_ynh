@@ -25,7 +25,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Shipped version:** 3.1.2~ynh1
+**Shipped version:** 3.1.4~ynh1
 
 **Demo:** https://try.discourse.org
 

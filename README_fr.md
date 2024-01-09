@@ -25,7 +25,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 Pour en savoir plus sur la philosophie et les objectifs du projet, [visitez **discourse.org**](http://www.discourse.org).
 
 
-**Version incluse :** 3.1.2~ynh1
+**Version incluse :** 3.1.4~ynh1
 
 **Démo :** https://try.discourse.org
 
