@@ -197,6 +197,7 @@ systemctl restart discourse
 
 * Site officiel de l’app : <http://Discourse.org>
 * Dépôt de code officiel de l’app : <https://github.com/discourse/discourse>
+* YunoHost Store: <https://apps.yunohost.org/app/discourse>
 * Signaler un bug : <https://github.com/YunoHost-Apps/discourse_ynh/issues>
 
 ## Informations pour les développeurs
