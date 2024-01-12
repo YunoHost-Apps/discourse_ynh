@@ -6,7 +6,7 @@
         "en": "Discussion platform",
         "fr": "Plateforme de discussion"
     },
-    "version": "2.8.14~ynh1",
+    "version": "2.8.14~ynh2",
     "url": "http://Discourse.org",
     "upstream": {
         "license": "GPL-2.0",
