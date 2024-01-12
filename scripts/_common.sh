@@ -4,7 +4,6 @@
 # COMMON VARIABLES
 #=================================================
 
-
 ruby_version="3.1"
 
 nodejs_version="18"
