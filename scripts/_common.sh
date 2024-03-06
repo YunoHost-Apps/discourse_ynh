@@ -11,7 +11,7 @@ build_pkg_dependencies="libcurl4-openssl-dev libyaml-dev libxml2-dev libpq-dev l
 
 ruby_version="3.0.0"
 
-nodejs_version="16"
+nodejs_version="18"
 
 #=================================================
 # PERSONAL HELPERS
