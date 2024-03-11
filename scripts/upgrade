@@ -137,7 +137,7 @@ then
 	# Remove destination directory
 	ynh_secure_remove --file=$final_path
 	# Download, check integrity, uncompress and patch the source from app.src
-	ynh_setup_source --dest_dir="$final_path"
+	ynh_setup_source --dest_dir="$final_path" --full_replace=1
 	# Restore previous files
 	if [ -d $tmpdir/uploads ] ; then
 		cp -Rp $tmpdir/uploads $final_path/public
@@ -168,7 +168,7 @@ then
 	cp -Rp "$final_path/plugins/discourse-ldap-auth/config/settings.yml" $tmpdir
 	ynh_secure_remove --file="$final_path/plugins/discourse-ldap-auth"
 	mkdir -p "$final_path/plugins/discourse-ldap-auth"
-	ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_id=ldap-auth
+	ynh_setup_source --dest_dir="$final_path/plugins/discourse-ldap-auth" --source_id=ldap-auth --full_replace=1
 	cp -p $tmpdir/settings.yml $final_path/plugins/discourse-ldap-auth/config
 	ynh_secure_remove --file="$tmpdir"
 fi
