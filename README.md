@@ -16,7 +16,14 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 ## Overview
 
-Discourse is modern forum software for your community. Use it as a mailing list, discussion forum, long-form chat room, and more!
+[Discourse](http://www.discourse.org) is the 100% open source discussion platform built for the next decade of the Internet. Use it as a:
+
+- mailing list
+- discussion forum
+- long-form chat room
+
+To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
+
 **Shipped version:** 2.8.14~ynh2
 
 **Demo:** <https://try.discourse.org>
