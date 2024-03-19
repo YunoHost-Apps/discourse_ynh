@@ -365,8 +365,8 @@ ynh_install_ruby () {
     cat > /etc/profile.d/rbenv.sh <<EOF
 #rbenv
 export RBENV_ROOT=$rbenv_install_dir
-export PATH=\"$rbenv_install_dir/bin:$PATH\"
-eval \"\$(rbenv init -)\"
+export PATH="$rbenv_install_dir/bin:$PATH"
+eval "\$(rbenv init -)"
 #rbenv
 EOF
 
