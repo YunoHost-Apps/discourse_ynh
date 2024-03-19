@@ -1,3 +1,20 @@
+## Multi-user support
+
+Supported, with LDAP (no SSO).
+
+![Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/login.png)
+
+Default administrator and YunoHost users must login using LDAP:
+
+* click on the "with LDAP" button
+* use your YunoHost credentials
+
+When disabling Local Login and other authentication services, clicking the `Login` or `Sign Up` button will directly bring up the LDAP Login popup.
+
+![Disable Local](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/disable_local.png)
+
+![LDAP Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/ldap_popup.png)
+
 ## Configuration
 
 Use the admin panel of your Discourse to configure this app.

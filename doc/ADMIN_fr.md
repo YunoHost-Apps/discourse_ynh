@@ -1,3 +1,22 @@
+## Prise en charge multi-utilisateurs
+
+![Login Popup](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/login.png)
+
+L'administrateur par défaut et les utilisateurs YunoHost doivent se connecter via LDAP :
+
+* cliquez sur le bouton "avec LDAP"
+* utilisez vos identifiants YunoHost
+
+Lors de la désactivation de la connexion locale et d'autres services d'authentification, cliquez sur le bouton « Connexion » ou « Inscription » pour afficher directement la fenêtre contextuelle de connexion LDAP.
+
+![Désactiver Local](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/disable_local.png)
+
+![Popup de connexion LDAP](https://raw.githubusercontent.com/jonmbake/screenshots/master/discourse-ldap-auth/ldap_popup.png)
+
+## Configuration
+
+Utilisez le panneau d'administration de votre Discourse pour configurer cette application.
+
 ### Configuration de "Répondre par e-mail"
 
 * Vous devez créer un utilisateur Yunohost dédié pour Discourse dont la boîte aux lettres sera utilisée par l'application Discourse. Vous pouvez le faire avec `yunohost user create response`, par exemple. Vous devez vous assurer que l'adresse e-mail est configurée pour être sur votre domaine Discourse.
@@ -21,8 +40,8 @@ Leur travail est en cours pour permettre [plusieurs adresses e-mail pour un util
 Voici comment configurer une adresse e-mail secondaire pour un compte utilisateur :
 
 ```bash
-cd /var/www/discours
-RAILS_ENV=production /opt/rbenv/versions/2.6.0/bin/bundle exec rails c
+cd /var/www/discourse
+RAILS_ENV=production /opt/rbenv/versions/2.7.1/bin/bundle exec rails c
 UserEmail.create!(user: User.find_by_username("foo"), email: "foo@theirexternalmail.com")
 ```
 
