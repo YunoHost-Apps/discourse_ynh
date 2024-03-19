@@ -175,7 +175,7 @@ ynh_script_progression --message="Configuring plugins..."
 # Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
 # (Can only do that now because we are patching dependencies which have just been downloaded)
 # Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
-patch -p1 -d "$install_dir/plugins/discourse-ldap-auth/gems/$ruby_version/gems/omniauth-ldap*/" \
+patch -p1 -d "$install_dir/plugins/discourse-ldap-auth/gems/$ruby_version/gems/omniauth-ldap"*/ \
     < "../conf/ldap-auth-fix-subfolder.patch"
 
 #=================================================
