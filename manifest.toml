@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2.8.14~ynh2"
+version = "2.8.14~ynh3"
 
 maintainers = ["JimboJoe"]
 
@@ -19,11 +19,11 @@ code = "https://github.com/discourse/discourse"
 cpe = "cpe:2.3:a:discourse:discourse"
 
 [integration]
-yunohost = ">= 4.3.0"
+yunohost = ">= 11.2"
 architectures = "all"
 multi_instance = true
 ldap = true
-sso = true
+sso = false
 
 disk = "50M"
 ram.build = "50M"
