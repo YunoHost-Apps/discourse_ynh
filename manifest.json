@@ -22,7 +22,7 @@
         "url": ""
     },
     "requirements": {
-        "yunohost": ">= 4.3.0"
+        "yunohost": ">= 11.2.12"
     },
     "multi_instance": true,
     "services": [
