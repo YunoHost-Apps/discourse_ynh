@@ -17,15 +17,6 @@ nodejs_version="16"
 # PERSONAL HELPERS
 #=================================================
 
-# Execute a command as another user with login
-# (hence in user home dir, with prior loading of .profile, etc.)
-# usage: exec_login_as USER COMMAND [ARG ...]
-exec_login_as() {
-  local user=$1
-  shift 1
-  ynh_exec_as $user --login "$@"
-}
-
 # Returns true if a swap partition is enabled, false otherwise
 # usage: is_swap_present
 is_swap_present() {

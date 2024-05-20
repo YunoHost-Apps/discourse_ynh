@@ -172,13 +172,13 @@ popd
 if [ -n "$(uname -m | grep arm)" ] ; then
 	# Define the platform specifically to retrieve binaries
 	# for libv8 because it currently doesn't compile on ARM devices
-	exec_login_as $app bin/bundle config specific_platform arm-linux
+	ynh_exec_as $app --login bin/bundle config specific_platform arm-linux
 fi
 
 # Install dependencies
-exec_login_as $app bin/bundle config set path 'vendor/bundle'
-exec_login_as $app bin/bundle config set with 'development'
-exec_login_as $app MAKEFLAGS=-j2 bin/bundle install --jobs 2
+ynh_exec_as $app --login bin/bundle config set path 'vendor/bundle'
+ynh_exec_as $app --login bin/bundle config set with 'development'
+ynh_exec_as $app --login MAKEFLAGS=-j2 bin/bundle install --jobs 2
 
 # On ARM architecture, replace bundled libpsl by system native libpsl
 # because the provided binary isn't compatible
@@ -201,8 +201,8 @@ popd
 #=================================================
 ynh_script_progression --message="Preparing the database..."
 
-ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/bundle exec rake db:migrate
-ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/bundle exec rake themes:update assets:precompile
+ynh_exec_warn_less ynh_exec_as $app --login RAILS_ENV=production bin/bundle exec rake db:migrate
+ynh_exec_warn_less ynh_exec_as $app --login RAILS_ENV=production bin/bundle exec rake themes:update assets:precompile
 
 ynh_exec_warn_less ynh_install_app_dependencies $pkg_dependencies
 ynh_package_autoremove
@@ -234,7 +234,7 @@ ynh_script_progression --message="Creating Discourse admin user..."
 
 # Create a random password
 admin_pwd=$(ynh_string_random)
-exec_login_as $app RAILS_ENV=production bin/rake admin:create <<< "$admin_mail
+ynh_exec_as $app --login RAILS_ENV=production bin/rake admin:create <<< "$admin_mail
 $admin_pwd
 $admin_pwd
 y

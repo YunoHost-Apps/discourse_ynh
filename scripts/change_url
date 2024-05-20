@@ -134,14 +134,14 @@ UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url
 
 ynh_use_ruby
 # Remap URLs in forum posts
-exec_login_as $app RAILS_ENV=production bin/bundle exec script/discourse remap ${old_path%/}/uploads ${new_path%/}/uploads <<< "YES
+ynh_exec_as $app --login RAILS_ENV=production bin/bundle exec script/discourse remap ${old_path%/}/uploads ${new_path%/}/uploads <<< "YES
 # "
 
 # Regenerate assets
-ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake assets:precompile
+ynh_exec_warn_less ynh_exec_as $app --login RAILS_ENV=production bin/rake assets:precompile
 
 # Regenerate all forum posts
-ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake posts:rebake
+ynh_exec_warn_less ynh_exec_as $app --login RAILS_ENV=production bin/rake posts:rebake
 
 #=================================================
 # GENERIC FINALISATION
