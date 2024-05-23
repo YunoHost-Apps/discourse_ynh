@@ -138,7 +138,7 @@ pushd "$install_dir"
     # Install bundler, a gems installer
     ynh_gem install bundler
     # Install without documentation
-    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" "$install_dir/.gemrc" >/dev/null
+    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/.gemrc" >/dev/null
 popd
 
 # Specific actions on ARM architecture
