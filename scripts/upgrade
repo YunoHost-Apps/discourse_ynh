@@ -89,8 +89,6 @@ for plugin_dir in "$install_dir/plugins_old"/*; do
         mv "$plugin_dir" "$install_dir/plugins/$plugin_name"
     fi
 done
-# Also restore ldap configuration file
-mv "$install_dir/plugins_old/discourse-ldap-auth/conf/settings.yml" "$install_dir/plugins/discourse-ldap-auth/conf/settings.yml"
 
 ynh_secure_remove --file="$install_dir/plugins_old"
 
