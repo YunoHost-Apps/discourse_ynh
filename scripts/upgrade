@@ -56,7 +56,6 @@ fi
 #=================================================
 ynh_script_progression --message="Upgrading Ruby..."
 ynh_exec_warn_less ynh_install_ruby --ruby_version="$ruby_version"
-ynh_use_ruby
 
 ynh_script_progression --message="Upgrading NodeJS..."
 ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
@@ -126,6 +125,9 @@ echo "svgo: false" | ynh_exec_as "$app" tee "$install_dir/.image_optim.yml" >/de
 # SETUP UNICORN, A RUBY SERVER
 #=================================================
 ynh_script_progression --message="Setting up Unicorn..."
+
+# Do it after setup_source because .ruby-version is stored in cwd
+ynh_use_ruby
 
 # Make a backup of the original config file if modified
 unicorn_config_file="$install_dir/config/unicorn.conf.rb"
