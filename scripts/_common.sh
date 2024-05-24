@@ -4,14 +4,11 @@
 # COMMON VARIABLES
 #=================================================
 
-# dependencies used by the app
-#pkg_dependencies="g++ libjemalloc1|libjemalloc2 libjemalloc-dev zlib1g-dev libreadline-dev libpq-dev libssl-dev libyaml-dev libcurl4-dev libapr1-dev libxslt1-dev libxml2-dev vim imagemagick postgresql postgresql-server-dev-all postgresql-contrib optipng jhead jpegoptim gifsicle brotli"
-pkg_dependencies="postgresql postgresql-client postgresql-contrib imagemagick libjemalloc1|libjemalloc2"
-build_pkg_dependencies="libcurl4-openssl-dev libyaml-dev libxml2-dev libpq-dev libreadline-dev brotli libunwind-dev libtcmalloc-minimal4 cmake pngcrush pngquant advancecomp jhead jpegoptim libjpeg-turbo-progs optipng"
-
 ruby_version="3.0.0"
 
 nodejs_version="16"
+
+libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 
 #=================================================
 # PERSONAL HELPERS
@@ -59,14 +56,6 @@ check_memory_requirements_upgrade() {
 }
 
 ynh_maintenance_mode_ON () {
-	# Load value of $path_url and $domain from the config if their not set
-	if [ -z $path_url ]; then
-		path_url=$(ynh_app_setting_get $app path)
-	fi
-	if [ -z $domain ]; then
-		domain=$(ynh_app_setting_get $app domain)
-	fi
-
 	# Create an html to serve as maintenance notice
 	echo "<!DOCTYPE html>
 <html>
@@ -89,10 +78,10 @@ ynh_maintenance_mode_ON () {
 </html>" > "/var/www/html/maintenance.$app.html"
 
 	# Create a new nginx config file to redirect all access to the app to the maintenance notice instead.
-	echo "# All request to the app will be redirected to ${path_url}_maintenance and fall on the maintenance notice
-rewrite ^${path_url}/(.*)$ ${path_url}_maintenance/? redirect;
+	echo "# All request to the app will be redirected to ${path}_maintenance and fall on the maintenance notice
+rewrite ^${path}/(.*)$ ${path}_maintenance/? redirect;
 # Use another location, to not be in conflict with the original config file
-location ${path_url}_maintenance/ {
+location ${path}_maintenance/ {
 alias /var/www/html/ ;
 
 try_files maintenance.$app.html =503;
@@ -103,7 +92,7 @@ include conf.d/yunohost_panel.conf.inc;
 
 	# The current config file will redirect all requests to the root of the app.
 	# To keep the full path, we can use the following rewrite rule:
-	# 	rewrite ^${path_url}/(.*)$ ${path_url}_maintenance/\$1? redirect;
+	# 	rewrite ^${path}/(.*)$ ${path}_maintenance/\$1? redirect;
 	# The difference will be in the $1 at the end, which keep the following queries.
 	# But, if it works perfectly for a html request, there's an issue with any php files.
 	# This files are treated as simple files, and will be downloaded by the browser.
@@ -113,16 +102,8 @@ include conf.d/yunohost_panel.conf.inc;
 }
 
 ynh_maintenance_mode_OFF () {
-	# Load value of $path_url and $domain from the config if their not set
-	if [ -z $path_url ]; then
-		path_url=$(ynh_app_setting_get $app path)
-	fi
-	if [ -z $domain ]; then
-		domain=$(ynh_app_setting_get $app domain)
-	fi
-
-	# Rewrite the nginx config file to redirect from ${path_url}_maintenance to the real url of the app.
-	echo "rewrite ^${path_url}_maintenance/(.*)$ ${path_url}/\$1 redirect;" > "/etc/nginx/conf.d/$domain.d/maintenance.$app.conf"
+	# Rewrite the nginx config file to redirect from ${path}_maintenance to the real url of the app.
+	echo "rewrite ^${path}_maintenance/(.*)$ ${path}/\$1 redirect;" > "/etc/nginx/conf.d/$domain.d/maintenance.$app.conf"
 	systemctl reload nginx
 
 	# Sleep 4 seconds to let the browser reload the pages and redirect the user to the app.
@@ -141,8 +122,4 @@ ynh_maintenance_mode_OFF () {
 
 #=================================================
 # FUTURE OFFICIAL HELPERS
-#=================================================
-
-#=================================================
-# RUBY HELPER
 #=================================================
