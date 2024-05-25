@@ -6,7 +6,7 @@
 
 ruby_version="3.1.4"
 
-nodejs_version="16"
+nodejs_version="18"
 
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 
