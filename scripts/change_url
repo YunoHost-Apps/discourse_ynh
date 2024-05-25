@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC STARTING
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
@@ -10,71 +8,9 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# RETRIEVE ARGUMENTS
-#=================================================
-
-old_domain=$YNH_APP_OLD_DOMAIN
-old_path=$YNH_APP_OLD_PATH
-
-new_domain=$YNH_APP_NEW_DOMAIN
-new_path=$YNH_APP_NEW_PATH
-
-app=$YNH_APP_INSTANCE_NAME
-
-#=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_script_progression --message="Loading installation settings..."
-
-# Needed for helper "ynh_add_nginx_config"
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-
-# Add settings here as needed by your application
-db_name=$(ynh_app_setting_get --app=$app --key=db_name)
-db_user=$db_name
-db_pwd=$(ynh_app_setting_get --app=$app --key=psqlpwd)
-unicorn_workers=$(ynh_app_setting_get --app=$app --key=unicorn_workers)
-
-#=================================================
-# BACKUP BEFORE CHANGE URL THEN ACTIVE TRAP
-#=================================================
-ynh_script_progression --message="Backing up the app before changing its URL (may take a while)..."
-
-# Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-	ynh_clean_check_starting
-	# Remove the new domain config file, the remove script won't do it as it doesn't know yet its location.
-	ynh_secure_remove --file="/etc/nginx/conf.d/$new_domain.d/$app.conf"
-
-	# Restore it if the upgrade fails
-	ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# CHECK WHICH PARTS SHOULD BE CHANGED
-#=================================================
-
-change_domain=0
-if [ "$old_domain" != "$new_domain" ]
-then
-	change_domain=1
-fi
-
-change_path=0
-if [ "$old_path" != "$new_path" ]
-then
-	change_path=1
-fi
-
-#=================================================
-# STANDARD MODIFICATIONS
-#=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping a systemd service..."
+ynh_script_progression --message="Stopping $app's systemd service..."
 
 ynh_systemd_action --service_name=$app --action="stop" --log_path="/var/log/$app/$app.log"
 
@@ -83,43 +19,18 @@ ynh_systemd_action --service_name=$app --action="stop" --log_path="/var/log/$app
 #=================================================
 ynh_script_progression --message="Updating NGINX web server configuration..."
 
-nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
+ynh_change_url_nginx_config
 
-# Change the path in the NGINX config file
-if [ $change_path -eq 1 ]
-then
-	# Make a backup of the original NGINX config file if modified
-	ynh_backup_if_checksum_is_different --file="$nginx_conf_path"
-	# Set global variables for NGINX helper
-	domain="$old_domain"
-	path_url="$new_path"
-	# Create a dedicated NGINX config
-	ynh_add_nginx_config
-	# Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
-	if [ "$path_url" != "/" ] ; then
-		ynh_replace_string --match_string='$proxy_add_x_forwarded_for' --replace_string='$http_your_original_ip_header' --target_file="/etc/nginx/conf.d/$domain.d/$app.conf"
-	fi
-	ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
-fi
-
-# Change the domain for NGINX
-if [ $change_domain -eq 1 ]
-then
-	# Delete file checksum for the old conf file location
-	ynh_delete_file_checksum --file="$nginx_conf_path"
-	mv $nginx_conf_path /etc/nginx/conf.d/$new_domain.d/$app.conf
-	# Store file checksum for the new config file location
-	ynh_store_file_checksum --file="/etc/nginx/conf.d/$new_domain.d/$app.conf"
-fi
-
-#=================================================
-# SPECIFIC MODIFICATIONS
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
 ynh_script_progression --message="Updating a config file..."
 
-discourse_config_file="$final_path/config/discourse.conf"
+discourse_config_file="$install_dir/config/discourse.conf"
+
+old_relative_url_root="${old_path%/}"
+new_relative_url_root="${new_path%/}"
+
 # Configure hostname
 ynh_replace_string --match_string="hostname = .*" --replace_string="hostname = \"$new_domain\"" --target_file="$discourse_config_file"
 ynh_replace_string --match_string="relative_url_root = .*" --replace_string="relative_url_root = ${new_path%/}" --target_file="$discourse_config_file"
@@ -129,36 +40,28 @@ ynh_replace_string --match_string="smtp_domain = .*" --replace_string="smtp_doma
 ynh_store_file_checksum --file="$discourse_config_file"
 
 # Change URL setting
-ynh_psql_connect_as --user=$db_user --password=$db_pwd --database=$db_name <<< "UPDATE site_settings SET value = replace(value, '${old_path%/}/images/', '${new_path%/}/images/');
+ynh_psql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name" \
+    <<< "UPDATE site_settings SET value = replace(value, '$old_relative_url_root/images/', '$new_relative_url_root/images/');
 UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';"
 
 ynh_use_ruby
 # Remap URLs in forum posts
-exec_login_as $app RAILS_ENV=production bin/bundle exec script/discourse remap ${old_path%/}/uploads ${new_path%/}/uploads <<< "YES
+ynh_exec_as "$app" --login RAILS_ENV=production bin/bundle exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
 # "
 
 # Regenerate assets
-ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake assets:precompile
+ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/rake assets:precompile
 
 # Regenerate all forum posts
-ynh_exec_warn_less exec_login_as $app RAILS_ENV=production bin/rake posts:rebake
+ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/rake posts:rebake
 
-#=================================================
-# GENERIC FINALISATION
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting a systemd service..."
+ynh_script_progression --message="Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name=$app --action="start" --log_path="$final_path/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
-
-#=================================================
-# RELOAD NGINX
-#=================================================
-ynh_script_progression --message="Reloading NGINX web server..."
-
-ynh_systemd_action --service_name=nginx --action=reload
+ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
 # END OF SCRIPT
