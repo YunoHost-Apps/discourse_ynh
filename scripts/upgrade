@@ -56,6 +56,7 @@ fi
 #=================================================
 ynh_script_progression --message="Upgrading Ruby..."
 ynh_exec_warn_less ynh_install_ruby --ruby_version="$ruby_version"
+
 ynh_use_ruby
 
 ynh_script_progression --message="Upgrading NodeJS..."
@@ -83,12 +84,13 @@ ynh_setup_source --dest_dir="$install_dir" --full_replace=1 \
     --keep="config/discourse.conf plugins_old public/uploads public/backups log"
 
 # Restore all non-core plugins
-for plugin_dir in "$install_dir/plugins"/*; do
+for plugin_dir in "$install_dir/plugins_old"/*; do
     plugin_name=$(basename "$plugin_dir")
     if [ ! -d "$install_dir/plugins/$plugin_name" ]; then
         mv "$plugin_dir" "$install_dir/plugins/$plugin_name"
     fi
 done
+
 ynh_secure_remove --file="$install_dir/plugins_old"
 
 # Install LDAP plugin
@@ -126,6 +128,9 @@ echo "svgo: false" | ynh_exec_as "$app" tee "$install_dir/.image_optim.yml" >/de
 #=================================================
 ynh_script_progression --message="Setting up Unicorn..."
 
+# Do it after setup_source because .ruby-version is stored in cwd
+ynh_use_ruby
+
 # Make a backup of the original config file if modified
 unicorn_config_file="$install_dir/config/unicorn.conf.rb"
 ynh_backup_if_checksum_is_different "$unicorn_config_file"
@@ -135,7 +140,7 @@ pushd "$install_dir"
     # Install bundler, a gems installer
     ynh_gem install bundler
     # Install without documentation
-    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" "$install_dir/.gemrc" >/dev/null
+    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/.gemrc" >/dev/null
 popd
 
 # Specific actions on ARM architecture
