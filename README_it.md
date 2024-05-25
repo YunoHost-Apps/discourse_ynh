@@ -1,3 +1,33 @@
+<!--
+N.B.: Questo README è stato automaticamente generato da <https://github.com/YunoHost/apps/tree/master/tools/readme_generator>
+NON DEVE essere modificato manualmente.
+-->
+
+# Discourse per YunoHost
+
+[![Livello di integrazione](https://dash.yunohost.org/integration/discourse.svg)](https://dash.yunohost.org/appci/app/discourse) ![Stato di funzionamento](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Stato di manutenzione](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+
+[![Installa Discourse con YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
+
+*[Leggi questo README in altre lingue.](./ALL_README.md)*
+
+> *Questo pacchetto ti permette di installare Discourse su un server YunoHost in modo semplice e veloce.*  
+> *Se non hai YunoHost, consulta [la guida](https://yunohost.org/install) per imparare a installarlo.*
+
+## Panoramica
+
+Discourse is modern forum software for your community. Use it as a mailing list, discussion forum, long-form chat room, and more!
+
+**Versione pubblicata:** 2.8.14~ynh2
+
+**Prova:** <https://try.discourse.org>
+
+## Screenshot
+
+![Screenshot di Discourse](./doc/screenshots/screenshot.png)
+
+## Attenzione/informazioni importanti
+
 ## Disclaimer
 
 This package installs Discourse without Docker, for several reasons (mostly to support ARM architecture and low-profile servers, to mutualize nginx/postgresql/redis services and to simplify e-mail setup).
@@ -99,3 +129,24 @@ sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=h
 sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
 systemctl restart discourse
 ```
+
+## Documentazione e risorse
+
+- Sito web ufficiale dell’app: <http://Discourse.org>
+- Repository upstream del codice dell’app: <https://github.com/discourse/discourse>
+- Store di YunoHost: <https://apps.yunohost.org/app/discourse>
+- Segnala un problema: <https://github.com/YunoHost-Apps/discourse_ynh/issues>
+
+## Informazioni per sviluppatori
+
+Si prega di inviare la tua pull request alla [branch di `testing`](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing).
+
+Per provare la branch di `testing`, si prega di procedere in questo modo:
+
+```bash
+sudo yunohost app install https://github.com/YunoHost-Apps/discourse_ynh/tree/testing --debug
+o
+sudo yunohost app upgrade discourse -u https://github.com/YunoHost-Apps/discourse_ynh/tree/testing --debug
+```
+
+**Maggiori informazioni riguardo il pacchetto di quest’app:** <https://yunohost.org/packaging_apps>
