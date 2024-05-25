@@ -24,6 +24,7 @@ NON debe editarse manualmente.
 
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
+
 **Versión proporcionada:** 2.8.14~ynh3
 
 **Demo:** <https://try.discourse.org>
