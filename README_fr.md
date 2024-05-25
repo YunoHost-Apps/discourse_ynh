@@ -24,14 +24,6 @@ Il NE doit PAS être modifié à la main.
 
 Pour en savoir plus sur la philosophie et les objectifs du projet, [visitez **discourse.org**](http://www.discourse.org).
 
-**Version incluse :** 2.8.14~ynh3
-
-- liste de diffusion
-- forum de discussion
-- salle de discussion longue durée
-
-Pour en savoir plus sur la philosophie et les objectifs du projet, [visitez **discourse.org**](http://www.discourse.org).
-
 
 **Version incluse :** 2.8.14~ynh3
 

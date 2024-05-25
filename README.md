@@ -24,6 +24,7 @@ It shall NOT be edited by hand.
 
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
+
 **Shipped version:** 2.8.14~ynh3
 
 **Demo:** <https://try.discourse.org>
