@@ -77,7 +77,6 @@ ram.runtime = "1G"
         "jhead",
         "jpegoptim",
         "libapr1-dev",
-        "libcurl4-dev",
         "libcurl4-openssl-dev",
         "libjemalloc-dev",
         "libjemalloc2",
