@@ -93,6 +93,7 @@ ram.runtime = "1G"
         "pngcrush",
         "pngquant",
         "vim",
+        "redis-server",
         "zlib1g-dev",
 
         "postgresql",
