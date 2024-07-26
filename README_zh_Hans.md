@@ -5,7 +5,7 @@
 
 # YunoHost 上的 Discourse
 
-[![集成程度](https://dash.yunohost.org/integration/discourse.svg)](https://dash.yunohost.org/appci/app/discourse) ![工作状态](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+[![集成程度](https://dash.yunohost.org/integration/discourse.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/) ![工作状态](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
 
 [![使用 YunoHost 安装 Discourse](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 
@@ -25,7 +25,7 @@
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**分发版本：** 2.8.14~ynh4
+**分发版本：** 3.2.4~ynh1
 
 **演示：** <https://try.discourse.org>
 
