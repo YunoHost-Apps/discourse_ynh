@@ -141,7 +141,6 @@ pushd "$install_dir"
     ynh_use_nodejs
     ynh_npm install --location=global terser
     ynh_npm install --location=global uglify-js
-    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn add patch-package --cwd "$install_dir/app/assets/javascripts/"
     ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn install --frozen-lockfile
     ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn cache clean
 popd
