@@ -5,7 +5,7 @@ NON debe editarse manualmente.
 
 # Discourse para YunoHost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/discourse.svg)](https://dash.yunohost.org/appci/app/discourse) ![Estado de funcionamento](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Estado de mantemento](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+[![Nivel de integración](https://dash.yunohost.org/integration/discourse.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/) ![Estado de funcionamento](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Estado de mantemento](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
 
 [![Instalar Discourse con YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 

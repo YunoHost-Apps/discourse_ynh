@@ -5,7 +5,7 @@ EZ editatu eskuz.
 
 # Discourse YunoHost-erako
 
-[![Integrazio maila](https://dash.yunohost.org/integration/discourse.svg)](https://dash.yunohost.org/appci/app/discourse) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+[![Integrazio maila](https://dash.yunohost.org/integration/discourse.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
 
 [![Instalatu Discourse YunoHost-ekin](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 
