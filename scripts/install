@@ -108,25 +108,6 @@ echo "svgo: false" | ynh_exec_as "$app" tee "$install_dir/.image_optim.yml" >/de
 #=================================================
 ynh_script_progression --message="Setting up Unicorn..."
 
-pushd "$install_dir"
-    # Install bundler, a gems installer
-    ynh_gem install bundler
-    # Install without documentation
-    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/.gemrc" >/dev/null
-popd
-
-# Specific actions on ARM architecture
-if dpkg --print-architecture | grep -q "arm"; then
-    # Define the platform specifically to retrieve binaries
-    # for libv8 because it currently doesn't compile on ARM devices
-    ynh_exec_as "$app" --login bin/bundle config specific_platform arm-linux
-fi
-
-# Install dependencies
-ynh_exec_as "$app" --login bin/bundle config set path 'vendor/bundle'
-ynh_exec_as "$app" --login bin/bundle config set with 'development'
-ynh_exec_as "$app" --login MAKEFLAGS=-j2 bin/bundle install --jobs 2
-
 # On ARM architecture, replace bundled libpsl by system native libpsl
 # because the provided binary isn't compatible
 if dpkg --print-architecture | grep -q "arm"; then
@@ -138,11 +119,30 @@ if dpkg --print-architecture | grep -q "arm"; then
 fi
 
 pushd "$install_dir"
+    # Install bundler, a gems installer
+    ynh_gem install bundler
+    # Install without documentation
+    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/.gemrc" >/dev/null
+
+    # Specific actions on ARM architecture
+    if dpkg --print-architecture | grep -q "arm"; then
+        # Define the platform specifically to retrieve binaries
+        # for libv8 because it currently doesn't compile on ARM devices
+        ynh_exec_as "$app" --login bin/bundle config specific_platform arm-linux
+    fi
+
+    # Install dependencies
+    ynh_exec_as "$app" --login bin/bundle config set path 'vendor/bundle'
+    ynh_exec_as "$app" --login bin/bundle config set without test development
+    ynh_exec_as "$app" --login MAKEFLAGS=-j2 bin/bundle install --jobs 2
+popd
+
+pushd "$install_dir"
     ynh_use_nodejs
     ynh_npm install --location=global terser
     ynh_npm install --location=global uglify-js
-    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn add patch-package
-    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn install --production --frozen-lockfile
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn add patch-package --cwd "$install_dir/app/assets/javascripts/"
+    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn install --frozen-lockfile
     ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn cache clean
 popd
 
