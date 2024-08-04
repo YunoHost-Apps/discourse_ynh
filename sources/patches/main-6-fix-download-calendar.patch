@@ -1,13 +1,25 @@
+From e515c68e1011d42f5fd817a799f4694fb469eea2 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?F=C3=A9lix=20Pi=C3=A9dallu?= <felix@piedallu.me>
+Date: Fri, 26 Jul 2024 14:20:17 +0200
+Subject: [PATCH 3/3] Fix download calendar
+
+---
+ app/assets/javascripts/discourse/app/lib/download-calendar.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/app/assets/javascripts/discourse/app/lib/download-calendar.js b/app/assets/javascripts/discourse/app/lib/download-calendar.js
-index 2b53a91eb3..eec55647d5 100644
+index 238a8cf0..541b6b1b 100644
 --- a/app/assets/javascripts/discourse/app/lib/download-calendar.js
 +++ b/app/assets/javascripts/discourse/app/lib/download-calendar.js
-@@ -22,7 +22,7 @@
+@@ -23,7 +23,7 @@ export function downloadCalendar(title, dates, recurrenceRule = null) {
  }
  
- export function downloadIcs(title, dates) {
+ export function downloadIcs(title, dates, recurrenceRule) {
 -  const REMOVE_FILE_AFTER = 20_000;
 +  const REMOVE_FILE_AFTER = 20000;
-   const file = new File([generateIcsData(title, dates)], {
+   const file = new File([generateIcsData(title, dates, recurrenceRule)], {
      type: "text/plain",
    });
+-- 
+2.45.2
+
