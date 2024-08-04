@@ -36,7 +36,7 @@ To learn more about the philosophy and goals of the project, [visit **discourse.
 ## Dokumentasi dan sumber daya
 
 - Website aplikasi resmi: <http://Discourse.org>
-- Repositori kode aplikasi hulu: <https://github.com/discourse/discourse>
+- Depot kode aplikasi hulu: <https://github.com/discourse/discourse>
 - Gudang YunoHost: <https://apps.yunohost.org/app/discourse>
 - Laporkan bug: <https://github.com/YunoHost-Apps/discourse_ynh/issues>
 
