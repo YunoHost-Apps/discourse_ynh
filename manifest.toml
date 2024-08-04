@@ -19,7 +19,7 @@ code = "https://github.com/discourse/discourse"
 cpe = "cpe:2.3:a:discourse:discourse"
 
 [integration]
-yunohost = ">=11.2.12"
+yunohost = ">=11.2.20"
 architectures = "all"
 multi_instance = true
 ldap = true

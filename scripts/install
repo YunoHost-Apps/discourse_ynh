@@ -41,10 +41,12 @@ ynh_app_setting_set --app="$app" --key=unicorn_workers --value=$unicorn_workers
 # INSTALL DEPENDENCIES
 #=================================================
 ynh_script_progression --message="Installing Ruby..."
+
 ynh_exec_warn_less ynh_install_ruby --ruby_version="$ruby_version"
 ynh_use_ruby
 
 ynh_script_progression --message="Installing NodeJS..."
+
 ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
 
 #=================================================
