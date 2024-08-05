@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2.8.14~ynh4"
+version = "2.8.14~ynh5"
 
 maintainers = ["JimboJoe"]
 
@@ -19,7 +19,7 @@ code = "https://github.com/discourse/discourse"
 cpe = "cpe:2.3:a:discourse:discourse"
 
 [integration]
-yunohost = ">=11.2.12"
+yunohost = ">=11.2.20"
 architectures = "all"
 multi_instance = true
 ldap = true
@@ -93,6 +93,7 @@ ram.runtime = "1G"
         "pngcrush",
         "pngquant",
         "vim",
+        "redis-server",
         "zlib1g-dev",
 
         "postgresql",

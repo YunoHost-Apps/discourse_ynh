@@ -25,7 +25,7 @@ Ini TIDAK boleh diedit dengan tangan.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Versi terkirim:** 2.8.14~ynh4
+**Versi terkirim:** 2.8.14~ynh5
 
 **Demo:** <https://try.discourse.org>
 
@@ -36,7 +36,7 @@ To learn more about the philosophy and goals of the project, [visit **discourse.
 ## Dokumentasi dan sumber daya
 
 - Website aplikasi resmi: <http://Discourse.org>
-- Repositori kode aplikasi hulu: <https://github.com/discourse/discourse>
+- Depot kode aplikasi hulu: <https://github.com/discourse/discourse>
 - Gudang YunoHost: <https://apps.yunohost.org/app/discourse>
 - Laporkan bug: <https://github.com/YunoHost-Apps/discourse_ynh/issues>
 
