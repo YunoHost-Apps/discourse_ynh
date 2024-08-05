@@ -4,9 +4,9 @@
 # COMMON VARIABLES
 #=================================================
 
-ruby_version="3.0.0"
+ruby_version="3.2.0"
 
-nodejs_version="18"
+nodejs_version="20"
 
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 
