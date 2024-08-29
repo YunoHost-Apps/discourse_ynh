@@ -80,7 +80,7 @@ ram.runtime = "1G"
         "cmake",
         "g++",
         "gifsicle",
-        "imagemagick",
+        # "imagemagick",
         "jhead",
         "jpegoptim",
         "libapr1-dev",
@@ -102,6 +102,17 @@ ram.runtime = "1G"
         "vim",
         "redis-server",
         "zlib1g-dev",
+
+        # Dependencies of imagemagick
+        "make",
+        "libltdl-dev",
+        "libbz2-dev", "zlib1g-dev", "libfreetype6-dev", "libjpeg-dev", "liblzma-dev",
+        "libwebp-dev", "libtiff-dev", "librsvg2-dev",
+        "libpng16-16", "libpng-dev",
+        "libjpeg62-turbo", "libjpeg62-turbo-dev",
+        "libheif1", "libheif-dev",
+        "libde265-0", "libde265-dev",
+        # ${LIBWEBP}
 
         "postgresql",
         "postgresql-client",
