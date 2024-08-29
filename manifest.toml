@@ -47,7 +47,7 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v3.3.1.tar.gz"
+    url = "https://github.com/discourse/discourse/archive/v3.3.1.tar.gz"
     sha256 = "910efab3a8e0508507f1cd32e512390272e029f9a8c689a23d52444fc6f1f666"
 
     autoupdate.strategy = "latest_github_tag"
