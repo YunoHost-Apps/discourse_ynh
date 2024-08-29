@@ -55,6 +55,42 @@ check_memory_requirements_upgrade() {
     fi
 }
 
+magick_prefix="$install_dir/imagemagick"
+# See https://github.com/discourse/discourse_docker/blob/main/image/base/install-imagemagick
+install_imagemagick() {
+    ynh_setup_source --source_id="imagemagickv7" --dest_dir="$install_dir/imagemagick_source"
+    mkdir -p "$magick_prefix"
+    chown -R "$app:$app" "$install_dir/imagemagick_source" "$magick_prefix"
+
+    pushd "$install_dir/imagemagick_source"
+        ynh_exec_as "$app" CFLAGS="-O2 -I$magick_prefix/include -Wno-deprecated-declarations" \
+            ./configure \
+            --prefix="$magick_prefix" \
+            --enable-static \
+            --enable-bounds-checking \
+            --enable-hdri \
+            --enable-hugepages \
+            --with-threads \
+            --with-modules \
+            --with-quantum-depth=16 \
+            --without-magick-plus-plus \
+            --with-bzlib \
+            --with-zlib \
+            --without-autotrace \
+            --with-freetype \
+            --with-jpeg \
+            --without-lcms \
+            --with-lzma \
+            --with-png \
+            --with-tiff \
+            --with-heic \
+            --with-rsvg \
+            --with-webp
+        ynh_exec_as "$app" make all -j"$(nproc)"
+        ynh_exec_as "$app" LIBTOOLFLAGS=-Wnone make install
+    popd
+}
+
 ynh_maintenance_mode_ON () {
     # Create an html to serve as maintenance notice
     echo "<!DOCTYPE html>
