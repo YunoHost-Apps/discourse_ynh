@@ -73,20 +73,20 @@ if dpkg --print-architecture | grep -q "arm"; then
 fi
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir"
+ynh_setup_source --dest_dir="$install_dir/discourse"
 
 # Install LDAP plugin
-ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/plugins/discourse-ldap-auth"
+ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/discourse-ldap-auth"
 
 # Add a pids and socket directory for the systemd script.
-mkdir -p "$install_dir/tmp/pids"
-mkdir -p "$install_dir/tmp/sockets"
-mkdir -p "$install_dir/public/forum"
+mkdir -p "$install_dir/discourse/tmp/pids"
+mkdir -p "$install_dir/discourse/tmp/sockets"
+mkdir -p "$install_dir/discourse/public/forum"
 
 # Create specific folders and links for subfolder compatibility
 # (see: https://meta.discourse.org/t/subfolder-support-with-docker/30507)
-ln -s "$install_dir/public/uploads" "$install_dir/public/forum/uploads"
-ln -s "$install_dir/public/backups" "$install_dir/public/forum/backups"
+ln -s "$install_dir/discourse/public/uploads" "$install_dir/discourse/public/forum/uploads"
+ln -s "$install_dir/discourse/public/backups" "$install_dir/discourse/public/forum/backups"
 
 chmod -R o-rwx "$install_dir"
 chown -R "$app:www-data" "$install_dir"
@@ -96,12 +96,12 @@ chown -R "$app:www-data" "$install_dir"
 #=================================================
 ynh_script_progression --message="Adding $app's configuration file..."
 
-ynh_add_config --template="discourse_defaults.conf" --destination="$install_dir/config/discourse.conf"
-ynh_add_config --template="secrets.yml" --destination="$install_dir/config/secrets.yml"
-ynh_add_config --template="settings.yml" --destination="$install_dir/plugins/discourse-ldap-auth/config/settings.yml"
+ynh_add_config --template="discourse_defaults.conf" --destination="$install_dir/discourse/config/discourse.conf"
+ynh_add_config --template="secrets.yml" --destination="$install_dir/discourse/config/secrets.yml"
+ynh_add_config --template="settings.yml" --destination="$install_dir/discourse/plugins/discourse-ldap-auth/config/settings.yml"
 
 # Disable svgo worker
-echo "svgo: false" | ynh_exec_as "$app" tee "$install_dir/.image_optim.yml" >/dev/null
+echo "svgo: false" | ynh_exec_as "$app" tee "$install_dir/discourse/.image_optim.yml" >/dev/null
 
 #=================================================
 # SETUP UNICORN, A RUBY SERVER
@@ -112,13 +112,13 @@ ynh_script_progression --message="Setting up Unicorn..."
 # because the provided binary isn't compatible
 if dpkg --print-architecture | grep -q "arm"; then
     (
-        cd "$install_dir/vendor/bundle/ruby"/*/"gems/mini_suffix-*/vendor"
+        cd "$install_dir/discourse/vendor/bundle/ruby"/*/"gems/mini_suffix-*/vendor"
         rm libpsl.so
         ln -s "$(ldconfig -p | grep libpsl | awk 'END {print $NF}')" libpsl.so
     )
 fi
 
-pushd "$install_dir"
+pushd "$install_dir/discourse"
     # Install bundler, a gems installer
     ynh_gem install bundler
     # Install without documentation
@@ -128,16 +128,16 @@ pushd "$install_dir"
     if dpkg --print-architecture | grep -q "arm"; then
         # Define the platform specifically to retrieve binaries
         # for libv8 because it currently doesn't compile on ARM devices
-        ynh_exec_as "$app" --login bin/bundle config specific_platform arm-linux
+        ynh_exec_as "$app" --login "$install_dir/discourse/bin/bundle" config specific_platform arm-linux
     fi
 
     # Install dependencies
-    ynh_exec_as "$app" --login bin/bundle config set path 'vendor/bundle'
-    ynh_exec_as "$app" --login bin/bundle config set without test development
-    ynh_exec_as "$app" --login MAKEFLAGS=-j2 bin/bundle install --jobs 2
+    ynh_exec_as "$app" --login "$install_dir/discourse/bin/bundle" config set path 'vendor/bundle'
+    ynh_exec_as "$app" --login "$install_dir/discourse/bin/bundle" config set without test development
+    ynh_exec_as "$app" --login MAKEFLAGS=-j2 "$install_dir/discourse/bin/bundle" install --jobs 2
 popd
 
-pushd "$install_dir"
+pushd "$install_dir/discourse"
     ynh_use_nodejs
     ynh_npm install --location=global terser
     ynh_npm install --location=global uglify-js
@@ -150,8 +150,10 @@ popd
 #=================================================
 ynh_script_progression --message="Preparing the database..."
 
-ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/bundle exec rake db:migrate
-ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/bundle exec rake themes:update assets:precompile
+pushd "$install_dir/discourse"
+    ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake db:migrate
+    ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake themes:update assets:precompile
+popd
 
 # Set default data (especially to have correct image URLs for subfolder install)
 ynh_add_config --template="provisioning.sql" --destination="$install_dir/provisioning.sql"
@@ -163,11 +165,13 @@ ynh_secure_remove --file="$install_dir/provisioning.sql"
 #=================================================
 ynh_script_progression --message="Creating Discourse admin user..."
 
-ynh_exec_as "$app" --login RAILS_ENV=production bin/rake admin:create <<< "$admin_mail
+pushd "$install_dir/discourse"
+    ynh_exec_as "$app" --login RAILS_ENV=production bin/rake admin:create <<< "$admin_mail
 $admin_pwd
 $admin_pwd
 y
 "
+popd
 
 #=================================================
 # CONFIGURE PLUGINS
@@ -177,7 +181,7 @@ ynh_script_progression --message="Configuring plugins..."
 # Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
 # (Can only do that now because we are patching dependencies which have just been downloaded)
 # Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
-patch -p1 -d "$install_dir/plugins/discourse-ldap-auth/gems/$ruby_version/gems/omniauth-ldap"*/ \
+patch -p1 -d "$install_dir/discourse/plugins/discourse-ldap-auth/gems/$ruby_version/gems/omniauth-ldap"*/ \
     < "../conf/ldap-auth-fix-subfolder.patch"
 
 #=================================================
@@ -197,13 +201,13 @@ ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 additional_env="UNICORN_WORKERS=$unicorn_workers"
 ynh_add_systemd_config
-yunohost service add "$app" --log "$install_dir/log/unicorn.stderr.log" "$install_dir/log/unicorn.stdout.log" "$install_dir/log/production.log"
+yunohost service add "$app" --log "$install_dir/discourse/log/unicorn.stderr.log" "$install_dir/discourse/log/unicorn.stdout.log" "$install_dir/discourse/log/production.log"
 
 
 # Use logrotate to manage application logfile(s)
-ynh_use_logrotate --logfile="$install_dir/log/unicorn.stderr.log"
-ynh_use_logrotate --logfile="$install_dir/log/unicorn.stdout.log"
-ynh_use_logrotate --logfile="$install_dir/log/production.log"
+ynh_use_logrotate --logfile="$install_dir/discourse/log/unicorn.stderr.log"
+ynh_use_logrotate --logfile="$install_dir/discourse/log/unicorn.stdout.log"
+ynh_use_logrotate --logfile="$install_dir/discourse/log/production.log"
 
 #=================================================
 # START SYSTEMD SERVICE
@@ -211,7 +215,7 @@ ynh_use_logrotate --logfile="$install_dir/log/production.log"
 ynh_script_progression --message="Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
+ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
 # END OF SCRIPT
