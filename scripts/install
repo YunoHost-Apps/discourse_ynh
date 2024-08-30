@@ -131,13 +131,13 @@ pushd "$install_dir/discourse"
     if dpkg --print-architecture | grep -q "arm"; then
         # Define the platform specifically to retrieve binaries
         # for libv8 because it currently doesn't compile on ARM devices
-        ynh_exec_as "$app" --login "$install_dir/discourse/bin/bundle" config specific_platform arm-linux
+        ynh_exec_as "$app" -E "$install_dir/discourse/bin/bundle" config specific_platform arm-linux
     fi
 
     # Install dependencies
-    ynh_exec_as "$app" --login "$install_dir/discourse/bin/bundle" config set path 'vendor/bundle'
-    ynh_exec_as "$app" --login "$install_dir/discourse/bin/bundle" config set without test development
-    ynh_exec_as "$app" --login MAKEFLAGS=-j2 "$install_dir/discourse/bin/bundle" install --jobs 2
+    ynh_exec_as "$app" -E "$install_dir/discourse/bin/bundle" config set path 'vendor/bundle'
+    ynh_exec_as "$app" -E "$install_dir/discourse/bin/bundle" config set without test development
+    ynh_exec_as "$app" -E MAKEFLAGS=-j2 "$install_dir/discourse/bin/bundle" install --jobs 2
 popd
 
 pushd "$install_dir/discourse"
@@ -154,8 +154,8 @@ popd
 ynh_script_progression --message="Preparing the database..."
 
 pushd "$install_dir/discourse"
-    ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake db:migrate
-    ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake themes:update assets:precompile
+    ynh_exec_warn_less ynh_exec_as "$app" -E RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake db:migrate
+    ynh_exec_warn_less ynh_exec_as "$app" -E RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake themes:update assets:precompile
 popd
 
 # Set default data (especially to have correct image URLs for subfolder install)
@@ -169,7 +169,7 @@ ynh_secure_remove --file="$install_dir/provisioning.sql"
 ynh_script_progression --message="Creating Discourse admin user..."
 
 pushd "$install_dir/discourse"
-    ynh_exec_as "$app" --login RAILS_ENV=production bin/rake admin:create <<< "$admin_mail
+    ynh_exec_as "$app" -E RAILS_ENV=production bin/rake admin:create <<< "$admin_mail
 $admin_pwd
 $admin_pwd
 y
