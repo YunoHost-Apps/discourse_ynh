@@ -152,13 +152,13 @@ popd
 if dpkg --print-architecture | grep -q "arm"; then
     # Define the platform specifically to retrieve binaries
     # for libv8 because it currently doesn't compile on ARM devices
-    ynh_exec_as "$app" --login "$install_dir/discourse/bin/bundle" config specific_platform arm-linux
+    _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config specific_platform arm-linux
 fi
 
 # Install dependencies
-ynh_exec_as "$app" --login "$install_dir/discourse/bin/bundle" config set path 'vendor/bundle'
-ynh_exec_as "$app" --login "$install_dir/discourse/bin/bundle" config set with 'development'
-ynh_exec_as "$app" --login MAKEFLAGS=-j2 "$install_dir/discourse/bin/bundle" install --jobs 2
+_exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set path 'vendor/bundle'
+_exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set with 'development'
+_exec_as_app_with_ruby_node MAKEFLAGS=-j2 "$install_dir/discourse/bin/bundle" install --jobs 2
 
 # On ARM architecture, replace bundled libpsl by system native libpsl
 # because the provided binary isn't compatible
@@ -174,8 +174,8 @@ pushd "$install_dir/discourse"
     ynh_use_nodejs
     ynh_npm install --location=global terser
     ynh_npm install --location=global uglify-js
-    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn install --production --frozen-lockfile
-    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn cache clean
+    ynh_exec_warn_less _exec_as_app_with_ruby_node yarn install --production --frozen-lockfile
+    ynh_exec_warn_less _exec_as_app_with_ruby_node yarn cache clean
 popd
 
 #=================================================
@@ -185,8 +185,8 @@ popd
 ynh_script_progression --message="Preparing the database..."
 
 pushd "$install_dir/discourse"
-    ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake db:migrate
-    ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake themes:update assets:precompile
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake db:migrate
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake themes:update assets:precompile
 popd
 
 #=================================================

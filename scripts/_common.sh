@@ -14,6 +14,10 @@ libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 # PERSONAL HELPERS
 #=================================================
 
+_exec_as_app_with_ruby_node() {
+    ynh_exec_as "$app" -E env PATH="$nodejs_path:$ruby_path:$PATH" "$@"
+}
+
 # Returns true if a swap partition is enabled, false otherwise
 # usage: is_swap_present
 is_swap_present() {

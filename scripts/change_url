@@ -46,15 +46,15 @@ UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url
 
 ynh_use_ruby
 # Remap URLs in forum posts
-ynh_exec_as "$app" --login RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
+_exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
 # "
 
 pushd "$install_dir/discourse"
     # Regenerate assets
-    ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/rake assets:precompile
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production bin/rake assets:precompile
 
     # Regenerate all forum posts
-    ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/rake posts:rebake
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production bin/rake posts:rebake
 popd
 
 #=================================================
