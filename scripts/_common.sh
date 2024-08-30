@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #=================================================
-# COMMON VARIABLES
+# COMMON VARIABLES AND CUSTOM HELPERS
 #=================================================
 
 ruby_version="3.3.6"
@@ -9,14 +9,6 @@ ruby_version="3.3.6"
 nodejs_version="22"
 
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
-
-#=================================================
-# PERSONAL HELPERS
-#=================================================
-
-_exec_as_app_with_ruby_node() {
-    ynh_exec_as "$app" -E env PATH="$nodejs_path:$ruby_path:$PATH" "$@"
-}
 
 # Returns true if a swap partition is enabled, false otherwise
 # usage: is_swap_present
@@ -42,21 +34,21 @@ is_memory_available() {
 # Checks discourse install memory requirements
 # terminates installation if requirements not met
 check_memory_requirements() {
-    if ! is_swap_present ; then
-        ynh_print_warn --message="You must have a swap partition in order to install and use this application"
-    elif ! is_swappiness_sufficient ; then
-        ynh_print_warn --message="Your swappiness must be higher than 10; please see https://en.wikipedia.org/wiki/Swappiness"
-    elif ! is_memory_available 1000000 ; then
-        ynh_print_warn --message="You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
-    fi
+  if ! is_swap_present ; then
+    ynh_print_warn "You must have a swap partition in order to install and use this application"
+  elif ! is_swappiness_sufficient ; then
+    ynh_print_warn "Your swappiness must be higher than 10; please see https://en.wikipedia.org/wiki/Swappiness"
+  elif ! is_memory_available 1000000 ; then
+    ynh_print_warn "You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
+  fi
 }
 # Checks discourse upgrade memory requirements
 # Less requirements as the software is already installed and running
 # terminates upgrade if requirements not met
 check_memory_requirements_upgrade() {
-    if ! is_memory_available 400000 ; then
-        ynh_die --message="You must have a minimum of 400Mb available memory (RAM+swap) for the upgrade"
-    fi
+  if ! is_memory_available 400000 ; then
+    ynh_die "You must have a minimum of 400Mb available memory (RAM+swap) for the upgrade"
+  fi
 }
 
 tools_prefix="$install_dir/dependencies"
@@ -102,7 +94,6 @@ install_oxipng() {
     mkdir -p "$tools_prefix/bin"
     mv "$install_dir/oxipng_source/oxipng" "$tools_prefix/bin/oxipng"
     ynh_secure_remove --file="$install_dir/oxipng_source"
-}
 
 ynh_maintenance_mode_ON () {
     # Create an html to serve as maintenance notice
@@ -164,11 +155,3 @@ ynh_maintenance_mode_OFF () {
 
     systemctl reload nginx
 }
-
-#=================================================
-# EXPERIMENTAL HELPERS
-#=================================================
-
-#=================================================
-# FUTURE OFFICIAL HELPERS
-#=================================================
