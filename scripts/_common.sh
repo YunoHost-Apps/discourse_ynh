@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #=================================================
-# COMMON VARIABLES
+# COMMON VARIABLES AND CUSTOM HELPERS
 #=================================================
 
 ruby_version="3.0.0"
@@ -9,10 +9,6 @@ ruby_version="3.0.0"
 nodejs_version="18"
 
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
-
-#=================================================
-# PERSONAL HELPERS
-#=================================================
 
 # Returns true if a swap partition is enabled, false otherwise
 # usage: is_swap_present
@@ -39,11 +35,11 @@ is_memory_available() {
 # terminates installation if requirements not met
 check_memory_requirements() {
   if ! is_swap_present ; then
-    ynh_print_warn --message="You must have a swap partition in order to install and use this application"
+    ynh_print_warn "You must have a swap partition in order to install and use this application"
   elif ! is_swappiness_sufficient ; then
-    ynh_print_warn --message="Your swappiness must be higher than 10; please see https://en.wikipedia.org/wiki/Swappiness"
+    ynh_print_warn "Your swappiness must be higher than 10; please see https://en.wikipedia.org/wiki/Swappiness"
   elif ! is_memory_available 1000000 ; then
-    ynh_print_warn --message="You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
+    ynh_print_warn "You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
   fi
 }
 # Checks discourse upgrade memory requirements
@@ -51,7 +47,7 @@ check_memory_requirements() {
 # terminates upgrade if requirements not met
 check_memory_requirements_upgrade() {
   if ! is_memory_available 400000 ; then
-    ynh_die --message="You must have a minimum of 400Mb available memory (RAM+swap) for the upgrade"
+    ynh_die "You must have a minimum of 400Mb available memory (RAM+swap) for the upgrade"
   fi
 }
 
@@ -115,11 +111,3 @@ ynh_maintenance_mode_OFF () {
 
 	systemctl reload nginx
 }
-
-#=================================================
-# EXPERIMENTAL HELPERS
-#=================================================
-
-#=================================================
-# FUTURE OFFICIAL HELPERS
-#=================================================

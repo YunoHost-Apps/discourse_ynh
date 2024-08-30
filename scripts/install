@@ -7,7 +7,7 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-if [ "${PACKAGE_CHECK_EXEC:-0}" -ne 1 ]; then
+if ! ynh_in_ci_tests; then
     # Check memory requirements
     check_memory_requirements
 fi
@@ -23,7 +23,7 @@ admin_pwd=$(ynh_string_random)
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 
 redis_db=$(ynh_redis_get_free_db)
-ynh_app_setting_set --app="$app" --key=redis_db --value="$redis_db"
+ynh_app_setting_set --key=redis_db --value="$redis_db"
 
 # Set a secret value
 secret="$(ynh_string_random)"
@@ -35,33 +35,32 @@ if dpkg --print-architecture | grep -q "arm"; then
 else
     unicorn_workers=3
 fi
-ynh_app_setting_set --app="$app" --key=unicorn_workers --value=$unicorn_workers
+ynh_app_setting_set --key=unicorn_workers --value=$unicorn_workers
 
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing Ruby..."
+ynh_script_progression "Installing Ruby..."
 
-ynh_exec_warn_less ynh_install_ruby --ruby_version="$ruby_version"
-ynh_use_ruby
+ynh_ruby_install
 
-ynh_script_progression --message="Installing NodeJS..."
+ynh_script_progression "Installing NodeJS..."
 
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+ynh_nodejs_install
 
 #=================================================
 # CONFIGURE A POSTGRESQL DATABASE
 #=================================================
-ynh_script_progression --message="Configuring $app's PostgreSQL database..."
+ynh_script_progression "Configuring $app's PostgreSQL database..."
 
 # Set extensions
-ynh_psql_execute_as_root --database="$db_name" --sql="CREATE EXTENSION IF NOT EXISTS hstore;"
-ynh_psql_execute_as_root --database="$db_name" --sql="CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+ynh_psql_db_shell  <<< "CREATE EXTENSION IF NOT EXISTS hstore;"
+ynh_psql_db_shell  <<< "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..."
+ynh_script_progression "Setting up source files..."
 
 # Specific actions on ARM architecture
 if dpkg --print-architecture | grep -q "arm"; then
@@ -69,7 +68,7 @@ if dpkg --print-architecture | grep -q "arm"; then
     # compatibility by pointing to a recent libv8 version
     # This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
     # that prevents it from being compiled on ARM hence no binary gem is available yet
-    cp ../sources/patches_arm/* ../sources/patches
+    cp ../patches_arm/* ../patches
 fi
 
 # Download, check integrity, uncompress and patch the source from app.src
@@ -88,44 +87,43 @@ mkdir -p "$install_dir/public/forum"
 ln -s "$install_dir/public/uploads" "$install_dir/public/forum/uploads"
 ln -s "$install_dir/public/backups" "$install_dir/public/forum/backups"
 
-chmod -R o-rwx "$install_dir"
-chown -R "$app:www-data" "$install_dir"
-
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding $app's configuration file..."
+ynh_script_progression "Adding $app's configuration file..."
 
-ynh_add_config --template="discourse_defaults.conf" --destination="$install_dir/config/discourse.conf"
-ynh_add_config --template="secrets.yml" --destination="$install_dir/config/secrets.yml"
-ynh_add_config --template="settings.yml" --destination="$install_dir/plugins/discourse-ldap-auth/config/settings.yml"
+ynh_config_add --template="discourse_defaults.conf" --destination="$install_dir/config/discourse.conf"
+ynh_config_add --template="secrets.yml" --destination="$install_dir/config/secrets.yml"
+ynh_config_add --template="settings.yml" --destination="$install_dir/plugins/discourse-ldap-auth/config/settings.yml"
 
 # Disable svgo worker
-echo "svgo: false" | ynh_exec_as "$app" tee "$install_dir/.image_optim.yml" >/dev/null
+echo "svgo: false" | ynh_exec_as_app tee "$install_dir/.image_optim.yml" >/dev/null
 
 #=================================================
 # SETUP UNICORN, A RUBY SERVER
 #=================================================
-ynh_script_progression --message="Setting up Unicorn..."
+ynh_script_progression "Setting up Unicorn..."
 
 pushd "$install_dir"
     # Install bundler, a gems installer
-    ynh_gem install bundler
+    gem install bundler
     # Install without documentation
-    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/.gemrc" >/dev/null
+    echo "gem: --no-ri --no-rdoc" | ynh_exec_as_app tee "$install_dir/.gemrc" >/dev/null
 popd
 
 # Specific actions on ARM architecture
 if dpkg --print-architecture | grep -q "arm"; then
     # Define the platform specifically to retrieve binaries
     # for libv8 because it currently doesn't compile on ARM devices
-    ynh_exec_as "$app" --login bin/bundle config specific_platform arm-linux
+    ynh_exec_as_app --login bin/bundle config specific_platform arm-linux
 fi
 
 # Install dependencies
-ynh_exec_as "$app" --login bin/bundle config set path 'vendor/bundle'
-ynh_exec_as "$app" --login bin/bundle config set with 'development'
-ynh_exec_as "$app" --login MAKEFLAGS=-j2 bin/bundle install --jobs 2
+ynh_exec_as_app --login bin/bundle config set path 'vendor/bundle'
+ynh_exec_as_app --login bin/bundle config set with 'development'
+ynh_exec_as_app --login MAKEFLAGS=-j2 bin/bundle install --jobs 2
 
 # On ARM architecture, replace bundled libpsl by system native libpsl
 # because the provided binary isn't compatible
@@ -138,32 +136,32 @@ if dpkg --print-architecture | grep -q "arm"; then
 fi
 
 pushd "$install_dir"
-    ynh_use_nodejs
-    ynh_npm install --location=global terser
-    ynh_npm install --location=global uglify-js
-    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn install --production --frozen-lockfile
-    ynh_exec_warn_less ynh_exec_as "$app" "$ynh_node_load_PATH" yarn cache clean
+
+    npm install --location=global terser
+    npm install --location=global uglify-js
+    ynh_hide_warnings ynh_exec_as_app node_load_PATH" yarn install --production --frozen-lockfile
+    ynh_hide_warnings ynh_exec_as_app node_load_PATH" yarn cache clean
 popd
 
 #=================================================
 # PREPARE THE DATABASE
 #=================================================
-ynh_script_progression --message="Preparing the database..."
+ynh_script_progression "Preparing the database..."
 
-ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/bundle exec rake db:migrate
-ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/bundle exec rake themes:update assets:precompile
+ynh_hide_warnings ynh_exec_as_app --login RAILS_ENV=production bin/bundle exec rake db:migrate
+ynh_hide_warnings ynh_exec_as_app --login RAILS_ENV=production bin/bundle exec rake themes:update assets:precompile
 
 # Set default data (especially to have correct image URLs for subfolder install)
-ynh_add_config --template="provisioning.sql" --destination="$install_dir/provisioning.sql"
-ynh_psql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name" < "$install_dir/provisioning.sql"
-ynh_secure_remove --file="$install_dir/provisioning.sql"
+ynh_config_add --template="provisioning.sql" --destination="$install_dir/provisioning.sql"
+ynh_psql_db_shell < "$install_dir/provisioning.sql"
+ynh_safe_rm "$install_dir/provisioning.sql"
 
 #=================================================
 # CREATE DISCOURSE ADMIN USER
 #=================================================
-ynh_script_progression --message="Creating Discourse admin user..."
+ynh_script_progression "Creating Discourse admin user..."
 
-ynh_exec_as "$app" --login RAILS_ENV=production bin/rake admin:create <<< "$admin_mail
+ynh_exec_as_app --login RAILS_ENV=production bin/rake admin:create <<< "$admin_mail
 $admin_pwd
 $admin_pwd
 y
@@ -172,7 +170,7 @@ y
 #=================================================
 # CONFIGURE PLUGINS
 #=================================================
-ynh_script_progression --message="Configuring plugins..."
+ynh_script_progression "Configuring plugins..."
 
 # Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
 # (Can only do that now because we are patching dependencies which have just been downloaded)
@@ -183,38 +181,37 @@ patch -p1 -d "$install_dir/plugins/discourse-ldap-auth/gems/$ruby_version/gems/o
 #=================================================
 # SYSTEM CONFIGURATION
 #=================================================
-ynh_script_progression --message="Adding system configurations related to $app..." --weight=1
+ynh_script_progression "Adding system configurations related to $app..."
 
 # Create a dedicated NGINX config
-ynh_add_nginx_config
+ynh_config_add_nginx
 # Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
 if [ "$path" != "/" ] ; then
-    ynh_replace_string --target_file="/etc/nginx/conf.d/$domain.d/$app.conf" \
-        --match_string='$proxy_add_x_forwarded_for' \
-        --replace_string='$http_your_original_ip_header'
+    ynh_replace --file="/etc/nginx/conf.d/$domain.d/$app.conf" \
+        --match='$proxy_add_x_forwarded_for' \
+        --replace='$http_your_original_ip_header'
 fi
-ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 additional_env="UNICORN_WORKERS=$unicorn_workers"
-ynh_add_systemd_config
+ynh_config_add_systemd
 yunohost service add "$app" --log "$install_dir/log/unicorn.stderr.log" "$install_dir/log/unicorn.stdout.log" "$install_dir/log/production.log"
 
-
 # Use logrotate to manage application logfile(s)
-ynh_use_logrotate --logfile="$install_dir/log/unicorn.stderr.log"
-ynh_use_logrotate --logfile="$install_dir/log/unicorn.stdout.log"
-ynh_use_logrotate --logfile="$install_dir/log/production.log"
+ynh_config_add_logrotate "$install_dir/log/unicorn.stderr.log"
+ynh_config_add_logrotate "$install_dir/log/unicorn.stdout.log"
+ynh_config_add_logrotate "$install_dir/log/production.log"
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting $app's systemd service..."
+ynh_script_progression "Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
+ynh_systemctl --service="$app" --action="start" --log_path="$install_dir/log/unicorn.stderr.log" --wait_until="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed"
+ynh_script_progression "Installation of $app completed"

@@ -14,7 +14,7 @@ Environment=RAILS_ENV=production
 Environment=UNICORN_SIDEKIQS=1
 Environment=LD_PRELOAD=__LIBJEMALLOC__
 Environment=UNICORN_LISTENER=__INSTALL_DIR__/tmp/sockets/unicorn.sock
-Environment="__YNH_RUBY_LOAD_PATH__"
+Environment="PATH=__PATH_WITH_RUBY__"
 ExecStart=__INSTALL_DIR__/bin/bundle exec unicorn --config config/unicorn.conf.rb -E production
 Restart=always
 RestartSec=10

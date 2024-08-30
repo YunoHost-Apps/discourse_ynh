@@ -10,21 +10,21 @@ source /usr/share/yunohost/helpers
 #=================================================
 # STOP SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Stopping $app's systemd service..."
+ynh_script_progression "Stopping $app's systemd service..."
 
-ynh_systemd_action --service_name=$app --action="stop" --log_path="/var/log/$app/$app.log"
+ynh_systemctl --service=$app --action="stop"
 
 #=================================================
 # MODIFY URL IN NGINX CONF
 #=================================================
-ynh_script_progression --message="Updating NGINX web server configuration..."
+ynh_script_progression "Updating NGINX web server configuration..."
 
-ynh_change_url_nginx_config
+ynh_config_change_url_nginx
 
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
-ynh_script_progression --message="Updating a config file..."
+ynh_script_progression "Updating a config file..."
 
 discourse_config_file="$install_dir/config/discourse.conf"
 
@@ -32,39 +32,38 @@ old_relative_url_root="${old_path%/}"
 new_relative_url_root="${new_path%/}"
 
 # Configure hostname
-ynh_replace_string --match_string="hostname = .*" --replace_string="hostname = \"$new_domain\"" --target_file="$discourse_config_file"
-ynh_replace_string --match_string="relative_url_root = .*" --replace_string="relative_url_root = ${new_path%/}" --target_file="$discourse_config_file"
-ynh_replace_string --match_string="smtp_domain = .*" --replace_string="smtp_domain = $new_domain" --target_file="$discourse_config_file"
+ynh_replace --match="hostname = .*" --replace="hostname = \"$new_domain\"" --file="$discourse_config_file"
+ynh_replace --match="relative_url_root = .*" --replace="relative_url_root = ${new_path%/}" --file="$discourse_config_file"
+ynh_replace --match="smtp_domain = .*" --replace="smtp_domain = $new_domain" --file="$discourse_config_file"
 
 # Calculate and store the config file checksum
-ynh_store_file_checksum --file="$discourse_config_file"
+ynh_store_file_checksum "$discourse_config_file"
 
 # Change URL setting
-ynh_psql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name" \
+ynh_psql_db_shell \
     <<< "UPDATE site_settings SET value = replace(value, '$old_relative_url_root/images/', '$new_relative_url_root/images/');
 UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';"
 
-ynh_use_ruby
 # Remap URLs in forum posts
-ynh_exec_as "$app" --login RAILS_ENV=production bin/bundle exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
+ynh_exec_as_app --login RAILS_ENV=production bin/bundle exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
 # "
 
 # Regenerate assets
-ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/rake assets:precompile
+ynh_hide_warnings ynh_exec_as_app --login RAILS_ENV=production bin/rake assets:precompile
 
 # Regenerate all forum posts
-ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/rake posts:rebake
+ynh_hide_warnings ynh_exec_as_app --login RAILS_ENV=production bin/rake posts:rebake
 
 #=================================================
 # START SYSTEMD SERVICE
 #=================================================
-ynh_script_progression --message="Starting $app's systemd service..."
+ynh_script_progression "Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
+ynh_systemctl --service="$app" --action="start" --log_path="$install_dir/log/unicorn.stderr.log" --wait_until="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Change of URL completed for $app"
+ynh_script_progression "Change of URL completed for $app"
