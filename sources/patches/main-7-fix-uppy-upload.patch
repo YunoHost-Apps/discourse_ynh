@@ -1,13 +1,25 @@
+From c1dc85c042033cd689346d0bf6e747a97f4c4e7e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?F=C3=A9lix=20Pi=C3=A9dallu?= <felix.piedallu@semtech.com>
+Date: Fri, 30 Aug 2024 11:55:03 +0200
+Subject: [PATCH] Fix uppy-upload.js
+
+---
+ app/assets/javascripts/discourse/app/mixins/uppy-upload.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/app/assets/javascripts/discourse/app/mixins/uppy-upload.js b/app/assets/javascripts/discourse/app/mixins/uppy-upload.js
-index 2b53a91eb3..eec55647d5 100644
+index ff2a0e95..50be945e 100644
 --- a/app/assets/javascripts/discourse/app/mixins/uppy-upload.js
 +++ b/app/assets/javascripts/discourse/app/mixins/uppy-upload.js
-@@ -21,7 +21,7 @@
- import { warn } from "@ember/debug";
- import bootbox from "bootbox";
+@@ -23,7 +23,7 @@ import { deepMerge } from "discourse-common/lib/object";
+ import { bind, on } from "discourse-common/utils/decorators";
+ import I18n from "discourse-i18n";
  
 -export const HUGE_FILE_THRESHOLD_BYTES = 104_857_600; // 100MB
 +export const HUGE_FILE_THRESHOLD_BYTES = "104_857_600"; // 100MB
  
- export default Mixin.create(UppyS3Multipart, {
-   uploading: false,
+ export default Mixin.create(UppyS3Multipart, ExtendableUploader, {
+   dialog: service(),
+-- 
+2.43.0
+

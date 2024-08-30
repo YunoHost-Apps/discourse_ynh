@@ -26,7 +26,7 @@ ynh_change_url_nginx_config
 #=================================================
 ynh_script_progression --message="Updating a config file..."
 
-discourse_config_file="$install_dir/config/discourse.conf"
+discourse_config_file="$install_dir/discourse/config/discourse.conf"
 
 old_relative_url_root="${old_path%/}"
 new_relative_url_root="${new_path%/}"
@@ -46,14 +46,16 @@ UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url
 
 ynh_use_ruby
 # Remap URLs in forum posts
-ynh_exec_as "$app" --login RAILS_ENV=production bin/bundle exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
+_exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
 # "
 
-# Regenerate assets
-ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/rake assets:precompile
+pushd "$install_dir/discourse"
+    # Regenerate assets
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production bin/rake assets:precompile
 
-# Regenerate all forum posts
-ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/rake posts:rebake
+    # Regenerate all forum posts
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production bin/rake posts:rebake
+popd
 
 #=================================================
 # START SYSTEMD SERVICE
@@ -61,7 +63,7 @@ ynh_exec_warn_less ynh_exec_as "$app" --login RAILS_ENV=production bin/rake post
 ynh_script_progression --message="Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
+ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
 # END OF SCRIPT
