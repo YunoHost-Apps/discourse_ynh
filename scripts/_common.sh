@@ -59,17 +59,18 @@ check_memory_requirements_upgrade() {
     fi
 }
 
-magick_prefix="$install_dir/imagemagick"
-# See https://github.com/discourse/discourse_docker/blob/main/image/base/install-imagemagick
+tools_prefix="$install_dir/dependencies"
+
 install_imagemagick() {
+    # See https://github.com/discourse/discourse_docker/blob/main/image/base/install-imagemagick
     ynh_setup_source --source_id="imagemagickv7" --dest_dir="$install_dir/imagemagick_source"
-    mkdir -p "$magick_prefix"
-    chown -R "$app:$app" "$install_dir/imagemagick_source" "$magick_prefix"
+    mkdir -p "$tools_prefix"
+    chown -R "$app:$app" "$install_dir/imagemagick_source" "$tools_prefix"
 
     pushd "$install_dir/imagemagick_source"
-        ynh_exec_as "$app" CFLAGS="-O2 -I$magick_prefix/include -Wno-deprecated-declarations" \
+        ynh_exec_as "$app" CFLAGS="-O2 -I$tools_prefix/include -Wno-deprecated-declarations" \
             ./configure \
-            --prefix="$magick_prefix" \
+            --prefix="$tools_prefix" \
             --enable-static \
             --enable-bounds-checking \
             --enable-hdri \
