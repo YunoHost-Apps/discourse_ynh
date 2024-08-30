@@ -66,6 +66,18 @@ ram.runtime = "1G"
     autoupdate.strategy = "latest_github_tag"
     autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
 
+    [resources.sources.oxipng]
+    amd64.url = "https://github.com/shssoichiro/oxipng/releases/download/v9.1.2/oxipng-9.1.2-x86_64-unknown-linux-gnu.tar.gz"
+    amd64.sha256 = "6d47453f623d7d12499e206fe089fe96d76bc6f01a00962b91e4ee3e6845e1a6"
+
+    arm64.url = "https://github.com/shssoichiro/oxipng/releases/download/v9.1.2/oxipng-9.1.2-aarch64-unknown-linux-gnu.tar.gz"
+    arm64.sha256 = "9716b3aba89e7ed9fa9fa07aef4867a7b65a9dd26516e6b16f8ae5a56006cafa"
+
+    autoupdate.strategy = "latest_github_release"
+    autoupdate.upstream = "https://github.com/shssoichiro/oxipng"
+    autoupdate.asset.amd64 = "^oxipng-.*-x86_64-unknown-linux-gnu\\.tar\\.gz$"
+    autoupdate.asset.arm64 = "^oxipng-.*-aarch64-unknown-linux-gnu\\.tar\\.gz$"
+
     [resources.system_user]
 
     [resources.install_dir]

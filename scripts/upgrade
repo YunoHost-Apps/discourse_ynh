@@ -72,6 +72,11 @@ ynh_exec_warn_less ynh_install_ruby --ruby_version="$ruby_version"
 ynh_script_progression --message="Upgrading NodeJS..."
 ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
 
+ynh_script_progression --message="Building and upgrading ImageMagick v7..."
+install_imagemagick
+
+ynh_script_progression --message="Upgrading Oxipng..."
+install_oxipng
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================

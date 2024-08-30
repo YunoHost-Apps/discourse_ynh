@@ -94,6 +94,14 @@ install_imagemagick() {
         ynh_exec_as "$app" make all -j"$(nproc)"
         ynh_exec_as "$app" LIBTOOLFLAGS=-Wnone make install
     popd
+    ynh_secure_remove --file="$install_dir/imagemagick_source"
+}
+
+install_oxipng() {
+    ynh_setup_source --source_id="oxipng" --dest_dir="$install_dir/oxipng_source"
+    mkdir -p "$tools_prefix/bin"
+    mv "$install_dir/oxipng_source/oxipng" "$tools_prefix/bin/oxipng"
+    ynh_secure_remove --file="$install_dir/oxipng_source"
 }
 
 ynh_maintenance_mode_ON () {
