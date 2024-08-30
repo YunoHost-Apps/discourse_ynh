@@ -1,35 +1,31 @@
-From 2319de5a4759f17c11a6000779d1c8840c342771 Mon Sep 17 00:00:00 2001
+From 17a2d3241889c117ac5bb15d0609837592b16cb3 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?F=C3=A9lix=20Pi=C3=A9dallu?= <felix@piedallu.me>
-Date: Fri, 26 Jul 2024 14:19:22 +0200
-Subject: [PATCH 2/3] Fix missing git commands in repository
+Date: Fri, 30 Aug 2024 11:50:04 +0200
+Subject: [PATCH] Fix missing git commands in repository
 
 ---
- lib/discourse.rb | 5 +++--
+ lib/git_utils.rb | 5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/lib/discourse.rb b/lib/discourse.rb
-index 1af04378..6207c8f5 100644
---- a/lib/discourse.rb
-+++ b/lib/discourse.rb
-@@ -842,7 +842,7 @@ module Discourse
-     @full_version ||=
-       begin
-         git_cmd = 'git describe --dirty --match "v[0-9]*" 2> /dev/null'
--        self.try_git(git_cmd, "unknown")
-+        self.try_git(git_cmd, Discourse::VERSION::STRING)
-       end
+diff --git a/lib/git_utils.rb b/lib/git_utils.rb
+index fb664fe2..aa81fd2d 100644
+--- a/lib/git_utils.rb
++++ b/lib/git_utils.rb
+@@ -11,12 +11,13 @@ class GitUtils
    end
  
-@@ -850,7 +850,8 @@ module Discourse
-     @last_commit_date ||=
-       begin
-         git_cmd = 'git log -1 --format="%ct"'
--        seconds = self.try_git(git_cmd, nil)
-+        # Note(decentral1se): Output from actual command in the v3.2.4 branch
-+        seconds = self.try_git(git_cmd, '1721046633')
-         seconds.nil? ? nil : DateTime.strptime(seconds, "%s")
-       end
+   def self.full_version
+-    self.try_git('git describe --dirty --match "v[0-9]*" 2> /dev/null', "unknown")
++    self.try_git('git describe --dirty --match "v[0-9]*" 2> /dev/null', Discourse::VERSION::STRING)
    end
+ 
+   def self.last_commit_date
+     git_cmd = 'git log -1 --format="%ct"'
+-    seconds = self.try_git(git_cmd, nil)
++    # Note(decentral1se): Output from actual command in the v3.2.4 branch
++    seconds = self.try_git(git_cmd, '1721046633')
+     seconds.nil? ? nil : DateTime.strptime(seconds, "%s")
+   end
+ 
 -- 
-2.45.2
-
+2.43.0
