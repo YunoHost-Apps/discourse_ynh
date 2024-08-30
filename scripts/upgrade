@@ -58,6 +58,11 @@ if [ -f "$install_dir/tmp/sockets/unicorn.sock" ]; then
     mv "$install_dir/__new__" "$install_dir/discourse"
 fi
 
+# See https://github.com/jonmbake/discourse-ldap-auth/issues/77
+if [ -d "$install_dir/discourse/plugins/discourse-ldap-auth" ]; then
+    mv "$install_dir/discourse/plugins/discourse-ldap-auth" "$install_dir/discourse/plugins/ldap"
+fi
+
 #=================================================
 # UPGRADING DEPENDENCIES
 #=================================================
@@ -99,7 +104,7 @@ done
 ynh_secure_remove --file="$install_dir/discourse/plugins_old"
 
 # Install LDAP plugin
-ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/discourse-ldap-auth" --full_replace=1 \
+ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/ldap" --full_replace=1 \
     --keep="config/settings.yml"
 
 # Add a pids and socket directory for the systemd script.
@@ -123,7 +128,7 @@ ynh_script_progression --message="Updating $app's config file..."
 
 ynh_add_config --template="discourse_defaults.conf" --destination="$install_dir/discourse/config/discourse.conf"
 ynh_add_config --template="secrets.yml" --destination="$install_dir/discourse/config/secrets.yml"
-ynh_add_config --template="settings.yml" --destination="$install_dir/discourse/plugins/discourse-ldap-auth/config/settings.yml"
+ynh_add_config --template="settings.yml" --destination="$install_dir/discourse/plugins/ldap/config/settings.yml"
 
 # Disable svgo worker
 echo "svgo: false" | ynh_exec_as "$app" tee "$install_dir/discourse/.image_optim.yml" >/dev/null
@@ -197,7 +202,7 @@ ynh_script_progression --message="Configuring plugins..."
 # Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
 # (Can only do that now because we are patching dependencies which have just been downloaded)
 # Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
-patch -p1 -d "$install_dir/discourse/plugins/discourse-ldap-auth/gems/$ruby_version/gems/omniauth-ldap"*/ \
+patch -p1 -d "$install_dir/discourse/plugins/ldap/gems/$ruby_version/gems/omniauth-ldap"*/ \
     < "../conf/ldap-auth-fix-subfolder.patch"
 
 #=================================================
