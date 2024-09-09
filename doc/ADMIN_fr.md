@@ -65,7 +65,7 @@ Lors de la désactivation de la connexion locale et d'autres services d'authenti
 ### Installer des plugins
 
 ```bash
-cd /var/www/discourse
+cd /var/www/discourse/discourse
 sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved (for example)
 sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
 systemctl restart discourse

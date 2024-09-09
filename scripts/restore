@@ -48,7 +48,7 @@ ynh_psql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name"
 #=================================================
 ynh_script_progression --message="Reinstall Bundle Gem..."
 
-pushd "$install_dir"
+pushd "$install_dir/discourse"
     ynh_gem install bundler
 popd
 
@@ -61,7 +61,7 @@ ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 ynh_restore_file --origin_path="/etc/systemd/system/$app.service"
 systemctl enable "$app.service" --quiet
-yunohost service add "$app" --log "$install_dir/log/unicorn.stderr.log" "$install_dir/log/unicorn.stdout.log" "$install_dir/log/production.log"
+yunohost service add "$app" --log "$install_dir/discourse/log/unicorn.stderr.log" "$install_dir/discourse/log/unicorn.stdout.log" "$install_dir/discourse/log/production.log"
 
 ynh_restore_file --origin_path="/etc/logrotate.d/$app"
 
@@ -70,7 +70,7 @@ ynh_restore_file --origin_path="/etc/logrotate.d/$app"
 #=================================================
 ynh_script_progression --message="Reloading NGINX web server and $app's service..." --weight=1
 
-ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/log/unicorn.stderr.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
+ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 ynh_systemd_action --service_name=nginx --action=reload
 
