@@ -25,7 +25,7 @@
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Поставляемая версия:** 3.3.1~ynh2
+**Поставляемая версия:** 3.3.2~ynh1
 
 **Демо-версия:** <https://try.discourse.org>
 

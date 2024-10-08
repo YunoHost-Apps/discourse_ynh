@@ -25,7 +25,7 @@ No se debe editar a mano.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Versión actual:** 3.3.1~ynh2
+**Versión actual:** 3.3.2~ynh1
 
 **Demo:** <https://try.discourse.org>
 
@@ -42,7 +42,7 @@ To learn more about the philosophy and goals of the project, [visit **discourse.
 
 ## Información para desarrolladores
 
-Por favor enviar sus correcciones a la [`branch testing`](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing
+Por favor enviar sus correcciones a la [rama `testing`](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing).
 
 Para probar la rama `testing`, sigue asÍ:
 
