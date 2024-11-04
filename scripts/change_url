@@ -64,7 +64,6 @@ popd
 #=================================================
 ynh_script_progression "Starting $app's systemd service..."
 
-# Start a systemd service
 ynh_systemctl --service="$app" --action="start" --log_path="$install_dir/log/unicorn.stderr.log" --wait_until="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================

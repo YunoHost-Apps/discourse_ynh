@@ -57,9 +57,8 @@ install_oxipng
 #=================================================
 ynh_script_progression "Configuring $app's PostgreSQL database..."
 
-# Set extensions
-ynh_psql_db_shell  <<< "CREATE EXTENSION IF NOT EXISTS hstore;"
-ynh_psql_db_shell  <<< "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+ynh_psql_db_shell <<< "CREATE EXTENSION IF NOT EXISTS hstore;"
+ynh_psql_db_shell <<< "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -118,7 +117,6 @@ if dpkg --print-architecture | grep -q "arm"; then
     )
 fi
 
-<<<<<<< HEAD
 pushd "$install_dir/discourse"
     # Install bundler, a gems installer
     gem install bundler --conservative -v $(awk '/BUNDLED WITH/ { getline; gsub(/ /,""); print $0 }' $install_dir/discourse/Gemfile.lock)
