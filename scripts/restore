@@ -11,10 +11,10 @@ fi
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression "Reinstalling Ruby..."
+ynh_script_progression "Reinstalling dependencies..."
+
 ynh_ruby_install
 
-ynh_script_progression "Reinstalling NodeJS..."
 ynh_nodejs_install
 
 #=================================================
