@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -84,10 +80,10 @@ fi
 #=================================================
 # UPGRADING DEPENDENCIES
 #=================================================
-ynh_script_progression "Upgrading Ruby..."
+ynh_script_progression "Upgrading dependencies..."
+
 ynh_ruby_install
 
-ynh_script_progression "Upgrading NodeJS..."
 ynh_nodejs_install
 
 ynh_script_progression "Building and upgrading ImageMagick v7..."
@@ -170,7 +166,6 @@ if dpkg --print-architecture | grep -q "arm"; then
     )
 fi
 
-<<<<<<< HEAD
 pushd "$install_dir/discourse"
     # Install bundler, a gems installer
     ynh_gem install bundler --conservative -v $(awk '/BUNDLED WITH/ { getline; gsub(/ /,""); print $0 }' $install_dir/discourse/Gemfile.lock)
