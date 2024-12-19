@@ -5,7 +5,9 @@ No se debe editar a mano.
 
 # Discourse para Yunohost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/discourse.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+[![Nivel de integración](https://apps.yunohost.org/badge/integration/discourse)](https://ci-apps.yunohost.org/ci/apps/discourse/)
+![Estado funcional](https://apps.yunohost.org/badge/state/discourse)
+![Estado En Mantención](https://apps.yunohost.org/badge/maintained/discourse)
 
 [![Instalar Discourse con Yunhost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 
@@ -25,7 +27,7 @@ No se debe editar a mano.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Versión actual:** 3.3.1~ynh2
+**Versión actual:** 3.3.3~ynh1
 
 **Demo:** <https://try.discourse.org>
 
@@ -42,7 +44,7 @@ To learn more about the philosophy and goals of the project, [visit **discourse.
 
 ## Información para desarrolladores
 
-Por favor enviar sus correcciones a la [`branch testing`](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing
+Por favor enviar sus correcciones a la [rama `testing`](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing).
 
 Para probar la rama `testing`, sigue asÍ:
 
