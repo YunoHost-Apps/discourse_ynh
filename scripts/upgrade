@@ -143,32 +143,10 @@ echo "svgo: false" | ynh_exec_as "$app" tee "$install_dir/discourse/.image_optim
 #=================================================
 ynh_script_progression --message="Setting up Unicorn..."
 
-# Do it after setup_source because .ruby-version is stored in cwd
-ynh_use_ruby
-
 # Make a backup of the original config file if modified
 unicorn_config_file="$install_dir/discourse/config/unicorn.conf.rb"
 ynh_backup_if_checksum_is_different "$unicorn_config_file"
 ynh_store_file_checksum --file="$unicorn_config_file"
-
-pushd "$install_dir/discourse"
-    # Install bundler, a gems installer
-    ynh_gem install bundler
-    # Install without documentation
-    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/.gemrc" >/dev/null
-popd
-
-# Specific actions on ARM architecture
-if dpkg --print-architecture | grep -q "arm"; then
-    # Define the platform specifically to retrieve binaries
-    # for libv8 because it currently doesn't compile on ARM devices
-    _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config specific_platform arm-linux
-fi
-
-# Install dependencies
-_exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set path 'vendor/bundle'
-_exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set with 'development'
-_exec_as_app_with_ruby_node MAKEFLAGS=-j2 "$install_dir/discourse/bin/bundle" install --jobs 2
 
 # On ARM architecture, replace bundled libpsl by system native libpsl
 # because the provided binary isn't compatible
@@ -179,6 +157,25 @@ if dpkg --print-architecture | grep -q "arm"; then
         ln -s "$(ldconfig -p | grep libpsl | awk 'END {print $NF}')" libpsl.so
     )
 fi
+
+pushd "$install_dir/discourse"
+    # Install bundler, a gems installer
+    ynh_gem install bundler
+    # Install without documentation
+    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/.gemrc" >/dev/null
+
+    # Specific actions on ARM architecture
+    if dpkg --print-architecture | grep -q "arm"; then
+        # Define the platform specifically to retrieve binaries
+        # for libv8 because it currently doesn't compile on ARM devices
+        _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config specific_platform arm-linux
+    fi
+
+    # Install dependencies
+    _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set path 'vendor/bundle'
+    _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set with 'development'
+    _exec_as_app_with_ruby_node MAKEFLAGS=-j2 "$install_dir/discourse/bin/bundle" install --jobs 2
+popd
 
 pushd "$install_dir/discourse"
     ynh_use_nodejs
