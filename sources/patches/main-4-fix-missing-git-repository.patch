@@ -1,12 +1,3 @@
-From 17a2d3241889c117ac5bb15d0609837592b16cb3 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?F=C3=A9lix=20Pi=C3=A9dallu?= <felix@piedallu.me>
-Date: Fri, 30 Aug 2024 11:50:04 +0200
-Subject: [PATCH] Fix missing git commands in repository
-
----
- lib/git_utils.rb | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
 diff --git a/lib/git_utils.rb b/lib/git_utils.rb
 index fb664fe2..aa81fd2d 100644
 --- a/lib/git_utils.rb
