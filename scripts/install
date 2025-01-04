@@ -157,7 +157,7 @@ ynh_script_progression --message="Preparing the database..."
 
 pushd "$install_dir/discourse"
     ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake db:migrate
-    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production SKIP_EMBER_CLI_COMPILE=1 bundle exec rake themes:update assets:precompile
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake themes:update assets:precompile
 popd
 
 # Set default data (especially to have correct image URLs for subfolder install)
