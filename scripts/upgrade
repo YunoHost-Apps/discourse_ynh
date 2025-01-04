@@ -16,8 +16,8 @@ fi
 # INITIALIZE AND STORE SETTINGS
 #=================================================
 
-admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 relative_url_root=${path%/}
+admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 secret="$(ynh_string_random)"
 
 #=================================================
@@ -63,20 +63,41 @@ if [ -d "$install_dir/discourse/plugins/discourse-ldap-auth" ]; then
     mv "$install_dir/discourse/plugins/discourse-ldap-auth" "$install_dir/discourse/plugins/ldap"
 fi
 
+if [ ! -d "$install_dir/discourse" ]; then
+    tmpdir=$(mktemp -d)
+    mv $install_dir $tmpdir/
+    mkdir -p "$install_dir"
+    mv $tmpdir/discourse $install_dir/
+    ynh_delete_file_checksum "$install_dir/config/discourse.conf"
+    ynh_store_file_checksum "$install_dir/discourse/config/discourse.conf"
+    ynh_delete_file_checksum "$install_dir/config/secrets.yml"
+    ynh_store_file_checksum "$install_dir/discourse/config/secrets.yml"
+    mv "$install_dir/discourse/plugins/discourse-ldap-auth" "$install_dir/discourse/plugins/ldap"
+    ynh_delete_file_checksum "$install_dir/plugins/discourse-ldap-aut/config/settings.yml"
+    ynh_store_file_checksum "$install_dir/discourse/plugins/ldap/config/settings.yml"
+    ynh_secure_remove --file="$tmpdir"
+    ynh_remove_logrotate
+    ynh_secure_remove --file="$install_dir/public/forum/uploads"
+    ynh_secure_remove --file="$install_dir/public/forum/backups"
+fi
+
 #=================================================
 # UPGRADING DEPENDENCIES
 #=================================================
 ynh_script_progression --message="Upgrading Ruby..."
 ynh_exec_warn_less ynh_install_ruby --ruby_version="$ruby_version"
+ynh_use_ruby
 
 ynh_script_progression --message="Upgrading NodeJS..."
 ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+ynh_use_nodejs
 
 ynh_script_progression --message="Building and upgrading ImageMagick v7..."
 install_imagemagick
 
 ynh_script_progression --message="Upgrading Oxipng..."
 install_oxipng
+
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
@@ -95,8 +116,7 @@ fi
 mv "$install_dir/discourse/plugins" "$install_dir/discourse/plugins_old"
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir/discourse" --full_replace=1 \
-    --keep="config/discourse.conf plugins_old public/uploads public/backups log"
+ynh_setup_source --dest_dir="$install_dir/discourse" --full_replace=1 --keep="config/discourse.conf plugins_old public/uploads public/backups log"
 
 # Restore all non-core plugins
 for plugin_dir in "$install_dir/discourse/plugins_old"/*; do
@@ -109,8 +129,7 @@ done
 ynh_secure_remove --file="$install_dir/discourse/plugins_old"
 
 # Install LDAP plugin
-ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/ldap" --full_replace=1 \
-    --keep="config/settings.yml"
+ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/ldap" --full_replace=1 --keep="config/settings.yml"
 
 # Add a pids and socket directory for the systemd script.
 mkdir -p "$install_dir/discourse/tmp/pids"
@@ -160,40 +179,38 @@ fi
 
 pushd "$install_dir/discourse"
     # Install bundler, a gems installer
-    ynh_gem install bundler
+    ynh_gem install bundler --conservative -v $(awk '/BUNDLED WITH/ { getline; gsub(/ /,""); print $0 }' $install_dir/discourse/Gemfile.lock)
     # Install without documentation
-    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/.gemrc" >/dev/null
+    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/discourse/.gemrc" >/dev/null
 
     # Specific actions on ARM architecture
     if dpkg --print-architecture | grep -q "arm"; then
         # Define the platform specifically to retrieve binaries
         # for libv8 because it currently doesn't compile on ARM devices
-        _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config specific_platform arm-linux
+        _exec_as_app_with_ruby_node bundle config specific_platform arm-linux
     fi
 
     # Install dependencies
-    _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set path 'vendor/bundle'
-    _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set with 'development'
-    _exec_as_app_with_ruby_node MAKEFLAGS=-j2 "$install_dir/discourse/bin/bundle" install --jobs 2
+    _exec_as_app_with_ruby_node bundle config --local path "$install_dir/discourse/vendor/bundle"
+    _exec_as_app_with_ruby_node bundle config --local without test development
+    _exec_as_app_with_ruby_node bundle install --jobs 2
 popd
 
 pushd "$install_dir/discourse"
-    ynh_use_nodejs
     ynh_npm install --location=global terser
     ynh_npm install --location=global uglify-js
-    ynh_exec_warn_less _exec_as_app_with_ruby_node yarn install --production --frozen-lockfile
+    ynh_exec_warn_less _exec_as_app_with_ruby_node yarn install --frozen-lockfile
     ynh_exec_warn_less _exec_as_app_with_ruby_node yarn cache clean
 popd
 
 #=================================================
 # PREPARE THE DATABASE
 #=================================================
-
 ynh_script_progression --message="Preparing the database..."
 
 pushd "$install_dir/discourse"
-    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake db:migrate
-    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake themes:update assets:precompile
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake db:migrate
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production SKIP_EMBER_CLI_COMPILE=1 bundle exec rake themes:update assets:precompile
 popd
 
 #=================================================
@@ -226,7 +243,7 @@ additional_env="UNICORN_WORKERS=$unicorn_workers"
 ynh_add_systemd_config
 yunohost service add "$app" --log "$install_dir/discourse/log/unicorn.stderr.log" "$install_dir/discourse/log/unicorn.stdout.log" "$install_dir/discourse/log/production.log"
 
-# Use logrotate to manage app-specific logfile(s)
+# Use logrotate to manage application logfile(s)
 ynh_use_logrotate --logfile="$install_dir/discourse/log/unicorn.stderr.log"
 ynh_use_logrotate --logfile="$install_dir/discourse/log/unicorn.stdout.log"
 ynh_use_logrotate --logfile="$install_dir/discourse/log/production.log"
@@ -236,6 +253,7 @@ ynh_use_logrotate --logfile="$install_dir/discourse/log/production.log"
 #=================================================
 ynh_script_progression --message="Starting $app's systemd service..."
 
+# Start a systemd service
 ynh_systemd_action --service_name="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================

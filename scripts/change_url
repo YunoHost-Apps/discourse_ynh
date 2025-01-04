@@ -46,7 +46,7 @@ UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url
 
 ynh_use_ruby
 # Remap URLs in forum posts
-_exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
+_exec_as_app_with_ruby_node RAILS_ENV=production bundle exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
 # "
 
 pushd "$install_dir/discourse"

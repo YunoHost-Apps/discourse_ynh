@@ -19,10 +19,12 @@ code = "https://github.com/discourse/discourse"
 cpe = "cpe:2.3:a:discourse:discourse"
 
 [integration]
-yunohost = ">=12.0.1"
+yunohost = ">= 12.0.1"
 architectures = "all"
 multi_instance = true
+
 ldap = true
+
 sso = false
 
 disk = "50M"
@@ -92,7 +94,6 @@ ram.runtime = "1G"
         "cmake",
         "g++",
         "gifsicle",
-        # "imagemagick",
         "jhead",
         "jpegoptim",
         "libapr1-dev",
@@ -111,7 +112,6 @@ ram.runtime = "1G"
         "optipng",
         "pngcrush",
         "pngquant",
-        "vim",
         "redis-server",
         "zlib1g-dev",
 

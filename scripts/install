@@ -46,6 +46,7 @@ ynh_use_ruby
 
 ynh_script_progression --message="Installing NodeJS..."
 ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
+ynh_use_nodejs
 
 ynh_script_progression --message="Building and installing ImageMagick v7..."
 install_imagemagick
@@ -80,7 +81,6 @@ fi
 ynh_setup_source --dest_dir="$install_dir/discourse"
 
 # Install LDAP plugin
-# See https://github.com/jonmbake/discourse-ldap-auth/issues/77
 ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/ldap"
 
 # Add a pids and socket directory for the systemd script.
@@ -93,6 +93,7 @@ mkdir -p "$install_dir/discourse/public/forum"
 ln -s "$install_dir/discourse/public/uploads" "$install_dir/discourse/public/forum/uploads"
 ln -s "$install_dir/discourse/public/backups" "$install_dir/discourse/public/forum/backups"
 
+# Set permissions to app files
 chmod -R o-rwx "$install_dir"
 chown -R "$app:www-data" "$install_dir"
 
@@ -125,25 +126,24 @@ fi
 
 pushd "$install_dir/discourse"
     # Install bundler, a gems installer
-    ynh_gem install bundler
+    ynh_gem install bundler --conservative -v $(awk '/BUNDLED WITH/ { getline; gsub(/ /,""); print $0 }' $install_dir/discourse/Gemfile.lock)
     # Install without documentation
-    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/.gemrc" >/dev/null
+    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/discourse/.gemrc" >/dev/null
 
     # Specific actions on ARM architecture
     if dpkg --print-architecture | grep -q "arm"; then
         # Define the platform specifically to retrieve binaries
         # for libv8 because it currently doesn't compile on ARM devices
-        _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config specific_platform arm-linux
+        _exec_as_app_with_ruby_node bundle config specific_platform arm-linux
     fi
 
     # Install dependencies
-    _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set path 'vendor/bundle'
-    _exec_as_app_with_ruby_node "$install_dir/discourse/bin/bundle" config set without test development
-    _exec_as_app_with_ruby_node MAKEFLAGS=-j2 "$install_dir/discourse/bin/bundle" install --jobs 2
+    _exec_as_app_with_ruby_node bundle config --local path "$install_dir/discourse/vendor/bundle"
+    _exec_as_app_with_ruby_node bundle config --local without test development
+    _exec_as_app_with_ruby_node bundle install --jobs 2
 popd
 
 pushd "$install_dir/discourse"
-    ynh_use_nodejs
     ynh_npm install --location=global terser
     ynh_npm install --location=global uglify-js
     ynh_exec_warn_less _exec_as_app_with_ruby_node yarn install --frozen-lockfile
@@ -156,8 +156,8 @@ popd
 ynh_script_progression --message="Preparing the database..."
 
 pushd "$install_dir/discourse"
-    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake db:migrate
-    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec rake themes:update assets:precompile
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake db:migrate
+    ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production SKIP_EMBER_CLI_COMPILE=1 bundle exec rake themes:update assets:precompile
 popd
 
 # Set default data (especially to have correct image URLs for subfolder install)
@@ -171,7 +171,7 @@ ynh_secure_remove --file="$install_dir/provisioning.sql"
 ynh_script_progression --message="Creating Discourse admin user..."
 
 pushd "$install_dir/discourse"
-    _exec_as_app_with_ruby_node RAILS_ENV=production bin/rake admin:create <<< "$admin_mail
+    _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake admin:create <<< "$admin_mail
 $admin_pwd
 $admin_pwd
 y
@@ -207,7 +207,6 @@ ynh_store_file_checksum --file="/etc/nginx/conf.d/$domain.d/$app.conf"
 additional_env="UNICORN_WORKERS=$unicorn_workers"
 ynh_add_systemd_config
 yunohost service add "$app" --log "$install_dir/discourse/log/unicorn.stderr.log" "$install_dir/discourse/log/unicorn.stdout.log" "$install_dir/discourse/log/production.log"
-
 
 # Use logrotate to manage application logfile(s)
 ynh_use_logrotate --logfile="$install_dir/discourse/log/unicorn.stderr.log"
