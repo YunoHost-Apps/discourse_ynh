@@ -45,11 +45,12 @@ ynh_psql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name"
 UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';"
 
 ynh_use_ruby
-# Remap URLs in forum posts
-_exec_as_app_with_ruby_node RAILS_ENV=production "$install_dir/discourse/bin/bundle" exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
-# "
+ynh_use_nodejs
 
 pushd "$install_dir/discourse"
+    # Remap URLs in forum posts
+    _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
+    # "
     # Regenerate assets
     ynh_exec_warn_less _exec_as_app_with_ruby_node RAILS_ENV=production bin/rake assets:precompile
 

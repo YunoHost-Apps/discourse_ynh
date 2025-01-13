@@ -1,12 +1,3 @@
-From c4f4fb51b0b12c520bf78870842c4c0034296323 Mon Sep 17 00:00:00 2001
-From: =?UTF-8?q?F=C3=A9lix=20Pi=C3=A9dallu?= <felix.piedallu@semtech.com>
-Date: Fri, 30 Aug 2024 11:53:46 +0200
-Subject: [PATCH] Fix download-calendar.js
-
----
- app/assets/javascripts/discourse/app/lib/download-calendar.js | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
 diff --git a/app/assets/javascripts/discourse/app/lib/download-calendar.js b/app/assets/javascripts/discourse/app/lib/download-calendar.js
 index 3fd2951a..b71e4e09 100644
 --- a/app/assets/javascripts/discourse/app/lib/download-calendar.js
