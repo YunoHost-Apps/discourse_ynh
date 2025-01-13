@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2.8.14~ynh5"
+version = "3.3.3~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -19,10 +19,12 @@ code = "https://github.com/discourse/discourse"
 cpe = "cpe:2.3:a:discourse:discourse"
 
 [integration]
-yunohost = ">=11.2.20"
+yunohost = ">= 12.0.1"
 architectures = "all"
 multi_instance = true
+
 ldap = true
+
 sso = false
 
 disk = "50M"
@@ -47,8 +49,8 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/v2.8.14.tar.gz"
-    sha256 = "b4b9a2857515ab79b2bc71cc0bdd09f9bf749d506c095b76d86846c9adf62623"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v3.3.3.tar.gz"
+    sha256 = "a568426b838ba0430ea2843c53fc378490f88694af6bee6f52a65a8e8d45af26"
 
     autoupdate.strategy = "latest_github_tag"
 
@@ -58,6 +60,25 @@ ram.runtime = "1G"
 
     autoupdate.strategy = "latest_github_tag"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
+
+    [resources.sources.imagemagickv7]
+    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.1-41.tar.gz"
+    sha256 = "cabf2516dce66da56dd4e3071453b808eefaf4326a93292d2a222a4ea623d601"
+
+    autoupdate.strategy = "latest_github_tag"
+    autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
+
+    [resources.sources.oxipng]
+    amd64.url = "https://github.com/shssoichiro/oxipng/releases/download/v9.1.3/oxipng-9.1.3-x86_64-unknown-linux-gnu.tar.gz"
+    amd64.sha256 = "85ef83cfe0b2e7c762509c47a89908f001d37895b4bb7f3732fb3a5427735d62"
+
+    arm64.url = "https://github.com/shssoichiro/oxipng/releases/download/v9.1.3/oxipng-9.1.3-aarch64-unknown-linux-gnu.tar.gz"
+    arm64.sha256 = "e88950f0e1ee9556ecb3bd09d7f8930915e4f0d497e8e4ba80ee2ef8af500c2d"
+
+    autoupdate.strategy = "latest_github_release"
+    autoupdate.upstream = "https://github.com/shssoichiro/oxipng"
+    autoupdate.asset.amd64 = "^oxipng-.*-x86_64-unknown-linux-gnu\\.tar\\.gz$"
+    autoupdate.asset.arm64 = "^oxipng-.*-aarch64-unknown-linux-gnu\\.tar\\.gz$"
 
     [resources.system_user]
 
@@ -73,7 +94,6 @@ ram.runtime = "1G"
         "cmake",
         "g++",
         "gifsicle",
-        "imagemagick",
         "jhead",
         "jpegoptim",
         "libapr1-dev",
@@ -92,9 +112,19 @@ ram.runtime = "1G"
         "optipng",
         "pngcrush",
         "pngquant",
-        "vim",
         "redis-server",
         "zlib1g-dev",
+
+        # Dependencies of imagemagick
+        "make",
+        "libltdl-dev",
+        "libbz2-dev", "zlib1g-dev", "libfreetype6-dev", "libjpeg-dev", "liblzma-dev",
+        "libwebp-dev", "libtiff-dev", "librsvg2-dev",
+        "libpng16-16", "libpng-dev",
+        "libjpeg62-turbo", "libjpeg62-turbo-dev",
+        "libheif1", "libheif-dev",
+        "libde265-0", "libde265-dev",
+        # ${LIBWEBP}
 
         "postgresql",
         "postgresql-client",

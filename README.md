@@ -5,7 +5,9 @@ It shall NOT be edited by hand.
 
 # Discourse for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/discourse.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/) ![Working status](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+[![Integration level](https://apps.yunohost.org/badge/integration/discourse)](https://ci-apps.yunohost.org/ci/apps/discourse/)
+![Working status](https://apps.yunohost.org/badge/state/discourse)
+![Maintenance status](https://apps.yunohost.org/badge/maintained/discourse)
 
 [![Install Discourse with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 
@@ -25,7 +27,7 @@ It shall NOT be edited by hand.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Shipped version:** 2.8.14~ynh5
+**Shipped version:** 3.3.3~ynh1
 
 **Demo:** <https://try.discourse.org>
 

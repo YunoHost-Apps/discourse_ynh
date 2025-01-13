@@ -1,8 +1,8 @@
 diff --git a/app/assets/javascripts/admin/addon/controllers/admin-watched-words-action.js b/app/assets/javascripts/admin/addon/controllers/admin-watched-words-action.js
-index 2b53a91eb3..eec55647d5 100644
+index d5ad0c49..faeb04ab 100644
 --- a/app/assets/javascripts/admin/addon/controllers/admin-watched-words-action.js
 +++ b/app/assets/javascripts/admin/addon/controllers/admin-watched-words-action.js
-@@ -32,9 +32,9 @@
+@@ -37,7 +37,7 @@ export default class AdminWatchedWordsActionController extends Controller {
      for (const { regexp, word } of words) {
        try {
          RegExp(regexp);
@@ -11,5 +11,6 @@ index 2b53a91eb3..eec55647d5 100644
          return I18n.t("admin.watched_words.invalid_regex", { word });
        }
      }
-   },
- 
+-- 
+2.43.0
+

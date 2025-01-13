@@ -5,7 +5,9 @@ EZ editatu eskuz.
 
 # Discourse YunoHost-erako
 
-[![Integrazio maila](https://dash.yunohost.org/integration/discourse.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+[![Integrazio maila](https://apps.yunohost.org/badge/integration/discourse)](https://ci-apps.yunohost.org/ci/apps/discourse/)
+![Funtzionamendu egoera](https://apps.yunohost.org/badge/state/discourse)
+![Mantentze egoera](https://apps.yunohost.org/badge/maintained/discourse)
 
 [![Instalatu Discourse YunoHost-ekin](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 
@@ -25,7 +27,7 @@ EZ editatu eskuz.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Paketatutako bertsioa:** 2.8.14~ynh5
+**Paketatutako bertsioa:** 3.3.3~ynh1
 
 **Demoa:** <https://try.discourse.org>
 

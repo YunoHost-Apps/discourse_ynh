@@ -5,7 +5,9 @@ Ini TIDAK boleh diedit dengan tangan.
 
 # Discourse untuk YunoHost
 
-[![Tingkat integrasi](https://dash.yunohost.org/integration/discourse.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/) ![Status kerja](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Status pemeliharaan](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+[![Tingkat integrasi](https://apps.yunohost.org/badge/integration/discourse)](https://ci-apps.yunohost.org/ci/apps/discourse/)
+![Status kerja](https://apps.yunohost.org/badge/state/discourse)
+![Status pemeliharaan](https://apps.yunohost.org/badge/maintained/discourse)
 
 [![Pasang Discourse dengan YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 
@@ -25,7 +27,7 @@ Ini TIDAK boleh diedit dengan tangan.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Versi terkirim:** 2.8.14~ynh5
+**Versi terkirim:** 3.3.3~ynh1
 
 **Demo:** <https://try.discourse.org>
 

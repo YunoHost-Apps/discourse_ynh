@@ -1,13 +1,16 @@
 diff --git a/app/assets/javascripts/discourse/app/lib/download-calendar.js b/app/assets/javascripts/discourse/app/lib/download-calendar.js
-index 2b53a91eb3..eec55647d5 100644
+index 3fd2951a..b71e4e09 100644
 --- a/app/assets/javascripts/discourse/app/lib/download-calendar.js
 +++ b/app/assets/javascripts/discourse/app/lib/download-calendar.js
-@@ -22,7 +22,7 @@
+@@ -23,7 +23,7 @@ export function downloadCalendar(title, dates, options = {}) {
  }
  
- export function downloadIcs(title, dates) {
+ export function downloadIcs(title, dates, options = {}) {
 -  const REMOVE_FILE_AFTER = 20_000;
 +  const REMOVE_FILE_AFTER = 20000;
-   const file = new File([generateIcsData(title, dates)], {
+   const file = new File([generateIcsData(title, dates, options)], {
      type: "text/plain",
    });
+-- 
+2.43.0
+

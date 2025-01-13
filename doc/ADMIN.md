@@ -66,7 +66,7 @@ When disabling Local Login and other authentication services, clicking the `Logi
 ### Installing plugins
 
 ```bash
-cd /var/www/discourse
+cd /var/www/discourse/discourse
 sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved (for example)
 sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
 systemctl restart discourse

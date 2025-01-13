@@ -5,7 +5,9 @@
 
 # Discourse для YunoHost
 
-[![Уровень интеграции](https://dash.yunohost.org/integration/discourse.svg)](https://ci-apps.yunohost.org/ci/apps/discourse/) ![Состояние работы](https://ci-apps.yunohost.org/ci/badges/discourse.status.svg) ![Состояние сопровождения](https://ci-apps.yunohost.org/ci/badges/discourse.maintain.svg)
+[![Уровень интеграции](https://apps.yunohost.org/badge/integration/discourse)](https://ci-apps.yunohost.org/ci/apps/discourse/)
+![Состояние работы](https://apps.yunohost.org/badge/state/discourse)
+![Состояние сопровождения](https://apps.yunohost.org/badge/maintained/discourse)
 
 [![Установите Discourse с YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=discourse)
 
@@ -25,7 +27,7 @@
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Поставляемая версия:** 2.8.14~ynh5
+**Поставляемая версия:** 3.3.3~ynh1
 
 **Демо-версия:** <https://try.discourse.org>
 
