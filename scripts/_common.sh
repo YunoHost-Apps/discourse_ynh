@@ -11,7 +11,7 @@ nodejs_version="22"
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 
 _exec_as_app_with_ruby_node() {
-    ynh_exec_as_app -E env PATH="$nodejs_path:$ruby_path:$PATH" "$@"
+    ynh_exec_as_app -E env PATH="$path_with_nodejs:$path_with_ruby:$PATH" "$@"
 }
 
 # Returns true if a swap partition is enabled, false otherwise
