@@ -19,11 +19,7 @@ code = "https://github.com/discourse/discourse"
 cpe = "cpe:2.3:a:discourse:discourse"
 
 [integration]
-<<<<<<< HEAD
-yunohost = ">= 12.0.1"
-=======
-yunohost = ">=11.2.30"
->>>>>>> 0f5254f (cleaning)
+yunohost = ">=12.0.9"
 helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
