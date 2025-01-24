@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -84,16 +80,18 @@ fi
 #=================================================
 # UPGRADING DEPENDENCIES
 #=================================================
-ynh_script_progression "Upgrading Ruby..."
+ynh_script_progression "Upgrading dependency..."
+
+# Upgrading Ruby
 ynh_ruby_install
 
-ynh_script_progression "Upgrading NodeJS..."
+# Upgrading NodeJS
 ynh_nodejs_install
 
-ynh_script_progression "Building and upgrading ImageMagick v7..."
+# Building and upgrading ImageMagick v7
 install_imagemagick
 
-ynh_script_progression "Upgrading Oxipng..."
+# Upgrading Oxipng
 install_oxipng
 
 #=================================================
@@ -140,8 +138,9 @@ ln -s "$install_dir/discourse/public/uploads" "$install_dir/discourse/public/for
 ln -s "$install_dir/discourse/public/backups" "$install_dir/discourse/public/forum/backups"
 
 # Set permissions to app files
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R "$app:www-data" "$install_dir"
+
 #=================================================
 # UPDATE A CONFIG FILE
 #=================================================
@@ -250,7 +249,6 @@ ynh_config_add_logrotate "$install_dir/discourse/log/production.log"
 #=================================================
 ynh_script_progression "Starting $app's systemd service..."
 
-# Start a systemd service
 ynh_systemctl --service="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --wait_until="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================

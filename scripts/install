@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -40,16 +36,18 @@ ynh_app_setting_set --key=unicorn_workers --value=$unicorn_workers
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression "Installing Ruby..."
+ynh_script_progression "Installing dependencies..."
+
+# Installing Ruby
 ynh_ruby_install
 
-ynh_script_progression "Installing NodeJS..."
+# Installing NodeJS
 ynh_nodejs_install
 
-ynh_script_progression "Building and installing ImageMagick v7..."
+# Building and installing ImageMagick v7
 install_imagemagick
 
-ynh_script_progression "Installing Oxipng..."
+# Installing Oxipng
 install_oxipng
 
 #=================================================
@@ -58,8 +56,8 @@ install_oxipng
 ynh_script_progression "Configuring $app's PostgreSQL database..."
 
 # Set extensions
-ynh_psql_db_shell  <<< "CREATE EXTENSION IF NOT EXISTS hstore;"
-ynh_psql_db_shell  <<< "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+ynh_psql_db_shell <<< "CREATE EXTENSION IF NOT EXISTS hstore;"
+ynh_psql_db_shell <<< "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -92,8 +90,9 @@ ln -s "$install_dir/discourse/public/uploads" "$install_dir/discourse/public/for
 ln -s "$install_dir/discourse/public/backups" "$install_dir/discourse/public/forum/backups"
 
 # Set permissions to app files
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod -R o-rwx "$install_dir"
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown -R "$app:www-data" "$install_dir"
+chmod -R o-rwx "$install_dir"
+chown -R "$app:www-data" "$install_dir"
+
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
@@ -193,6 +192,7 @@ ynh_script_progression "Adding system configurations related to $app..."
 
 # Create a dedicated NGINX config
 ynh_config_add_nginx
+
 # Reference: https://meta.discourse.org/t/subfolder-support-with-docker/30507?u=falco&source_topic_id=54191
 if [ "$path" != "/" ] ; then
     ynh_replace --file="/etc/nginx/conf.d/$domain.d/$app.conf" \
@@ -202,6 +202,7 @@ fi
 ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 additional_env="UNICORN_WORKERS=$unicorn_workers"
+
 ynh_config_add_systemd
 yunohost service add "$app" --log "$install_dir/discourse/log/unicorn.stderr.log" "$install_dir/discourse/log/unicorn.stdout.log" "$install_dir/discourse/log/production.log"
 
@@ -215,7 +216,6 @@ ynh_config_add_logrotate "$install_dir/discourse/log/production.log"
 #=================================================
 ynh_script_progression "Starting $app's systemd service..."
 
-# Start a systemd service
 ynh_systemctl --service="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --wait_until="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================

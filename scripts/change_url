@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -60,7 +56,6 @@ popd
 #=================================================
 ynh_script_progression "Starting $app's systemd service..."
 
-# Start a systemd service
 ynh_systemctl --service="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --wait_until="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
