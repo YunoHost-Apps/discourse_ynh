@@ -27,7 +27,7 @@ Il NE doit PAS être modifié à la main.
 Pour en savoir plus sur la philosophie et les objectifs du projet, [visitez **discourse.org**](http://www.discourse.org).
 
 
-**Version incluse :** 3.3.3~ynh2
+**Version incluse :** 3.4.0~ynh1
 
 **Démo :** <https://try.discourse.org>
 
