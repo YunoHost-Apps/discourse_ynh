@@ -146,8 +146,8 @@ popd
 pushd "$install_dir/discourse"
     ynh_npm install --location=global terser
     ynh_npm install --location=global uglify-js
-    ynh_exec_warn_less _exec_as_app_with_ruby_node yarn install --frozen-lockfile
-    ynh_exec_warn_less _exec_as_app_with_ruby_node yarn cache clean
+    ynh_npm install --location=global pnpm@9
+    ynh_exec_warn_less _exec_as_app_with_ruby_node pnpm install --frozen-lockfile
 popd
 
 #=================================================
