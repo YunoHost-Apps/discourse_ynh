@@ -27,7 +27,7 @@ EZ editatu eskuz.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Paketatutako bertsioa:** 3.3.3~ynh1
+**Paketatutako bertsioa:** 3.4.0~ynh1
 
 **Demoa:** <https://try.discourse.org>
 

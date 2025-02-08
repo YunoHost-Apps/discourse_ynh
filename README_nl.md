@@ -27,7 +27,7 @@ Hij mag NIET handmatig aangepast worden.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Geleverde versie:** 3.3.3~ynh1
+**Geleverde versie:** 3.4.0~ynh1
 
 **Demo:** <https://try.discourse.org>
 
