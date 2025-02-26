@@ -27,7 +27,7 @@ Nie powinno być ono edytowane ręcznie.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Dostarczona wersja:** 3.4.0~ynh3
+**Dostarczona wersja:** 3.4.1~ynh1
 
 **Demo:** <https://try.discourse.org>
 
