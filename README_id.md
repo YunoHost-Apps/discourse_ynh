@@ -27,7 +27,7 @@ Ini TIDAK boleh diedit dengan tangan.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Versi terkirim:** 3.4.0~ynh3
+**Versi terkirim:** 3.4.1~ynh1
 
 **Demo:** <https://try.discourse.org>
 
