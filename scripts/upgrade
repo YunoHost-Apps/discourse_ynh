@@ -67,7 +67,7 @@ if [ ! -d "$install_dir/discourse" ]; then
     tmpdir=$(mktemp -d)
     mv $install_dir $tmpdir/
     mkdir -p "$install_dir"
-    mv $tmpdir/discourse $install_dir/
+    mv $tmpdir/$app $install_dir/
     ynh_delete_file_checksum "$install_dir/config/discourse.conf"
     ynh_store_file_checksum "$install_dir/discourse/config/discourse.conf"
     ynh_delete_file_checksum "$install_dir/config/secrets.yml"
