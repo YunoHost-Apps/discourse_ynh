@@ -27,7 +27,7 @@ EZ editatu eskuz.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Paketatutako bertsioa:** 3.4.1~ynh1
+**Paketatutako bertsioa:** 3.4.2~ynh1
 
 **Demoa:** <https://try.discourse.org>
 
@@ -46,7 +46,7 @@ To learn more about the philosophy and goals of the project, [visit **discourse.
 
 Bidali `pull request`a [`testing` abarrera](https://github.com/YunoHost-Apps/discourse_ynh/tree/testing).
 
-`testing` abarra probatzeko, ondorengoa egin:
+`testing` abarra probatzeko, honakoa egin:
 
 ```bash
 sudo yunohost app install https://github.com/YunoHost-Apps/discourse_ynh/tree/testing --debug

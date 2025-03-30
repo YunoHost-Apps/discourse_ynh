@@ -3,7 +3,7 @@ Este archivo README esta generado automaticamente<https://github.com/YunoHost/ap
 No se debe editar a mano.
 -->
 
-# Discourse para Yunohost
+# Discourse para YunoHost
 
 [![Nivel de integración](https://apps.yunohost.org/badge/integration/discourse)](https://ci-apps.yunohost.org/ci/apps/discourse/)
 ![Estado funcional](https://apps.yunohost.org/badge/state/discourse)
@@ -27,7 +27,7 @@ No se debe editar a mano.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Versión actual:** 3.4.1~ynh1
+**Versión actual:** 3.4.2~ynh1
 
 **Demo:** <https://try.discourse.org>
 
