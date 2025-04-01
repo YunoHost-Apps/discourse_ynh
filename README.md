@@ -27,7 +27,7 @@ It shall NOT be edited by hand.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Shipped version:** 3.4.2~ynh1
+**Shipped version:** 3.4.2~ynh2
 
 **Demo:** <https://try.discourse.org>
 

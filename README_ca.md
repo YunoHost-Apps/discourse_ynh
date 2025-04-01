@@ -27,7 +27,7 @@ NO s'ha de modificar manualment.
 To learn more about the philosophy and goals of the project, [visit **discourse.org**](http://www.discourse.org).
 
 
-**Versió inclosa:** 3.4.2~ynh1
+**Versió inclosa:** 3.4.2~ynh2
 
 **Demo:** <https://try.discourse.org>
 
