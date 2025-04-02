@@ -144,9 +144,8 @@ pushd "$install_dir/discourse"
 popd
 
 pushd "$install_dir/discourse"
-    ynh_npm install --location=global terser
-    ynh_npm install --location=global uglify-js
-    ynh_npm install --location=global pnpm@9
+    ynh_exec_warn_less _exec_as_app_with_ruby_node corepack enable
+    ynh_exec_warn_less _exec_as_app_with_ruby_node corepack prepare pnpm@latest-9 --activate
     ynh_exec_warn_less _exec_as_app_with_ruby_node pnpm install --frozen-lockfile
 popd
 

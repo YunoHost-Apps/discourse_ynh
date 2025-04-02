@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "3.4.2~ynh1"
+version = "3.4.2~ynh2"
 
 maintainers = ["JimboJoe"]
 
@@ -24,6 +24,7 @@ architectures = "all"
 multi_instance = true
 
 ldap = true
+
 sso = false
 
 disk = "50M"
