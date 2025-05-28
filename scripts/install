@@ -142,8 +142,9 @@ popd
 pushd "$install_dir/discourse"
     npm install --location=global terser
     npm install --location=global uglify-js
+    npm install --location=global pnpm@9
     ynh_hide_warnings _exec_as_app_with_ruby_node yarn install --frozen-lockfile
-    ynh_hide_warnings _exec_as_app_with_ruby_node yarn cache clean
+    #ynh_hide_warnings _exec_as_app_with_ruby_node yarn cache clean
 popd
 
 #=================================================
