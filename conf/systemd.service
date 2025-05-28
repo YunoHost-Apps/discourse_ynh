@@ -18,7 +18,7 @@ Environment=RUBY_GC_HEAP_GROWTH_MAX_SLOTS=40000
 Environment=RUBY_GC_HEAP_INIT_SLOTS=400000
 Environment=RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR=1.5
 Environment=UNICORN_LISTENER=__INSTALL_DIR__/discourse/tmp/sockets/unicorn.sock
-Environment="__YNH_RUBY_LOAD_PATH__:__TOOLS_PREFIX__/bin"
+Environment="PATH=__PATH_WITH_RUBY__:__TOOLS_PREFIX__/bin"
 ExecStart=__INSTALL_DIR__/discourse/bin/bundle exec unicorn --config config/unicorn.conf.rb -E production
 Restart=always
 RestartSec=10
