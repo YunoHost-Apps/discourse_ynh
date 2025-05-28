@@ -80,6 +80,7 @@ ram.runtime = "1G"
     autoupdate.asset.arm64 = "^oxipng-.*-aarch64-unknown-linux-gnu\\.tar\\.gz$"
 
     [resources.system_user]
+    allow_email = true
 
     [resources.install_dir]
 
