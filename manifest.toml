@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "3.4.2~ynh2"
+version = "3.4.6~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -48,14 +48,14 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v3.4.2.tar.gz"
-    sha256 = "ed26ec5c3278abb65d5ce9ef70fe3ca9f6364c6acf0c269d547f587c482f642f"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v3.4.6.tar.gz"
+    sha256 = "68bd22be1df239200e67ed014b0514db6773332035ec002eb5fb65bd83a7ae01"
 
     autoupdate.strategy = "latest_github_tag"
 
     [resources.sources.ldap-auth]
-    url = "https://github.com/jonmbake/discourse-ldap-auth/archive/refs/tags/v0.6.1.tar.gz"
-    sha256 = "04b380ff1b7c5a7eade24f4cc86c5fbcb9ac6c61393454dcd268c1ec14a81cdf"
+    url = "https://github.com/jonmbake/discourse-ldap-auth/archive/refs/tags/v0.7.0.tar.gz"
+    sha256 = "4e4fbdfced35d169a1a5f55ff801bc2ca27b65c1badf33b4dfc551304f6e5147"
 
     autoupdate.strategy = "latest_github_tag"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
@@ -68,11 +68,11 @@ ram.runtime = "1G"
     autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
 
     [resources.sources.oxipng]
-    amd64.url = "https://github.com/shssoichiro/oxipng/releases/download/v9.1.4/oxipng-9.1.4-x86_64-unknown-linux-gnu.tar.gz"
-    amd64.sha256 = "4e296c4dd9203a44b06a33c596c13e62a03ae26a9a846343dbd52f48efccaa4b"
+    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v9.1.5/oxipng-9.1.5-x86_64-unknown-linux-gnu.tar.gz"
+    amd64.sha256 = "31988ec9631755c89466cc11397bd49346598f99cc2c48916d8bd4326e778f1f"
 
-    arm64.url = "https://github.com/shssoichiro/oxipng/releases/download/v9.1.4/oxipng-9.1.4-aarch64-unknown-linux-gnu.tar.gz"
-    arm64.sha256 = "c549859fec3117b3ae62e690b072f18d463ac9b4479802ca4de7740ce3876918"
+    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v9.1.5/oxipng-9.1.5-aarch64-unknown-linux-gnu.tar.gz"
+    arm64.sha256 = "5356a929eec64e8fb1673505b8c44239289ca84b469504a83f7158f1a021d6bf"
 
     autoupdate.strategy = "latest_github_release"
     autoupdate.upstream = "https://github.com/shssoichiro/oxipng"
