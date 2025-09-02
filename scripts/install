@@ -40,13 +40,13 @@ ynh_app_setting_set --app="$app" --key=unicorn_workers --value=$unicorn_workers
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing Ruby..."
-ynh_exec_warn_less ynh_install_ruby --ruby_version="$ruby_version"
-ynh_use_ruby
+#REMOVEME? ynh_script_progression --message="Installing Ruby..."
+#REMOVEME? ynh_exec_warn_less #REMOVEME? ynh_install_ruby --#REMOVEME? ruby_version="$ruby_version"
+#REMOVEME? ynh_use_ruby
 
-ynh_script_progression --message="Installing NodeJS..."
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
-ynh_use_nodejs
+#REMOVEME? ynh_script_progression --message="Installing NodeJS..."
+#REMOVEME? ynh_exec_warn_less #REMOVEME? ynh_install_nodejs --#REMOVEME? nodejs_version=$nodejs_version
+#REMOVEME? ynh_use_nodejs
 
 ynh_script_progression --message="Building and installing ImageMagick v7..."
 install_imagemagick

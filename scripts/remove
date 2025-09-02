@@ -28,9 +28,9 @@ ynh_remove_nginx_config
 
 ynh_redis_remove_db "$redis_db"
 
-ynh_remove_nodejs
+#REMOVEME? ynh_remove_nodejs
 
-ynh_remove_ruby
+#REMOVEME? ynh_remove_ruby
 
 #=================================================
 # END OF SCRIPT

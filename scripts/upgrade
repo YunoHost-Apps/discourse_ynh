@@ -84,13 +84,13 @@ fi
 #=================================================
 # UPGRADING DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Upgrading Ruby..."
-ynh_exec_warn_less ynh_install_ruby --ruby_version="$ruby_version"
-ynh_use_ruby
+#REMOVEME? ynh_script_progression --message="Upgrading Ruby..."
+#REMOVEME? ynh_exec_warn_less #REMOVEME? ynh_install_ruby --#REMOVEME? ruby_version="$ruby_version"
+#REMOVEME? ynh_use_ruby
 
-ynh_script_progression --message="Upgrading NodeJS..."
-ynh_exec_warn_less ynh_install_nodejs --nodejs_version=$nodejs_version
-ynh_use_nodejs
+#REMOVEME? ynh_script_progression --message="Upgrading NodeJS..."
+#REMOVEME? ynh_exec_warn_less #REMOVEME? ynh_install_nodejs --#REMOVEME? nodejs_version=$nodejs_version
+#REMOVEME? ynh_use_nodejs
 
 ynh_script_progression --message="Building and upgrading ImageMagick v7..."
 install_imagemagick

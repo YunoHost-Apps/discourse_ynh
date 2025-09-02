@@ -44,8 +44,8 @@ ynh_psql_connect_as --user="$db_user" --password="$db_pwd" --database="$db_name"
     <<< "UPDATE site_settings SET value = replace(value, '$old_relative_url_root/images/', '$new_relative_url_root/images/');
 UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';"
 
-ynh_use_ruby
-ynh_use_nodejs
+#REMOVEME? ynh_use_ruby
+#REMOVEME? ynh_use_nodejs
 
 pushd "$install_dir/discourse"
     # Remap URLs in forum posts

@@ -19,7 +19,7 @@ code = "https://github.com/discourse/discourse"
 cpe = "cpe:2.3:a:discourse:discourse"
 
 [integration]
-yunohost = ">= 12.0.1"
+yunohost = ">= 12.1.17"
 architectures = "all"
 multi_instance = true
 
@@ -137,3 +137,9 @@ ram.runtime = "1G"
 
     [resources.database]
     type = "postgresql"
+
+    [resources.nodejs]
+    version = "22"
+
+    [resources.ruby]
+    version = "3.3.6"

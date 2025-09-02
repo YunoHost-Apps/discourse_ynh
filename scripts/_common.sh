@@ -4,9 +4,9 @@
 # COMMON VARIABLES
 #=================================================
 
-ruby_version="3.3.6"
+#REMOVEME? ruby_version="3.3.6"
 
-nodejs_version="22"
+#REMOVEME? nodejs_version="22"
 
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 
