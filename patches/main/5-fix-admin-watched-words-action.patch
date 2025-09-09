@@ -1,5 +1,5 @@
 diff --git a/app/assets/javascripts/admin/addon/controllers/admin-watched-words-action.js b/app/assets/javascripts/admin/addon/controllers/admin-watched-words-action.js
-index d5ad0c49..faeb04ab 100644
+index 078f8ca989..13ed9b1bb6 100644
 --- a/app/assets/javascripts/admin/addon/controllers/admin-watched-words-action.js
 +++ b/app/assets/javascripts/admin/addon/controllers/admin-watched-words-action.js
 @@ -37,7 +37,7 @@ export default class AdminWatchedWordsActionController extends Controller {
@@ -8,9 +8,6 @@ index d5ad0c49..faeb04ab 100644
          RegExp(regexp);
 -      } catch {
 +      } catch (err) {
-         return I18n.t("admin.watched_words.invalid_regex", { word });
+         return i18n("admin.watched_words.invalid_regex", { word });
        }
      }
--- 
-2.43.0
-
