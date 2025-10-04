@@ -83,17 +83,17 @@ install_imagemagick() {
             --with-heic \
             --with-rsvg \
             --with-webp
-        ynh_exec_as "$app" make all -j"$(nproc)"
-        ynh_exec_as "$app" LIBTOOLFLAGS=-Wnone make install
+        ynh_hide_warnings ynh_exec_as_app make all -j"$(nproc)"
+        ynh_hide_warnings ynh_exec_as_app  LIBTOOLFLAGS=-Wnone make install
     popd
-    ynh_secure_remove --file="$install_dir/imagemagick_source"
+    ynh_safe_rm "$install_dir/imagemagick_source"
 }
 
 install_oxipng() {
     ynh_setup_source --source_id="oxipng" --dest_dir="$install_dir/oxipng_source"
     mkdir -p "$tools_prefix/bin"
     mv "$install_dir/oxipng_source/oxipng" "$tools_prefix/bin/oxipng"
-    ynh_secure_remove --file="$install_dir/oxipng_source"
+    ynh_safe_rm "$install_dir/oxipng_source"
 }
 
 ynh_maintenance_mode_ON () {
@@ -151,8 +151,8 @@ ynh_maintenance_mode_OFF () {
     sleep 4
 
     # Then remove the temporary files used for the maintenance.
-    rm "/var/www/html/maintenance.$app.html"
-    rm "/etc/nginx/conf.d/$domain.d/maintenance.$app.conf"
+    ynh_safe_rm "/var/www/html/maintenance.$app.html"
+    ynh_safe_rm "/etc/nginx/conf.d/$domain.d/maintenance.$app.conf"
 
     systemctl reload nginx
 }
