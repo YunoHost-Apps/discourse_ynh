@@ -243,7 +243,7 @@ ynh_config_add_logrotate "$install_dir/discourse/log/production.log"
 ynh_script_progression "Starting $app's systemd service..."
 
 # Start a systemd service
-ynh_systemctl --service_name="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
+ynh_systemctl --service="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --line_match="INFO -- : worker=$((unicorn_workers-1)) ready"
 
 #=================================================
 # DISABLE MAINTENANCE MODE

@@ -199,7 +199,7 @@ ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 additional_env="UNICORN_WORKERS=$unicorn_workers"
 ynh_config_add_systemd
-yunohost service add "$app" --log "$install_dir/discourse/log/unicorn.stderr.log" "$install_dir/log/unicorn.stdout.log" "$install_dir/log/production.log"
+yunohost service add "$app" --log "$install_dir/discourse/log/unicorn.stderr.log" "$install_dir/discourse/log/unicorn.stdout.log" "$install_dir/discourse/log/production.log"
 
 # Use logrotate to manage application logfile(s)
 ynh_config_add_logrotate "$install_dir/discourse/log/unicorn.stderr.log"
