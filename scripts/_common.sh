@@ -60,7 +60,7 @@ install_imagemagick() {
     chown -R "$app:$app" "$install_dir/imagemagick_source" "$tools_prefix"
 
     pushd "$install_dir/imagemagick_source"
-        ynh_exec_as "$app" CFLAGS="-O2 -I$tools_prefix/include -Wno-deprecated-declarations" \
+        ynh_hide_warnings ynh_exec_as_app "$app" CFLAGS="-O2 -I$tools_prefix/include -Wno-deprecated-declarations" \
             ./configure \
             --prefix="$tools_prefix" \
             --enable-static \
