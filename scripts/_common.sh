@@ -94,6 +94,7 @@ install_oxipng() {
     mkdir -p "$tools_prefix/bin"
     mv "$install_dir/oxipng_source/oxipng" "$tools_prefix/bin/oxipng"
     ynh_secure_remove --file="$install_dir/oxipng_source"
+}
 
 ynh_maintenance_mode_ON () {
     # Create an html to serve as maintenance notice
