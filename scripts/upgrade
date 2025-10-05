@@ -175,7 +175,7 @@ pushd "$install_dir/discourse"
     # Install bundler, a gems installer
     ynh_gem install bundler --conservative -v $(awk '/BUNDLED WITH/ { getline; gsub(/ /,""); print $0 }' $install_dir/discourse/Gemfile.lock)
     # Install without documentation
-    echo "gem: --no-ri --no-rdoc" | ynh_exec_as "$app" tee "$install_dir/discourse/.gemrc" >/dev/null
+    echo "gem: --no-ri --no-rdoc" | ynh_exec_as_app tee "$install_dir/discourse/.gemrc" >/dev/null
 
     # Specific actions on ARM architecture
     if dpkg --print-architecture | grep -q "arm"; then
