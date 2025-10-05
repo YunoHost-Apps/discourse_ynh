@@ -90,6 +90,10 @@ mkdir -p "$install_dir/discourse/public/forum"
 ln -s "$install_dir/discourse/public/uploads" "$install_dir/discourse/public/forum/uploads"
 ln -s "$install_dir/discourse/public/backups" "$install_dir/discourse/public/forum/backups"
 
+# Set permissions to app files
+chmod -R o-rwx "$install_dir"
+chown -R "$app:www-data" "$install_dir"
+
 #=================================================
 # ADD A CONFIGURATION
 #=================================================
