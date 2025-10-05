@@ -49,8 +49,8 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v3.5.0.tar.gz"
-    sha256 = "13f69ed0201e1a71fe217d5afefa376fd6c1fbdabd086c550015dfe6d9820cb6"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v3.5.1.tar.gz"
+    sha256 = "f9d52522964a4bba6243567aeb12746702cd87fba19143e5ff1ec818626ae827"
 
     autoupdate.strategy = "latest_github_tag"
 
@@ -62,8 +62,8 @@ ram.runtime = "1G"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
 
     [resources.sources.imagemagickv7]
-    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-1.tar.gz"
-    sha256 = "9306407381a7bf0ac5d97074eca3ce9dfaac65ced4d44f6a47bc24fbfc693e9a"
+    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-3.tar.gz"
+    sha256 = "b16415e8694a2e15e5282d64fc7b358f309ff3a514a90eb5da268676c772de3d"
 
     autoupdate.strategy = "latest_github_tag"
     autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
