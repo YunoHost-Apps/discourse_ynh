@@ -19,7 +19,8 @@ code = "https://github.com/discourse/discourse"
 cpe = "cpe:2.3:a:discourse:discourse"
 
 [integration]
-yunohost = ">= 12.0.1"
+yunohost = ">= 12.0.9"
+helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
 
@@ -82,6 +83,7 @@ ram.runtime = "1G"
     [resources.system_user]
 
     [resources.install_dir]
+    group = "www-data:r-x"
 
     [resources.permissions]
     main.url = "/"
@@ -128,12 +130,13 @@ ram.runtime = "1G"
         "postgresql",
         "postgresql-client",
         "postgresql-contrib",
-        "postgresql-server-dev-all",
     ]
-
-    extras.yarn.repo = "deb https://dl.yarnpkg.com/debian/ stable main"
-    extras.yarn.key = "https://dl.yarnpkg.com/debian/pubkey.gpg"
-    extras.yarn.packages = "yarn"
 
     [resources.database]
     type = "postgresql"
+
+    [resources.nodejs]
+    version = "22"
+
+    [resources.ruby]
+    version = "3.3.6"
