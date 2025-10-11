@@ -1,11 +1,13 @@
---- omniauth-ldap-1.0.5.orig/lib/omniauth/strategies/ldap.rb        2018-04-02 17:58:36.830909997 +0200
-+++ omniauth-ldap-1.0.5/lib/omniauth/strategies/ldap.rb     2018-04-02 19:17:51.903732202 +0200
-@@ -27,7 +27,8 @@
-
+diff --git a/lib/omniauth/strategies/ldap.rb b/lib/omniauth/strategies/ldap.rb
+index bef7f59..c774896 100644
+--- a/lib/omniauth/strategies/ldap.rb
++++ b/lib/omniauth/strategies/ldap.rb
+@@ -28,7 +28,8 @@ module OmniAuth
+ 
        def request_phase
          OmniAuth::LDAP::Adaptor.validate @options
 -        f = OmniAuth::Form.new(:title => (options[:title] || "LDAP Authentication"), :url => callback_path)
-+       #Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
++        #Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
 +        f = OmniAuth::Form.new(:title => (options[:title] || "LDAP Authentication"), :url => callback_url)
          f.text_field 'Login', 'username'
          f.password_field 'Password', 'password'

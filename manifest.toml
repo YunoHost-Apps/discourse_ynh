@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "3.4.2~ynh2"
+version = "3.5.0~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -19,7 +19,8 @@ code = "https://github.com/discourse/discourse"
 cpe = "cpe:2.3:a:discourse:discourse"
 
 [integration]
-yunohost = ">= 12.0.1"
+yunohost = ">= 12.1.17"
+helpers_version = "2.1"
 architectures = "all"
 multi_instance = true
 
@@ -48,31 +49,31 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v3.4.2.tar.gz"
-    sha256 = "ed26ec5c3278abb65d5ce9ef70fe3ca9f6364c6acf0c269d547f587c482f642f"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v3.5.1.tar.gz"
+    sha256 = "f9d52522964a4bba6243567aeb12746702cd87fba19143e5ff1ec818626ae827"
 
     autoupdate.strategy = "latest_github_tag"
 
     [resources.sources.ldap-auth]
-    url = "https://github.com/jonmbake/discourse-ldap-auth/archive/refs/tags/v0.6.1.tar.gz"
-    sha256 = "04b380ff1b7c5a7eade24f4cc86c5fbcb9ac6c61393454dcd268c1ec14a81cdf"
+    url = "https://github.com/jonmbake/discourse-ldap-auth/archive/refs/tags/v0.7.0.tar.gz"
+    sha256 = "4e4fbdfced35d169a1a5f55ff801bc2ca27b65c1badf33b4dfc551304f6e5147"
 
     autoupdate.strategy = "latest_github_tag"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
 
     [resources.sources.imagemagickv7]
-    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.1-47.tar.gz"
-    sha256 = "818e21a248986f15a6ba0221ab3ccbaed3d3abee4a6feb4609c6f2432a30d7ed"
+    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-3.tar.gz"
+    sha256 = "b16415e8694a2e15e5282d64fc7b358f309ff3a514a90eb5da268676c772de3d"
 
     autoupdate.strategy = "latest_github_tag"
     autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
 
     [resources.sources.oxipng]
-    amd64.url = "https://github.com/shssoichiro/oxipng/releases/download/v9.1.4/oxipng-9.1.4-x86_64-unknown-linux-gnu.tar.gz"
-    amd64.sha256 = "4e296c4dd9203a44b06a33c596c13e62a03ae26a9a846343dbd52f48efccaa4b"
+    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v9.1.5/oxipng-9.1.5-x86_64-unknown-linux-gnu.tar.gz"
+    amd64.sha256 = "31988ec9631755c89466cc11397bd49346598f99cc2c48916d8bd4326e778f1f"
 
-    arm64.url = "https://github.com/shssoichiro/oxipng/releases/download/v9.1.4/oxipng-9.1.4-aarch64-unknown-linux-gnu.tar.gz"
-    arm64.sha256 = "c549859fec3117b3ae62e690b072f18d463ac9b4479802ca4de7740ce3876918"
+    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v9.1.5/oxipng-9.1.5-aarch64-unknown-linux-gnu.tar.gz"
+    arm64.sha256 = "5356a929eec64e8fb1673505b8c44239289ca84b469504a83f7158f1a021d6bf"
 
     autoupdate.strategy = "latest_github_release"
     autoupdate.upstream = "https://github.com/shssoichiro/oxipng"
@@ -82,6 +83,7 @@ ram.runtime = "1G"
     [resources.system_user]
 
     [resources.install_dir]
+    group = "www-data:r-x"
 
     [resources.permissions]
     main.url = "/"
@@ -128,12 +130,19 @@ ram.runtime = "1G"
         "postgresql",
         "postgresql-client",
         "postgresql-contrib",
-        "postgresql-server-dev-all",
     ]
-
-    extras.yarn.repo = "deb https://dl.yarnpkg.com/debian/ stable main"
-    extras.yarn.key = "https://dl.yarnpkg.com/debian/pubkey.gpg"
-    extras.yarn.packages = "yarn"
+        [resources.apt.extras.postgresql]
+        repo = "deb https://apt.postgresql.org/pub/repos/apt __YNH_DEBIAN_VERSION__-pgdg main 15"
+        key = "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+        packages = [
+            "postgresql-15-pgvector",
+        ]
 
     [resources.database]
     type = "postgresql"
+
+    [resources.nodejs]
+    version = "22"
+
+    [resources.ruby]
+    version = "3.3.6"
