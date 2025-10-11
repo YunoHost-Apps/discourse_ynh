@@ -89,18 +89,19 @@ install_imagemagick
 install_oxipng
 
 #=================================================
+# CONFIGURE A POSTGRESQL DATABASE
+#=================================================
+ynh_script_progression "Upgrading $app's PostgreSQL database..."
+
+# Set extensions
+ynh_psql_db_shell <<< "CREATE EXTENSION IF NOT EXISTS hstore;"
+ynh_psql_db_shell <<< "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+ynh_psql_db_shell <<< "CREATE EXTENSION IF NOT EXISTS vector;"
+
+#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 ynh_script_progression "Upgrading source files..."
-
-# Specific actions on ARM architecture
-if dpkg --print-architecture | grep -q "arm"; then
-    # Unapply commit cf9b4a789b855b5199e98a13424e409854a8e848 that breaks ARM
-    # compatibility by pointing to a recent libv8 version
-    # This is due to this libv8 issue (https://github.com/cowboyd/libv8/issues/261)
-    # that prevents it from being compiled on ARM hence no binary gem is available yet
-    cp ../patches_arm/* ../patches
-fi
 
 # Small trick to backup non-core plugins
 mv "$install_dir/discourse/plugins" "$install_dir/discourse/plugins_old"
@@ -200,9 +201,9 @@ ynh_script_progression "Preparing the database..."
 
 pushd "$install_dir/discourse"
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake db:migrate
-    ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake themes:update assets:precompile
+    ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake themes:update
+    ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production DISCOURSE_DOWNLOAD_PRE_BUILT_ASSETS=0 bundle exec rake assets:precompile
 popd
-
 #=================================================
 # CONFIGURE PLUGINS
 #=================================================
@@ -211,8 +212,8 @@ ynh_script_progression "Configuring plugins..."
 # Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
 # (Can only do that now because we are patching dependencies which have just been downloaded)
 # Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
-patch -p1 -d "$install_dir/discourse/plugins/ldap/gems/$ruby_version/gems/omniauth-ldap"*/ \
-    < "../conf/ldap-auth-fix-subfolder.patch"
+patch -p4 -d "$install_dir/discourse/plugins/ldap/lib/omniauth/strategies"*/ \
+   < "../conf/ldap-auth-fix-subfolder.patch"
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATIONS

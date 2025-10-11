@@ -1,5 +1,5 @@
 diff --git a/app/assets/javascripts/discourse/app/lib/download-calendar.js b/app/assets/javascripts/discourse/app/lib/download-calendar.js
-index 3fd2951a..b71e4e09 100644
+index b2f238b9c0..0a4e1910d2 100644
 --- a/app/assets/javascripts/discourse/app/lib/download-calendar.js
 +++ b/app/assets/javascripts/discourse/app/lib/download-calendar.js
 @@ -23,7 +23,7 @@ export function downloadCalendar(title, dates, options = {}) {
@@ -11,6 +11,3 @@ index 3fd2951a..b71e4e09 100644
    const file = new File([generateIcsData(title, dates, options)], {
      type: "text/plain",
    });
--- 
-2.43.0
-

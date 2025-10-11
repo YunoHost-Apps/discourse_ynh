@@ -1,5 +1,5 @@
 diff --git a/app/assets/javascripts/discourse/app/lib/uppy/uppy-upload.js b/app/assets/javascripts/discourse/app/lib/uppy/uppy-upload.js
-index 6f830aef25..b270b7a9e1 100644
+index bbbad4dbac..4ef5e4baef 100644
 --- a/app/assets/javascripts/discourse/app/lib/uppy/uppy-upload.js
 +++ b/app/assets/javascripts/discourse/app/lib/uppy/uppy-upload.js
 @@ -24,7 +24,7 @@ import UppyChecksum from "discourse/lib/uppy-checksum-plugin";
