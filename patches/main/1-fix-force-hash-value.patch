@@ -1,10 +1,10 @@
 diff --git a/script/assemble_ember_build.rb b/script/assemble_ember_build.rb
 index 257f619420..df1626a822 100755
---- a/script/assemble_ember_build.rb
-+++ b/script/assemble_ember_build.rb
-@@ -32,18 +32,12 @@ end
- # Returns a git tree-hash representing the current state of Discourse core.
- # If the working directory is clean, it will match the tree hash (note: different to the commit hash) of the HEAD commit.
+--- script/assemble_ember_build.rb
++++ script/assemble_ember_build.rb
+@@ -37,16 +37,7 @@
+ # Returns a git tree-hash representing the current state of Discourse core JS source paths.
+ # Only files in JS_SOURCE_PATHS are included in the tree hash.
  def core_tree_hash
 -  Tempfile.create do |f|
 -    f.close
@@ -13,11 +13,14 @@ index 257f619420..df1626a822 100755
 -    FileUtils.cp "#{git_dir}/index", f.path
 -
 -    env = { "GIT_INDEX_FILE" => f.path }
--    system(env, "git", "add", "-A", exception: true)
--    return capture(env, "git", "write-tree").strip
+-
+-    # Remove all files from the index, then add only JS_SOURCE_PATHS
+-    system(env, "git", "rm", "-r", "--cached", ".", "--quiet", exception: true)
+-    system(env, "git", "add", *JS_SOURCE_PATHS, exception: true)
+-
+-    capture(env, "git", "write-tree").strip
 -  end
-+  # As YunoHost does not use git, the default command will fail. Discourse only need the value to write it in app/assets/javascripts/discourse/BUILD_INFO.json.
-+  # It could be watsever, so we use a fixed string.
++  # As YunoHost does not use git, return a fixed string
 +  "12345678987654321"
  end
  
