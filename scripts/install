@@ -87,6 +87,8 @@ ynh_script_progression "Adding $app's configuration file..."
 ynh_config_add --template="discourse_defaults.conf" --destination="$install_dir/discourse/config/discourse.conf"
 ynh_config_add --template="secrets.yml" --destination="$install_dir/discourse/config/secrets.yml"
 ynh_config_add --template="settings.yml" --destination="$install_dir/discourse/plugins/ldap/config/settings.yml"
+ynh_config_add --template="assemble_ember_build.rb" --destination="$install_dir/script/assemble_ember_build.rb"
+
 
 # Disable svgo worker
 echo "svgo: false" | ynh_exec_as_app tee "$install_dir/discourse/.image_optim.yml" >/dev/null
