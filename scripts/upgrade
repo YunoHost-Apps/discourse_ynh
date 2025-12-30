@@ -204,16 +204,6 @@ pushd "$install_dir/discourse"
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake themes:update
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production DISCOURSE_DOWNLOAD_PRE_BUILT_ASSETS=0 bundle exec rake assets:precompile
 popd
-#=================================================
-# CONFIGURE PLUGINS
-#=================================================
-ynh_script_progression "Configuring plugins..."
-
-# Patch ldap-auth plugin dependency (omniauth-ldap) to fix it when using domain subfolder
-# (Can only do that now because we are patching dependencies which have just been downloaded)
-# Patch applied: https://github.com/omniauth/omniauth-ldap/pull/16
-patch -p4 -d "$install_dir/discourse/plugins/ldap/lib/omniauth/strategies"*/ \
-   < "../conf/ldap-auth-fix-subfolder.patch"
 
 #=================================================
 # REAPPLY SYSTEM CONFIGURATIONS
