@@ -34,7 +34,7 @@ ynh_psql_db_shell < ./db.sql
 ynh_script_progression "Reinstall Bundle Gem..."
 
 pushd "$install_dir/discourse"
-    gem install bundler
+    gem install bundler -v '~> 2.6'
 popd
 
 #=================================================
