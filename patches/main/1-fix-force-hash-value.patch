@@ -1,5 +1,14 @@
+From 0379b55d92589ccec8318e7915eaf691bd4a327e Mon Sep 17 00:00:00 2001
+From: orhtej2 <2871798+orhtej2@users.noreply.github.com>
+Date: Tue, 30 Dec 2025 14:25:01 +0100
+Subject: [PATCH] Hardcode commit SHA
+
+---
+ script/assemble_ember_build.rb | 17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
+
 diff --git a/script/assemble_ember_build.rb b/script/assemble_ember_build.rb
-index e44677e79b..f761dd6e25 100755
+index e44677e7..f761dd6e 100755
 --- a/script/assemble_ember_build.rb
 +++ b/script/assemble_ember_build.rb
 @@ -35,20 +35,9 @@ end
@@ -26,3 +35,6 @@ index e44677e79b..f761dd6e25 100755
  end
  
  def node_heap_size_limit
+-- 
+2.39.5
+
