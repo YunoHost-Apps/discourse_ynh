@@ -138,7 +138,7 @@ ram.runtime = "1G"
     packages_from_raw_bash = """
         if [[ $YNH_DEBIAN_VERSION == "bookworm" ]]; then
             echo "postgresql-15-pgvector";
-        else echo "";
+        else echo "postgresql-pgvector";
         fi
     """
 
