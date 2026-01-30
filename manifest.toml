@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2025.12.0~ynh1"
+version = "2026.1.0~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -49,8 +49,8 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v2025.12.0.tar.gz"
-    sha256 = "afbcf92d0623eaa0b93c22daab0347308eb652fe8e0b82f2564d66c30794084a"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.1.0.tar.gz"
+    sha256 = "3340309ace9aa41335736b273608b2b238a4cdd518ef8ebd53bbc788deb1a729"
 
     autoupdate.strategy = "latest_github_tag"
 
@@ -62,18 +62,18 @@ ram.runtime = "1G"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
 
     [resources.sources.imagemagickv7]
-    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-12.tar.gz"
-    sha256 = "521fa7a8c0f664a3f5cf7437cbcc219f12bd6d5fe0c1fb014f212fa145076e60"
+    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-13.tar.gz"
+    sha256 = "3617bffe497690ffe5b731227d026db1150e138ddb129481a1e202442e558512"
 
     autoupdate.strategy = "latest_github_tag"
     autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
 
     [resources.sources.oxipng]
-    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v10.0.0/oxipng-10.0.0-x86_64-unknown-linux-gnu.tar.gz"
-    amd64.sha256 = "f99966ea3dce29c7abfcdc768586e6df4c99f5e77cb9215e10c6f64182f09566"
+    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v10.1.0/oxipng-10.1.0-x86_64-unknown-linux-gnu.tar.gz"
+    amd64.sha256 = "b4321334b4ddda2a6023e6252a1f439d1e3124c52ef1a82068066c1e4f265927"
 
-    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v10.0.0/oxipng-10.0.0-aarch64-unknown-linux-gnu.tar.gz"
-    arm64.sha256 = "65523cf7e9625ffbc1dd3cfc4e9955dec401038b9f62bc00286bf24e90a00d6e"
+    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v10.1.0/oxipng-10.1.0-aarch64-unknown-linux-gnu.tar.gz"
+    arm64.sha256 = "6a3ad3998d0e26d668303b7246de451271c932aa8603201855e4870d21655000"
 
     autoupdate.strategy = "latest_github_release"
     autoupdate.upstream = "https://github.com/shssoichiro/oxipng"
