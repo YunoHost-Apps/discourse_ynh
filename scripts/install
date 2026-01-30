@@ -126,7 +126,7 @@ pushd "$install_dir/discourse"
 popd
 
 pushd "$install_dir/discourse"
-    ynh_hide_warnings npm install --location=global pnpm@9 --force
+    ynh_hide_warnings npm install --location=global pnpm@10 --force
     ynh_hide_warnings _exec_as_app_with_ruby_node pnpm install --frozen-lockfile
 popd
 
