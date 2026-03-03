@@ -154,4 +154,4 @@ ram.runtime = "1G"
     version = "22"
 
     [resources.ruby]
-    version = "3.3.6"
+    version = "3.4"
