@@ -200,9 +200,6 @@ popd
 ynh_script_progression "Preparing the database..."
 
 pushd "$install_dir/discourse"
-    # Temporary fix?
-    gem install kconv
-
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake db:migrate
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake themes:update
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production DISCOURSE_DOWNLOAD_PRE_BUILT_ASSETS=0 bundle exec rake assets:precompile
