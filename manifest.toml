@@ -58,7 +58,7 @@ ram.runtime = "1G"
     url = "https://github.com/jonmbake/discourse-ldap-auth/archive/0f5749ca6443d63999f78ed8eac49dead1b322bc.tar.gz"
     sha256 = "a79cfaa5412022db989da87b444e0a232d6b2d4d1637203bb1fc1a2596d42367"
 
-    autoupdate.strategy = "latest_github_tag"
+    autoupdate.strategy = "latest_github_commit"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
 
     [resources.sources.imagemagickv7]
