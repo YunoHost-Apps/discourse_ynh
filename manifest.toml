@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.2.0~ynh1"
+version = "2026.2.0~ynh2"
 
 maintainers = ["JimboJoe"]
 
@@ -62,8 +62,8 @@ ram.runtime = "1G"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
 
     [resources.sources.imagemagickv7]
-    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-15.tar.gz"
-    sha256 = "bf646e7fffdf50b7d886eec6bbe51c3ced1c4d68fbabfcc534e014575359fe7f"
+    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-16.tar.gz"
+    sha256 = "aadfa67a104d14a35339de0f2cc286c973a0f43329770c69e9667a22208750fb"
 
     autoupdate.strategy = "latest_github_tag"
     autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
