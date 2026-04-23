@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.3.0~ynh3"
+version = "2026.3.0~ynh4"
 
 maintainers = ["JimboJoe"]
 
@@ -69,11 +69,11 @@ ram.runtime = "1G"
     autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
 
     [resources.sources.oxipng]
-    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v10.1.0/oxipng-10.1.0-x86_64-unknown-linux-gnu.tar.gz"
-    amd64.sha256 = "b4321334b4ddda2a6023e6252a1f439d1e3124c52ef1a82068066c1e4f265927"
+    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v10.1.1/oxipng-10.1.1-x86_64-unknown-linux-gnu.tar.gz"
+    amd64.sha256 = "5988392e88fc3d03f562f2d565e5c12a095223ae8bd983576f2aaff2fadf3738"
 
-    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v10.1.0/oxipng-10.1.0-aarch64-unknown-linux-gnu.tar.gz"
-    arm64.sha256 = "6a3ad3998d0e26d668303b7246de451271c932aa8603201855e4870d21655000"
+    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v10.1.1/oxipng-10.1.1-aarch64-unknown-linux-gnu.tar.gz"
+    arm64.sha256 = "a69c9dbb110463746153bf9b56488a293747e1d90dc1f30d24af3d9615165b98"
 
     autoupdate.strategy = "latest_github_release"
     autoupdate.upstream = "https://github.com/shssoichiro/oxipng"
