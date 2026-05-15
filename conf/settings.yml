@@ -21,6 +21,6 @@ plugins:
     default: ''
     secret: true
   ldap_filter:
-    default: ''
+    default: '(&(|(objectclass=posixAccount))(uid=%{username})(permission=cn=__APP__.main,ou=permission,dc=yunohost,dc=org))'
   ldap_email:
     default: 'email'
