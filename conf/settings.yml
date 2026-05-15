@@ -4,7 +4,7 @@ plugins:
   ldap_user_create_mode:
     default: 'auto'
   ldap_lookup_users_by:
-    default: 'email'
+    default: 'username'
   ldap_hostname:
     default: 'localhost'
   ldap_port:
