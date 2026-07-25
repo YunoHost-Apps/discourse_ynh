@@ -1,0 +1,59 @@
+diff --git a/config/locales/server.en.yml b/config/locales/server.en.yml
+index 172214a..de4c3e9 100644
+--- a/config/locales/server.en.yml
++++ b/config/locales/server.en.yml
+@@ -11,3 +11,4 @@ en:
+     ldap_bind_dn: "LDAP bind dn (needed if LDAP server does not allow anonymous binding)"
+     ldap_password:  "LDAP bind password (needed if LDAP server does not allow anonymous binding)"
+     ldap_filter:  "LDAP filter (for group based authentication)"
++    ldap_email:  "Mail attribute to bind in priority to discourse primary mail"
+diff --git a/config/settings.yml b/config/settings.yml
+index 157fe53..e3582a1 100644
+--- a/config/settings.yml
++++ b/config/settings.yml
+@@ -24,3 +24,5 @@ plugins:
+     secret: true
+   ldap_filter:
+     default: ''
++  ldap_email:
++    default: 'email'
+diff --git a/lib/ldap_user.rb b/lib/ldap_user.rb
+index 92391e9..0327656 100644
+--- a/lib/ldap_user.rb
++++ b/lib/ldap_user.rb
+@@ -7,6 +7,14 @@ class LDAPUser
+     @email = auth_info[:email]
+     @username = auth_info[:nickname]
+     @user = SiteSetting.ldap_lookup_users_by == 'username' ? User.find_by_username(@username) : User.find_by_email(@email)
++    primary_email = @user.user_emails.find_by(email: @user.email)
++    if primary_email.present?
++      primary_email.update!(email: @email)
++    else
++      @user.user_emails.update_all(primary: false)
++      @user.user_emails.create!(email: @email, primary: true)
++    end
++    @user.reload
+     create_user_groups(auth_info[:groups]) unless self.account_exists?
+   end
+ 
+diff --git a/plugin.rb b/plugin.rb
+index 5e129da..a56fd85 100644
+--- a/plugin.rb
++++ b/plugin.rb
+@@ -26,6 +26,16 @@ class ::LDAPAuthenticator < ::Auth::Authenticator
+   end
+ 
+   def after_authenticate(auth_options)
++    if SiteSetting.ldap_email != 'email'
++      if not auth_options.extra[:raw_info][SiteSetting.ldap_email].blank?
++        emails = Array(auth_options.extra[:raw_info][SiteSetting.ldap_email])
++          .select { |email| email.match?(/\A[^@\s]+@[^@\s]+\z/) }
++        if not emails.empty?
++          auth_options.info[:email] = emails.first()
++        end
++      end
++    end
++
+     auth_result(auth_options.info)
+   end
+ 
