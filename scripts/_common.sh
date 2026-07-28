@@ -126,9 +126,6 @@ location ${path}_maintenance/ {
 alias /var/www/html/ ;
 
 try_files maintenance.$app.html =503;
-
-# Include SSOWAT user panel.
-include conf.d/yunohost_panel.conf.inc;
 }" > "/etc/nginx/conf.d/$domain.d/maintenance.$app.conf"
 
     # The current config file will redirect all requests to the root of the app.
