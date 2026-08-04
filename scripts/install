@@ -120,8 +120,8 @@ pushd "$install_dir/discourse"
     fi
 
     # Install dependencies
-    _exec_as_app_with_ruby_node bundle config --local path "$install_dir/discourse/vendor/bundle"
-    _exec_as_app_with_ruby_node bundle config --local without test development
+    _exec_as_app_with_ruby_node bundle config set --local path "$install_dir/discourse/vendor/bundle"
+    _exec_as_app_with_ruby_node bundle config set --local without test development
     _exec_as_app_with_ruby_node bundle install --jobs 2
 popd
 
