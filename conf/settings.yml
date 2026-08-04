@@ -4,13 +4,15 @@ plugins:
   ldap_user_create_mode:
     default: 'auto'
   ldap_lookup_users_by:
-    default: 'email'
+    default: 'username'
   ldap_hostname:
     default: 'localhost'
   ldap_port:
     default: 389
   ldap_method:
     default: 'plain'
+  ldap_verify_cert:
+    default: false
   ldap_base:
     default: 'ou=users,dc=yunohost,dc=org'
   ldap_uid:
@@ -21,4 +23,6 @@ plugins:
     default: ''
     secret: true
   ldap_filter:
-    default: ''
+    default: '(&(|(objectclass=posixAccount))(uid=%{username})(permission=cn=__APP__.main,ou=permission,dc=yunohost,dc=org))'
+  ldap_email:
+    default: 'email'
