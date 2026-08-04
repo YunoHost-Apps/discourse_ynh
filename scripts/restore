@@ -34,7 +34,7 @@ ynh_psql_db_shell < ./db.sql
 ynh_script_progression "Reinstall Bundle Gem..."
 
 pushd "$install_dir/discourse"
-    gem install bundler -v '~> 2.6'
+    gem install bundler --conservative -v $(awk '/BUNDLED WITH/ { getline; gsub(/ /,""); print $0 }' $install_dir/discourse/Gemfile.lock)
 popd
 
 #=================================================

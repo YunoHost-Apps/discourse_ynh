@@ -56,7 +56,7 @@ popd
 #=================================================
 ynh_script_progression "Starting $app's systemd service..."
 
-ynh_systemctl --service="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --wait_until="INFO -- : worker=$((unicorn_workers-1)) ready"
+ynh_systemctl --service="$app" --action="start" --log_path="systemd" --wait_until="worker=$((unicorn_workers-1)) gen=[0-9]+ pid=[0-9]+ ready"
 
 #=================================================
 # END OF SCRIPT
