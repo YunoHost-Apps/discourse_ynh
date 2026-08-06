@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.3.0~ynh4"
+version = "2026.7.1~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -49,8 +49,8 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.3.0.tar.gz"
-    sha256 = "00deb75632a6dbbe389065114b0337d58e6ef504baae7a97c4eef2dcef3e0067"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.7.1.tar.gz"
+    sha256 = "ac49170975787395e51afe93439c04cea814c2fe796375392d9a7bee5f448b24"
 
     autoupdate.strategy = "latest_github_tag"
 
@@ -62,11 +62,14 @@ ram.runtime = "1G"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
 
     [resources.sources.imagemagickv7]
-    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-21.tar.gz"
-    sha256 = "4ba5b81797910efa93e65fb5a02b496284b8069d64513c6d2687c80d180dd70f"
-
-    autoupdate.strategy = "latest_github_tag"
-    autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
+    amd64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-29/imagemagick-7.1.2-29-linux-amd64.tar.gz"
+    amd64.sha256 = "cf194bc652c5555e4c6a45e06c262db56dde3032024b4ec3d65263668d090e66"
+    arm64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-29/imagemagick-7.1.2-29-linux-arm64.tar.gz"
+    arm64.sha256 = "5ee02707fad2e764013603abc257aae411ea320bb72ec8b8cb4598b5ed2d924f"
+    autoupdate.strategy = "latest_github_release"
+    autoupdate.upstream = "https://github.com/orhtej2/imagemagick-binary"
+    autoupdate.asset.amd64 = "imagemagick-\\d+\\.\\d+\\.\\d+-\\d+-linux-amd64\\.tar\\.gz$"
+    autoupdate.asset.arm64 = "imagemagick-\\d+\\.\\d+\\.\\d+-\\d+-linux-arm64\\.tar\\.gz$"
 
     [resources.sources.oxipng]
     amd64.url = "https://github.com/oxipng/oxipng/releases/download/v10.1.1/oxipng-10.1.1-x86_64-unknown-linux-gnu.tar.gz"
@@ -115,17 +118,7 @@ ram.runtime = "1G"
         "pngquant",
         "redis-server",
         "zlib1g-dev",
-
-        # Dependencies of imagemagick
-        "make",
-        "libltdl-dev",
-        "libbz2-dev", "zlib1g-dev", "libfreetype6-dev", "libjpeg-dev", "liblzma-dev",
-        "libwebp-dev", "libtiff-dev", "librsvg2-dev",
-        "libpng16-16", "libpng-dev",
-        "libjpeg62-turbo", "libjpeg62-turbo-dev",
-        "libheif1", "libheif-dev",
-        "libde265-0", "libde265-dev",
-        # ${LIBWEBP}
+        "libffi-dev",
 
         "postgresql",
         "postgresql-client",
