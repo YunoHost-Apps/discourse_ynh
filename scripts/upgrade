@@ -154,7 +154,7 @@ echo "svgo: false" | ynh_exec_as_app tee "$install_dir/discourse/.image_optim.ym
 ynh_script_progression "Setting up Unicorn..."
 
 # Make a backup of the original config file if modified
-unicorn_config_file="$install_dir/discourse/config/unicorn.conf.rb"
+unicorn_config_file="$install_dir/discourse/config/pitchfork.conf.rb"
 ynh_backup_if_checksum_is_different "$unicorn_config_file"
 ynh_store_file_checksum "$unicorn_config_file"
 
@@ -182,8 +182,8 @@ pushd "$install_dir/discourse"
     fi
 
     # Install dependencies
-    _exec_as_app_with_ruby_node bundle config --local path "$install_dir/discourse/vendor/bundle"
-    _exec_as_app_with_ruby_node bundle config --local without test development
+    _exec_as_app_with_ruby_node bundle config set --local path "$install_dir/discourse/vendor/bundle"
+    _exec_as_app_with_ruby_node bundle config set --local without test development
     _exec_as_app_with_ruby_node bundle install --jobs 2
 popd
 
@@ -222,11 +222,9 @@ ynh_store_file_checksum "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 additional_env="UNICORN_WORKERS=$unicorn_workers"
 ynh_config_add_systemd
-yunohost service add "$app" --log "$install_dir/discourse/log/unicorn.stderr.log" "$install_dir/discourse/log/unicorn.stdout.log" "$install_dir/discourse/log/production.log"
+yunohost service add "$app" --log "$install_dir/discourse/log/production.log"
 
 # Use logrotate to manage application logfile(s)
-ynh_config_add_logrotate "$install_dir/discourse/log/unicorn.stderr.log"
-ynh_config_add_logrotate "$install_dir/discourse/log/unicorn.stdout.log"
 ynh_config_add_logrotate "$install_dir/discourse/log/production.log"
 
 #=================================================
@@ -234,7 +232,7 @@ ynh_config_add_logrotate "$install_dir/discourse/log/production.log"
 #=================================================
 ynh_script_progression "Starting $app's systemd service..."
 
-ynh_systemctl --service="$app" --action="start" --log_path="$install_dir/discourse/log/unicorn.stdout.log" --wait_until="INFO -- : worker=$((unicorn_workers-1)) ready"
+ynh_systemctl --service="$app" --action="start" --log_path="systemd" --wait_until="worker=$((unicorn_workers-1)) gen=[0-9]+ pid=[0-9]+ ready"
 
 #=================================================
 # DISABLE MAINTENANCE MODE
