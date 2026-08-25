@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.7.1~ynh3"
+version = "2026.8.0~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -49,8 +49,8 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.7.1.tar.gz"
-    sha256 = "ac49170975787395e51afe93439c04cea814c2fe796375392d9a7bee5f448b24"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.8.0.tar.gz"
+    sha256 = "9e5221f49cc7806367b0b44b6d0c4f9615c27515871c3c83e270972fd6e5af93"
 
     autoupdate.strategy = "latest_github_tag"
 
