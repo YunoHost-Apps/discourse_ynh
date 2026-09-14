@@ -216,7 +216,7 @@ ynh_setup_source() {
         #git -C "$dest_dir" checkout "$src_sum" --quiet
         #git -C "$dest_dir" submodule update --init --recursive
         chown -R root:root "$dest_dir"
-        _ynh_git_clone "$src_url" "$dest_dir" "master" "$src_sum"
+        _ynh_git_clone "$src_url" "$dest_dir" "$branch" "$src_sum"
     elif [[ "$src_format" == "zip" ]]; then
         # Zip format
         # Using of a temp directory, because unzip doesn't manage --strip-components
