@@ -54,7 +54,6 @@ ram.runtime = "1G"
     
     prefetch = false
     format = "git"
-    branch = "main"
 
     autoupdate.strategy = "latest_github_tag"
 
