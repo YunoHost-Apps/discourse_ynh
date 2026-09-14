@@ -2,6 +2,8 @@
 
 source _common.sh
 source /usr/share/yunohost/helpers
+source ynh_0-utils
+source ynh_sources
 
 if ! ynh_in_ci_tests; then
     # Check memory requirements

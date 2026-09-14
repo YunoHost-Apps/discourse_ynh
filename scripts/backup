@@ -2,6 +2,8 @@
 
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
+source ../settings/scripts/ynh_0-utils
+source ../settings/scripts/ynh_sources
 
 ynh_print_info "Declaring files to be backed up..."
 

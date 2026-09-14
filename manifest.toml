@@ -49,8 +49,11 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.8.0.tar.gz"
-    sha256 = "9e5221f49cc7806367b0b44b6d0c4f9615c27515871c3c83e270972fd6e5af93"
+    url = "https://github.com/discourse/discourse"
+    sha256 = "badad7b0456a628e578bc48b9f8c1259422b5d58"
+    
+    prefetch = false
+    format = "git"
 
     autoupdate.strategy = "latest_github_tag"
 
