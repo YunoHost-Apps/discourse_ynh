@@ -1,8 +1,8 @@
 diff --git a/lib/git_utils.rb b/lib/git_utils.rb
-index ff00cec886a..5ca84a86da7 100644
+index fa04a2b0fd2..5b321460a7b 100644
 --- a/lib/git_utils.rb
 +++ b/lib/git_utils.rb
-@@ -12,7 +12,7 @@ class GitUtils
+@@ -19,7 +19,7 @@ class GitUtils
  
    def self.full_version
      filesystem_overrides["full_version"] ||
@@ -11,10 +11,10 @@ index ff00cec886a..5ca84a86da7 100644
    end
  
    def self.has_commit?(hash)
-@@ -23,7 +23,8 @@ class GitUtils
+@@ -50,7 +50,8 @@ class GitUtils
  
    def self.last_commit_date
-     git_cmd = 'git log -1 --format="%ct"'
+     git_cmd = "git rev-list -1 --no-commit-header --format=%ct HEAD"
 -    seconds = try_git(git_cmd, nil)
 +    # Note(decentral1se): Output from actual command in the v2026.7.1 branch
 +    seconds = self.try_git(git_cmd, '1721046633')
