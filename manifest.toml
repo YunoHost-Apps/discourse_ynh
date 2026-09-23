@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.8.0~ynh1"
+version = "2026.9.0~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -49,8 +49,8 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.8.0.tar.gz"
-    sha256 = "9e5221f49cc7806367b0b44b6d0c4f9615c27515871c3c83e270972fd6e5af93"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.9.0.tar.gz"
+    sha256 = "f81b6bebaa2fbf4c6394b41e0ad1ad779cab5aadfd3f088ca53d58d3a0bd5181"
 
     autoupdate.strategy = "latest_github_tag"
 
@@ -62,21 +62,21 @@ ram.runtime = "1G"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
 
     [resources.sources.imagemagickv7]
-    amd64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-30/imagemagick-7.1.2-30-linux-amd64.tar.gz"
-    amd64.sha256 = "ed1a7b8427b60471967631d1b0c396fd1c22f10d8d377221f75eacbc3810bdb1"
-    arm64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-30/imagemagick-7.1.2-30-linux-arm64.tar.gz"
-    arm64.sha256 = "b7fb04b7e122832c3eea470f504af7ad8d35e1f50a0c55d985886c5e87f20964"
+    amd64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-31/imagemagick-7.1.2-31-linux-amd64.tar.gz"
+    amd64.sha256 = "65b05c82fad55c4542d873bff5ff02fa873d5f192805f2050d3cd925d3268603"
+    arm64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-31/imagemagick-7.1.2-31-linux-arm64.tar.gz"
+    arm64.sha256 = "905de21cd7857f5903de7290393a6ade68fce133f4596faa13dd3f5e0927b21b"
     autoupdate.strategy = "latest_github_release"
     autoupdate.upstream = "https://github.com/orhtej2/imagemagick-binary"
     autoupdate.asset.amd64 = "imagemagick-\\d+\\.\\d+\\.\\d+-\\d+-linux-amd64\\.tar\\.gz$"
     autoupdate.asset.arm64 = "imagemagick-\\d+\\.\\d+\\.\\d+-\\d+-linux-arm64\\.tar\\.gz$"
 
     [resources.sources.oxipng]
-    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v10.2.0/oxipng-10.2.0-x86_64-unknown-linux-gnu.tar.gz"
-    amd64.sha256 = "b33f84c73d42cb592bea5d84c431030b1e97784817693380dfcec7d9575f871e"
+    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v10.2.1/oxipng-10.2.1-x86_64-unknown-linux-gnu.tar.gz"
+    amd64.sha256 = "46e3c4beb9aae57290ad809dd3374b07153579d3322a3778c53900633618b7c6"
 
-    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v10.2.0/oxipng-10.2.0-aarch64-unknown-linux-gnu.tar.gz"
-    arm64.sha256 = "97d168c6c0d1dbcb36e7438eb489804748a2ba40d94fe21aa7dab7372e9efe9b"
+    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v10.2.1/oxipng-10.2.1-aarch64-unknown-linux-gnu.tar.gz"
+    arm64.sha256 = "f51bb7c9836202da52a8181549641940662aa87ec2e3ae68115d822d893015b3"
 
     autoupdate.strategy = "latest_github_release"
     autoupdate.upstream = "https://github.com/shssoichiro/oxipng"
