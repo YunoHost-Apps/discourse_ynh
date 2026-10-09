@@ -31,6 +31,10 @@ ynh_psql_db_shell < ./db.sql
 #=================================================
 # REINSTALL BUNDLE GEM
 #=================================================
+ynh_script_progression "Building Ruby $ruby_version..."
+
+ynh_ruby_install
+
 ynh_script_progression "Reinstall Bundle Gem..."
 
 pushd "$install_dir/discourse"

@@ -23,6 +23,7 @@ ynh_app_setting_set --key=redis_db --value="$redis_db"
 
 # Set a secret value
 secret="$(ynh_string_random)"
+ynh_app_setting_set --key=secret --value="$secret"
 
 # We assume for the moment that ARM devices are only dual core, so
 # we restrict the number of workers to 2 (the default is 3)
@@ -94,6 +95,10 @@ echo "svgo: false" | ynh_exec_as_app tee "$install_dir/discourse/.image_optim.ym
 #=================================================
 # SETUP UNICORN, A RUBY SERVER
 #=================================================
+ynh_script_progression "Building Ruby $discourse_ruby_version..."
+
+discourse_ruby_install
+
 ynh_script_progression "Setting up Unicorn..."
 
 # On ARM architecture, replace bundled libpsl by system native libpsl

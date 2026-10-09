@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.7.1~ynh3"
+version = "2026.7.1~ynh4"
 
 maintainers = ["JimboJoe"]
 
@@ -85,18 +85,14 @@ ram.runtime = "1G"
 
     [resources.system_user]
 
-    [resources.install_dir]
-    group = "www-data:r-x"
-
-    [resources.permissions]
-    main.url = "/"
-
     [resources.apt]
     packages = [
         "advancecomp",
         "brotli",
         "cmake",
         "g++",
+        "gcc",
+        "make",
         "gifsicle",
         "jhead",
         "jpegoptim",
@@ -140,11 +136,14 @@ ram.runtime = "1G"
         fi
     """
 
-    [resources.database]
-    type = "postgresql"
-
     [resources.nodejs]
     version = "22"
 
-    [resources.ruby]
-    version = "3.4"
+    [resources.install_dir]
+    group = "www-data:r-x"
+
+    [resources.database]
+    type = "postgresql"
+
+    [resources.permissions]
+    main.url = "/"
