@@ -33,6 +33,13 @@ ynh_psql_db_shell < ./db.sql
 #=================================================
 ynh_script_progression "Building Ruby $ruby_version..."
 
+if [ ! -d "$RBENV_ROOT/versions/$ruby_version" ] && [ -d "$YNH_CWD$RBENV_ROOT/versions/$ruby_version" ]; then
+    ynh_restore "$RBENV_ROOT/versions/$ruby_version"
+    if ! "$RBENV_ROOT/versions/$ruby_version/bin/ruby" -e 'exit' 2>/dev/null; then
+        ynh_safe_rm "$RBENV_ROOT/versions/$ruby_version"
+    fi
+fi
+
 ynh_ruby_install
 
 ynh_script_progression "Reinstall Bundle Gem..."
