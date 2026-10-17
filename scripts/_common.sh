@@ -6,6 +6,20 @@
 
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 
+discourse_ruby_version="3.4"
+
+# Builds the Ruby version Discourse needs with the helpers, since the ruby resource of YunoHost 12 cannot change versions
+discourse_ruby_install() {
+    ruby_version="$discourse_ruby_version"
+    ynh_ruby_install
+}
+
+# Puts the Ruby already built for the app in the PATH
+discourse_ruby_load() {
+    ruby_version=$(ynh_app_setting_get --key=ruby_version)
+    _ynh_load_ruby_in_path_and_other_tweaks
+}
+
 _exec_as_app_with_ruby_node() {
     ynh_exec_as_app env PATH="$path_with_nodejs:$path_with_ruby:$PATH" "$@"
 }

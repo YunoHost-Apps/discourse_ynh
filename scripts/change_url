@@ -10,6 +10,8 @@ ynh_script_progression "Stopping $app's systemd service..."
 
 ynh_systemctl --service=$app --action="stop"
 
+discourse_ruby_load
+
 #=================================================
 # MODIFY URL IN NGINX CONF
 #=================================================

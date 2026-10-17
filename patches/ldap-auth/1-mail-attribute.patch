@@ -21,18 +21,20 @@ diff --git a/lib/ldap_user.rb b/lib/ldap_user.rb
 index 92391e9..0327656 100644
 --- a/lib/ldap_user.rb
 +++ b/lib/ldap_user.rb
-@@ -7,6 +7,14 @@ class LDAPUser
+@@ -7,6 +7,16 @@ class LDAPUser
      @email = auth_info[:email]
      @username = auth_info[:nickname]
      @user = SiteSetting.ldap_lookup_users_by == 'username' ? User.find_by_username(@username) : User.find_by_email(@email)
-+    primary_email = @user.user_emails.find_by(email: @user.email)
-+    if primary_email.present?
-+      primary_email.update!(email: @email)
-+    else
-+      @user.user_emails.update_all(primary: false)
-+      @user.user_emails.create!(email: @email, primary: true)
++    if @user && @email.present? && SiteSetting.ldap_email != 'email'
++      primary_email = @user.user_emails.find_by(email: @user.email)
++      if primary_email.present?
++        primary_email.update!(email: @email)
++      else
++        @user.user_emails.update_all(primary: false)
++        @user.user_emails.create!(email: @email, primary: true)
++      end
++      @user.reload
 +    end
-+    @user.reload
      create_user_groups(auth_info[:groups]) unless self.account_exists?
    end
  

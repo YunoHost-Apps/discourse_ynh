@@ -14,7 +14,6 @@ fi
 
 relative_url_root=${path%/}
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
-secret="$(ynh_string_random)"
 
 #=================================================
 # ENABLE MAINTENANCE MODE
@@ -47,34 +46,30 @@ if [ -z "$unicorn_workers" ]; then
     ynh_app_setting_set --key="unicorn_workers" --value="$unicorn_workers"
 fi
 
-if [ -f "$install_dir/tmp/sockets/unicorn.sock" ]; then
-    # Move sources into the discourse subdir.
-    mkdir -p "$install_dir/__new__"
-    find "$install_dir" -mindepth 1 -maxdepth 1 -not -name "__new__" -print0 | xargs -0 mv -t "$install_dir/__new__"
-    mv "$install_dir/__new__" "$install_dir/discourse"
+if [ ! -d "$install_dir/discourse" ] && [ -f "$install_dir/config/application.rb" ]; then
+    mkdir "$install_dir/discourse"
+    find "$install_dir" -mindepth 1 -maxdepth 1 -not -name discourse -exec mv -t "$install_dir/discourse" {} +
+    for file in config/discourse.conf config/secrets.yml config/unicorn.conf.rb plugins/discourse-ldap-auth/config/settings.yml; do
+        ynh_delete_file_checksum "$install_dir/$file"
+    done
+    ynh_config_remove_logrotate
 fi
+
+ynh_safe_rm "$install_dir/discourse/public/forum/uploads"
+ynh_safe_rm "$install_dir/discourse/public/forum/backups"
 
 # See https://github.com/jonmbake/discourse-ldap-auth/issues/77
 if [ -d "$install_dir/discourse/plugins/discourse-ldap-auth" ]; then
+    ynh_safe_rm "$install_dir/discourse/plugins/ldap"
     mv "$install_dir/discourse/plugins/discourse-ldap-auth" "$install_dir/discourse/plugins/ldap"
 fi
 
-if [ ! -d "$install_dir/discourse" ]; then
-    tmpdir=$(mktemp -d)
-    mv $install_dir $tmpdir/
-    mkdir -p "$install_dir"
-    mv $tmpdir/$app $install_dir/
-    ynh_delete_file_checksum "$install_dir/config/discourse.conf"
-    ynh_store_file_checksum "$install_dir/discourse/config/discourse.conf"
-    ynh_delete_file_checksum "$install_dir/config/secrets.yml"
-    ynh_store_file_checksum "$install_dir/discourse/config/secrets.yml"
-    mv "$install_dir/discourse/plugins/discourse-ldap-auth" "$install_dir/discourse/plugins/ldap"
-    ynh_delete_file_checksum "$install_dir/plugins/discourse-ldap-aut/config/settings.yml"
-    ynh_store_file_checksum "$install_dir/discourse/plugins/ldap/config/settings.yml"
-    ynh_safe_rm "$tmpdir"
-    ynh_config_remove_logrotate
-    ynh_safe_rm "$install_dir/public/forum/uploads"
-    ynh_safe_rm "$install_dir/public/forum/backups"
+if [ -z "${secret:-}" ]; then
+    secret=$(sed -n '/^production:/,$ s/^  secret_key_base: *//p' "$install_dir/discourse/config/secrets.yml" 2>/dev/null | head -n1)
+    if [ -z "$secret" ] || [ "$secret" = "__SECRET__" ]; then
+        secret="$(ynh_string_random)"
+    fi
+    ynh_app_setting_set --key=secret --value="$secret"
 fi
 
 #=================================================
@@ -105,6 +100,8 @@ ynh_script_progression "Upgrading source files..."
 
 # Small trick to backup non-core plugins
 mv "$install_dir/discourse/plugins" "$install_dir/discourse/plugins_old"
+
+ynh_safe_rm "$install_dir/discourse/plugins_old/lazy-yt"
 
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir/discourse" --full_replace --keep="config/discourse.conf plugins_old public/uploads public/backups log"
@@ -151,6 +148,10 @@ echo "svgo: false" | ynh_exec_as_app tee "$install_dir/discourse/.image_optim.ym
 #=================================================
 # SETUP UNICORN, A RUBY SERVER
 #=================================================
+ynh_script_progression "Building Ruby $discourse_ruby_version..."
+
+discourse_ruby_install
+
 ynh_script_progression "Setting up Unicorn..."
 
 # Make a backup of the original config file if modified
