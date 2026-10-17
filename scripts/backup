@@ -21,6 +21,10 @@ ynh_backup "/etc/logrotate.d/$app"
 
 ynh_backup "/etc/systemd/system/$app.service"
 
+if [ -n "${ruby_version:-}" ] && [ -d "$RBENV_ROOT/versions/$ruby_version" ]; then
+    ynh_backup "$RBENV_ROOT/versions/$ruby_version"
+fi
+
 #=================================================
 # BACKUP THE POSTGRESQL DATABASE
 #=================================================
