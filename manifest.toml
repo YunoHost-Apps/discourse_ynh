@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.7.1~ynh4"
+version = "2026.7.1~ynh5"
 
 maintainers = ["JimboJoe"]
 
