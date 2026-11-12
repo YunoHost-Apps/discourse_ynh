@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.9.1~ynh1"
+version = "2026.10.1~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -49,8 +49,8 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.9.1.tar.gz"
-    sha256 = "e8830a8a696ed3bfa5bffd6cf839360d3218da97bc3ae6c0cf7f8316fa5e9d76"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.10.1.tar.gz"
+    sha256 = "dd0d16c8f28db52f85ea2c6b651768b4c09d63084194494e127b76f12b7c6211"
 
     autoupdate.strategy = "latest_github_tag"
 
@@ -62,10 +62,10 @@ ram.runtime = "1G"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
 
     [resources.sources.imagemagickv7]
-    amd64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-34/imagemagick-7.1.2-34-linux-amd64.tar.gz"
-    amd64.sha256 = "441338044f498bd5cbcbb16c82fd001375f2c17e51ade8a00428f3598b6caa01"
-    arm64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-34/imagemagick-7.1.2-34-linux-arm64.tar.gz"
-    arm64.sha256 = "3d39d1a024ee965224929bc4bfd90812713fd86832a2b46fe114365419849b55"
+    amd64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-35/imagemagick-7.1.2-35-linux-amd64.tar.gz"
+    amd64.sha256 = "04b6c99886844c7490b78bcf5720ff19da8603b3160610cbed3da2cac37e2d25"
+    arm64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-35/imagemagick-7.1.2-35-linux-arm64.tar.gz"
+    arm64.sha256 = "d66fafc289b7a1375c7b66e090799773f7f51c6c1d43743288ae1671444050b0"
     autoupdate.strategy = "latest_github_release"
     autoupdate.upstream = "https://github.com/orhtej2/imagemagick-binary"
     autoupdate.asset.amd64 = "imagemagick-\\d+\\.\\d+\\.\\d+-\\d+-linux-amd64\\.tar\\.gz$"
