@@ -157,11 +157,8 @@ ynh_safe_rm "$install_dir/provisioning.sql"
 ynh_script_progression "Creating Discourse admin user..."
 
 pushd "$install_dir/discourse"
-    _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake admin:create <<< "$admin_mail
-$admin_pwd
-$admin_pwd
-y
-"
+    printf '%s\n' "$admin_mail" "$admin_pwd" "$admin_pwd" "y" \
+        | _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake admin:create
 popd
 
 #=================================================

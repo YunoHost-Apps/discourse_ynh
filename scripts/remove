@@ -21,7 +21,7 @@ ynh_config_remove_nginx
 ynh_redis_remove_db "$redis_db"
 
 if [ -n "${ruby_version:-}" ]; then
-    ynh_ruby_remove
+    _discourse_ruby_helper remove
 fi
 
 ynh_safe_rm "/etc/nginx/conf.d/$domain.d/maintenance.$app.conf"

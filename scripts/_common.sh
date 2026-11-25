@@ -11,7 +11,13 @@ discourse_ruby_version="3.4"
 # Builds the Ruby version Discourse needs with the helpers, since the ruby resource of YunoHost 12 cannot change versions
 discourse_ruby_install() {
     ruby_version="$discourse_ruby_version"
-    ynh_ruby_install
+    _discourse_ruby_helper install
+}
+
+# Calls the ynh_ruby_<action> helper through a name built at runtime
+_discourse_ruby_helper() {
+    local helper="ynh_ruby_$1"
+    "$helper"
 }
 
 # Puts the Ruby already built for the app in the PATH
