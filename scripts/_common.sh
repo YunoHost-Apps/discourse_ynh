@@ -6,6 +6,26 @@
 
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 
+discourse_ruby_version="3.4"
+
+# Builds the Ruby version Discourse needs with the helpers, since the ruby resource of YunoHost 12 cannot change versions
+discourse_ruby_install() {
+    ruby_version="$discourse_ruby_version"
+    _discourse_ruby_helper install
+}
+
+# Calls the ynh_ruby_<action> helper through a name built at runtime
+_discourse_ruby_helper() {
+    local helper="ynh_ruby_$1"
+    "$helper"
+}
+
+# Puts the Ruby already built for the app in the PATH
+discourse_ruby_load() {
+    ruby_version=$(ynh_app_setting_get --key=ruby_version)
+    _ynh_load_ruby_in_path_and_other_tweaks
+}
+
 _exec_as_app_with_ruby_node() {
     ynh_exec_as_app env PATH="$path_with_nodejs:$path_with_ruby:$PATH" "$@"
 }
@@ -54,39 +74,7 @@ check_memory_requirements_upgrade() {
 tools_prefix="$install_dir/dependencies"
 
 install_imagemagick() {
-    # See https://github.com/discourse/discourse_docker/blob/main/image/base/install-imagemagick
-    ynh_setup_source --source_id="imagemagickv7" --dest_dir="$install_dir/imagemagick_source"
-    mkdir -p "$tools_prefix"
-    chown -R "$app:$app" "$install_dir/imagemagick_source" "$tools_prefix"
-
-    pushd "$install_dir/imagemagick_source"
-        ynh_exec_as_app CFLAGS="-O2 -I$tools_prefix/include -Wno-deprecated-declarations" \
-            ./configure \
-            --prefix="$tools_prefix" \
-            --enable-static \
-            --enable-bounds-checking \
-            --enable-hdri \
-            --enable-hugepages \
-            --with-threads \
-            --with-modules \
-            --with-quantum-depth=16 \
-            --without-magick-plus-plus \
-            --with-bzlib \
-            --with-zlib \
-            --without-autotrace \
-            --with-freetype \
-            --with-jpeg \
-            --without-lcms \
-            --with-lzma \
-            --with-png \
-            --with-tiff \
-            --with-heic \
-            --with-rsvg \
-            --with-webp
-        ynh_exec_as_app make all -j"$(nproc)"
-        ynh_exec_as_app LIBTOOLFLAGS=-Wnone make install
-    popd
-    ynh_safe_rm "$install_dir/imagemagick_source"
+    ynh_setup_source --source_id="imagemagickv7" --dest_dir="$tools_prefix"
 }
 
 install_oxipng() {

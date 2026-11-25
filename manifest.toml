@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.3.0~ynh4"
+version = "2026.10.2~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -49,8 +49,8 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.3.0.tar.gz"
-    sha256 = "00deb75632a6dbbe389065114b0337d58e6ef504baae7a97c4eef2dcef3e0067"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.10.2.tar.gz"
+    sha256 = "0f4eb094bc35d1ddaf37cca9c96cb025c7f8402021fb77cb8a68dc0e5875a529"
 
     autoupdate.strategy = "latest_github_tag"
 
@@ -62,18 +62,21 @@ ram.runtime = "1G"
     autoupdate.upstream = "https://github.com/jonmbake/discourse-ldap-auth"
 
     [resources.sources.imagemagickv7]
-    url = "https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-21.tar.gz"
-    sha256 = "4ba5b81797910efa93e65fb5a02b496284b8069d64513c6d2687c80d180dd70f"
-
-    autoupdate.strategy = "latest_github_tag"
-    autoupdate.upstream = "https://github.com/ImageMagick/ImageMagick"
+    amd64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-36/imagemagick-7.1.2-36-linux-amd64.tar.gz"
+    amd64.sha256 = "9d4bdf0ad6dea53bba3419bb1947f245eb150211b7cae65449546a0d2325423d"
+    arm64.url = "https://github.com/orhtej2/imagemagick-binary/releases/download/7.1.2-36/imagemagick-7.1.2-36-linux-arm64.tar.gz"
+    arm64.sha256 = "270d09dd4f2fb4eb7bcd9b371b4f9c604dfb2e1f339c68e233d9b6591e609e0b"
+    autoupdate.strategy = "latest_github_release"
+    autoupdate.upstream = "https://github.com/orhtej2/imagemagick-binary"
+    autoupdate.asset.amd64 = "imagemagick-\\d+\\.\\d+\\.\\d+-\\d+-linux-amd64\\.tar\\.gz$"
+    autoupdate.asset.arm64 = "imagemagick-\\d+\\.\\d+\\.\\d+-\\d+-linux-arm64\\.tar\\.gz$"
 
     [resources.sources.oxipng]
-    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v10.1.1/oxipng-10.1.1-x86_64-unknown-linux-gnu.tar.gz"
-    amd64.sha256 = "5988392e88fc3d03f562f2d565e5c12a095223ae8bd983576f2aaff2fadf3738"
+    amd64.url = "https://github.com/oxipng/oxipng/releases/download/v10.2.1/oxipng-10.2.1-x86_64-unknown-linux-gnu.tar.gz"
+    amd64.sha256 = "46e3c4beb9aae57290ad809dd3374b07153579d3322a3778c53900633618b7c6"
 
-    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v10.1.1/oxipng-10.1.1-aarch64-unknown-linux-gnu.tar.gz"
-    arm64.sha256 = "a69c9dbb110463746153bf9b56488a293747e1d90dc1f30d24af3d9615165b98"
+    arm64.url = "https://github.com/oxipng/oxipng/releases/download/v10.2.1/oxipng-10.2.1-aarch64-unknown-linux-gnu.tar.gz"
+    arm64.sha256 = "f51bb7c9836202da52a8181549641940662aa87ec2e3ae68115d822d893015b3"
 
     autoupdate.strategy = "latest_github_release"
     autoupdate.upstream = "https://github.com/shssoichiro/oxipng"
@@ -83,18 +86,14 @@ ram.runtime = "1G"
     [resources.system_user]
     allow_email = true
 
-    [resources.install_dir]
-    group = "www-data:r-x"
-
-    [resources.permissions]
-    main.url = "/"
-
     [resources.apt]
     packages = [
         "advancecomp",
         "brotli",
         "cmake",
         "g++",
+        "gcc",
+        "make",
         "gifsicle",
         "jhead",
         "jpegoptim",
@@ -116,17 +115,7 @@ ram.runtime = "1G"
         "pngquant",
         "redis-server",
         "zlib1g-dev",
-
-        # Dependencies of imagemagick
-        "make",
-        "libltdl-dev",
-        "libbz2-dev", "zlib1g-dev", "libfreetype6-dev", "libjpeg-dev", "liblzma-dev",
-        "libwebp-dev", "libtiff-dev", "librsvg2-dev",
-        "libpng16-16", "libpng-dev",
-        "libjpeg62-turbo", "libjpeg62-turbo-dev",
-        "libheif1", "libheif-dev",
-        "libde265-0", "libde265-dev",
-        # ${LIBWEBP}
+        "libffi-dev",
 
         "postgresql",
         "postgresql-client",
@@ -148,11 +137,14 @@ ram.runtime = "1G"
         fi
     """
 
-    [resources.database]
-    type = "postgresql"
-
     [resources.nodejs]
     version = "22"
 
-    [resources.ruby]
-    version = "3.4"
+    [resources.install_dir]
+    group = "www-data:r-x"
+
+    [resources.database]
+    type = "postgresql"
+
+    [resources.permissions]
+    main.url = "/"
