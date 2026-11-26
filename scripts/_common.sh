@@ -6,7 +6,7 @@
 
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 
-discourse_ruby_version="3.4"
+discourse_ruby_version="4.0"
 
 # Builds the Ruby version Discourse needs with the helpers, since the ruby resource of YunoHost 12 cannot change versions
 discourse_ruby_install() {
