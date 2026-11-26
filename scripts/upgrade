@@ -70,12 +70,17 @@ if [ -d "$install_dir/discourse/plugins/discourse-ldap-auth" ]; then
     mv "$install_dir/discourse/plugins/discourse-ldap-auth" "$install_dir/discourse/plugins/ldap"
 fi
 
-if [ -z "${secret:-}" ]; then
-    secret=$(sed -n '/^production:/,$ s/^  secret_key_base: *//p' "$install_dir/discourse/config/secrets.yml" 2>/dev/null | head -n1)
-    if [ -z "$secret" ] || [ "$secret" = "__SECRET__" ]; then
-        secret="$(ynh_string_random)"
+if ! is_valid_secret_key_base "${secret:-}"; then
+    secret=$(redis-cli -n "$redis_db" GET SECRET_TOKEN 2>/dev/null || true)
+    if ! is_valid_secret_key_base "$secret"; then
+        secret="$(ynh_string_random --length=128 --filter='0-9a-f')"
     fi
     ynh_app_setting_set --key=secret --value="$secret"
+fi
+
+if [ -f "$install_dir/discourse/config/secrets.yml" ]; then
+    ynh_delete_file_checksum "$install_dir/discourse/config/secrets.yml"
+    ynh_safe_rm "$install_dir/discourse/config/secrets.yml"
 fi
 
 #=================================================
@@ -151,7 +156,6 @@ ynh_script_progression "Updating $app's config file..."
 ynh_config_add --template="discourse.env" --destination="$discourse_env_file"
 chmod 400 "$discourse_env_file"
 chown "$app:$app" "$discourse_env_file"
-ynh_config_add --template="secrets.yml" --destination="$install_dir/discourse/config/secrets.yml"
 ynh_config_add --template="settings.yml" --destination="$install_dir/discourse/plugins/ldap/config/settings.yml"
 
 # Disable svgo worker

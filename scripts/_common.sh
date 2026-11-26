@@ -77,6 +77,11 @@ check_memory_requirements_upgrade() {
 
 tools_prefix="$install_dir/dependencies"
 
+# Returns true if the argument is a secret_key_base Discourse accepts: 128 lowercase hex characters
+is_valid_secret_key_base() {
+    [[ "$1" =~ ^[0-9a-f]{128}$ ]]
+}
+
 install_imagemagick() {
     ynh_setup_source --source_id="imagemagickv7" --dest_dir="$tools_prefix"
 }

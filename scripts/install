@@ -22,8 +22,7 @@ admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 redis_db=$(ynh_redis_get_free_db)
 ynh_app_setting_set --key=redis_db --value="$redis_db"
 
-# Set a secret value
-secret="$(ynh_string_random)"
+secret="$(ynh_string_random --length=128 --filter='0-9a-f')"
 ynh_app_setting_set --key=secret --value="$secret"
 
 # We assume for the moment that ARM devices are only dual core, so
@@ -91,7 +90,6 @@ ynh_script_progression "Adding $app's configuration file..."
 ynh_config_add --template="discourse.env" --destination="$discourse_env_file"
 chmod 400 "$discourse_env_file"
 chown "$app:$app" "$discourse_env_file"
-ynh_config_add --template="secrets.yml" --destination="$install_dir/discourse/config/secrets.yml"
 ynh_config_add --template="settings.yml" --destination="$install_dir/discourse/plugins/ldap/config/settings.yml"
 
 # Disable svgo worker
