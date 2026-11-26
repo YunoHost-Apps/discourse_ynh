@@ -88,6 +88,17 @@ install_oxipng() {
     ynh_safe_rm "$install_dir/oxipng_source"
 }
 
+# Puts Discourse's pre-built frontend in place so assets:precompile can skip the JS build
+install_prebuilt_assets() {
+    local assets_dir="$install_dir/prebuilt_assets"
+    ynh_setup_source --source_id="prebuilt_assets" --dest_dir="$assets_dir" --full_replace
+    ynh_safe_rm "$install_dir/discourse/frontend/discourse/dist"
+    ynh_safe_rm "$install_dir/discourse/app/assets/generated"
+    mv "$assets_dir/core" "$install_dir/discourse/frontend/discourse/dist"
+    mv "$assets_dir/plugins" "$install_dir/discourse/app/assets/generated"
+    ynh_safe_rm "$assets_dir"
+}
+
 ynh_maintenance_mode_ON () {
     # Create an html to serve as maintenance notice
     echo "<!DOCTYPE html>

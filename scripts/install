@@ -63,6 +63,8 @@ ynh_script_progression "Setting up source files..."
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir/discourse"
 
+install_prebuilt_assets
+
 # Install LDAP plugin
 ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/ldap"
 

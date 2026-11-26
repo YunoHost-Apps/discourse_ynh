@@ -113,6 +113,8 @@ done
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir/discourse" --full_replace --keep="plugins_old public/uploads public/backups log"
 
+install_prebuilt_assets
+
 # Restore all non-core plugins
 for plugin_dir in "$install_dir/discourse/plugins_old"/*; do
     plugin_name=$(basename "$plugin_dir")

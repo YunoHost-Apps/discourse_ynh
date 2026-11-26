@@ -54,6 +54,11 @@ ram.runtime = "1G"
 
     autoupdate.strategy = "latest_github_tag"
 
+    [resources.sources.prebuilt_assets]
+    url = "https://github.com/discourse/discourse-assets/releases/download/v2026.11.0-d452f325/production.tar.gz"
+    sha256 = "05928323fa16d67f5b88ebe2ed517e0aa021a615bdfb07b4e13f3d9fa3719986"
+    in_subdir = false
+
     [resources.sources.ldap-auth]
     url = "https://github.com/jonmbake/discourse-ldap-auth/archive/9776c1d021696e5bfdb8857093b8434063bc6ae1.tar.gz"
     sha256 = "6007f2762934f248796a9feef009cab86ff91ad31a49d7bf736479c58520eaee"
@@ -94,6 +99,7 @@ ram.runtime = "1G"
         "gcc",
         "make",
         "gifsicle",
+        "git",
         "jhead",
         "jpegoptim",
         "libapr1-dev",
