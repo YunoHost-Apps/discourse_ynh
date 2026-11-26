@@ -170,29 +170,13 @@ unicorn_config_file="$install_dir/discourse/config/pitchfork.conf.rb"
 ynh_backup_if_checksum_is_different "$unicorn_config_file"
 ynh_store_file_checksum "$unicorn_config_file"
 
-# On ARM architecture, replace bundled libpsl by system native libpsl
-# because the provided binary isn't compatible
-if dpkg --print-architecture | grep -q "arm"; then
-    (
-        cd "$install_dir/discourse/vendor/bundle/ruby"/*/"gems/mini_suffix-*/vendor"
-        rm libpsl.so
-        ln -s "$(ldconfig -p | grep libpsl | awk 'END {print $NF}')" libpsl.so
-    )
-fi
-
 pushd "$install_dir/discourse"
     # Install bundler, a gems installer
     gem install bundler --conservative -v $(awk '/BUNDLED WITH/ { getline; gsub(/ /,""); print $0 }' $install_dir/discourse/Gemfile.lock)
     # Install without documentation
     echo "gem: --no-ri --no-rdoc" | ynh_exec_as_app tee "$install_dir/discourse/.gemrc" >/dev/null
 
-    # Specific actions on ARM architecture
-    if dpkg --print-architecture | grep -q "arm"; then
-        # Define the platform specifically to retrieve binaries
-        # for libv8 because it currently doesn't compile on ARM devices
-        _exec_as_app_with_ruby_node bundle config specific_platform arm-linux
-    fi
-
+    _exec_as_app_with_ruby_node bundle config unset specific_platform
     # Install dependencies
     _exec_as_app_with_ruby_node bundle config set --local path "$install_dir/discourse/vendor/bundle"
     _exec_as_app_with_ruby_node bundle config set --local without test development
