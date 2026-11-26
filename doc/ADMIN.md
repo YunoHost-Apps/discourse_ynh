@@ -72,6 +72,7 @@ When disabling Local Login and other authentication services, clicking the `Logi
 cd /var/www/discourse/discourse
 discourse_run() { sudo -u discourse env PATH="/opt/rbenv/versions/discourse/bin:$PATH" RAILS_ENV=production bash -c 'set -a; source ../discourse.env; set +a; exec "$@"' _ "$@"; }
 discourse_run bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved
+discourse_run bin/rake --trace db:migrate
 discourse_run bin/rake --trace assets:precompile
 systemctl restart discourse
 ```
