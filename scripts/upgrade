@@ -101,7 +101,9 @@ ynh_script_progression "Upgrading source files..."
 # Small trick to backup non-core plugins
 mv "$install_dir/discourse/plugins" "$install_dir/discourse/plugins_old"
 
-ynh_safe_rm "$install_dir/discourse/plugins_old/lazy-yt"
+for obsolete_plugin in lazy-yt discourse-calendar discourse-hcaptcha voice; do
+    ynh_safe_rm "$install_dir/discourse/plugins_old/$obsolete_plugin"
+done
 
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir/discourse" --full_replace --keep="config/discourse.conf plugins_old public/uploads public/backups log"
@@ -191,7 +193,7 @@ popd
 pushd "$install_dir/discourse"
     ynh_hide_warnings npm install --location=global terser
     ynh_hide_warnings npm install --location=global uglify-js
-    ynh_hide_warnings npm install --location=global pnpm@10
+    ynh_hide_warnings npm install --location=global pnpm@10 --force
     ynh_hide_warnings _exec_as_app_with_ruby_node pnpm install --frozen-lockfile
 popd
 

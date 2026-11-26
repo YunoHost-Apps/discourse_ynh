@@ -18,20 +18,28 @@ index 157fe53..e3582a1 100644
 +  ldap_email:
 +    default: 'email'
 diff --git a/lib/ldap_user.rb b/lib/ldap_user.rb
-index 92391e9..0327656 100644
+index 92391e9..4db806a 100644
 --- a/lib/ldap_user.rb
 +++ b/lib/ldap_user.rb
-@@ -7,6 +7,16 @@ class LDAPUser
+@@ -7,6 +7,24 @@ class LDAPUser
      @email = auth_info[:email]
      @username = auth_info[:nickname]
      @user = SiteSetting.ldap_lookup_users_by == 'username' ? User.find_by_username(@username) : User.find_by_email(@email)
 +    if @user && @email.present? && SiteSetting.ldap_email != 'email'
-+      primary_email = @user.user_emails.find_by(email: @user.email)
-+      if primary_email.present?
-+        primary_email.update!(email: @email)
-+      else
-+        @user.user_emails.update_all(primary: false)
-+        @user.user_emails.create!(email: @email, primary: true)
++      @user.with_lock do
++        primary_email = @user.user_emails.find_by(primary: true)
++        existing_email = @user.user_emails.find_by('lower(email) = ?', @email.strip.downcase)
++
++        if existing_email
++          unless existing_email.primary?
++            primary_email&.update!(primary: false)
++            existing_email.update!(primary: true)
++          end
++        elsif primary_email
++          primary_email.update!(email: @email)
++        else
++          @user.user_emails.create!(email: @email, primary: true)
++        end
 +      end
 +      @user.reload
 +    end
