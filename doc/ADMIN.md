@@ -23,7 +23,7 @@ Use the admin panel of your Discourse to configure this app.
 
 * You should create a dedicated Yunohost user for Discourse whose mailbox will be used by the Discourse application. You can do this with `yunohost user create response`, for example. You should ensure that the email address is configured to be on your Discourse domain.
 
-* You should then configure your Discourse `__INSTALL_DIR__/discourse/config/discourse.conf` file with the correct SMTP configuration values. Please see [this comment](https://github.com/YunoHost-Apps/discourse_ynh/issues/2#issuecomment-409510325) for an explanation of what values to change. Please be aware, when you update the application, you will have to re-apply this configuration.
+* Outgoing email needs no setup: Discourse sends through the YunoHost mail server as `__APP__@__DOMAIN__`. Keep that address in the `notification_email` setting, as the mail server refuses other senders for this app.
 
 * You must enable the Pop3 configuration for Dovecot. See [this thread](https://forum.yunohost.org/t/how-to-enable-pop3-in-yunohost/1662/2) on how to do that. You can validate your configuration with `systemctl restart dovecot && dovecot -n`. Don't forget to open the ports you need (`995` is the default). You can validate that with `nmap -p 995 yunohostdomain.org`.
 
@@ -44,8 +44,9 @@ Another solution could be to use yunohost user hooks to create secondary emails 
 Here's how to setup a secondary mail address for a user account:
 
 ```bash
-cd /var/www/discourse
-RAILS_ENV=production /opt/rbenv/versions/2.7.1/bin/bundle exec rails c
+cd /var/www/discourse/discourse
+discourse_run() { sudo -u discourse env PATH="/opt/rbenv/versions/discourse/bin:$PATH" RAILS_ENV=production bash -c 'set -a; source ../discourse.env; set +a; exec "$@"' _ "$@"; }
+discourse_run bin/rails c
 UserEmail.create!(user: User.find_by_username("foo"), email: "foo@theirexternalmail.com")
 ```
 
@@ -69,7 +70,9 @@ When disabling Local Login and other authentication services, clicking the `Logi
 
 ```bash
 cd /var/www/discourse/discourse
-sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved (for example)
-sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
+discourse_run() { sudo -u discourse env PATH="/opt/rbenv/versions/discourse/bin:$PATH" RAILS_ENV=production bash -c 'set -a; source ../discourse.env; set +a; exec "$@"' _ "$@"; }
+discourse_run bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved
+discourse_run bin/rake --trace db:migrate
+discourse_run bin/rake --trace assets:precompile
 systemctl restart discourse
 ```

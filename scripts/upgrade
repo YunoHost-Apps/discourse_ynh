@@ -13,6 +13,7 @@ fi
 #=================================================
 
 relative_url_root=${path%/}
+mail_sender="${mail_user:-$app}@${mail_domain:-$domain}"
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 
 #=================================================
@@ -55,6 +56,11 @@ if [ ! -d "$install_dir/discourse" ] && [ -f "$install_dir/config/application.rb
     ynh_config_remove_logrotate
 fi
 
+if [ -f "$install_dir/discourse/config/discourse.conf" ]; then
+    ynh_delete_file_checksum "$install_dir/discourse/config/discourse.conf"
+    ynh_safe_rm "$install_dir/discourse/config/discourse.conf"
+fi
+
 ynh_safe_rm "$install_dir/discourse/public/forum/uploads"
 ynh_safe_rm "$install_dir/discourse/public/forum/backups"
 
@@ -64,12 +70,17 @@ if [ -d "$install_dir/discourse/plugins/discourse-ldap-auth" ]; then
     mv "$install_dir/discourse/plugins/discourse-ldap-auth" "$install_dir/discourse/plugins/ldap"
 fi
 
-if [ -z "${secret:-}" ]; then
-    secret=$(sed -n '/^production:/,$ s/^  secret_key_base: *//p' "$install_dir/discourse/config/secrets.yml" 2>/dev/null | head -n1)
-    if [ -z "$secret" ] || [ "$secret" = "__SECRET__" ]; then
-        secret="$(ynh_string_random)"
+if ! is_valid_secret_key_base "${secret:-}"; then
+    secret=$(redis-cli -n "$redis_db" GET SECRET_TOKEN 2>/dev/null || true)
+    if ! is_valid_secret_key_base "$secret"; then
+        secret="$(ynh_string_random --length=128 --filter='0-9a-f')"
     fi
     ynh_app_setting_set --key=secret --value="$secret"
+fi
+
+if [ -f "$install_dir/discourse/config/secrets.yml" ]; then
+    ynh_delete_file_checksum "$install_dir/discourse/config/secrets.yml"
+    ynh_safe_rm "$install_dir/discourse/config/secrets.yml"
 fi
 
 #=================================================
@@ -106,7 +117,9 @@ for obsolete_plugin in lazy-yt discourse-calendar discourse-hcaptcha voice; do
 done
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir/discourse" --full_replace --keep="config/discourse.conf plugins_old public/uploads public/backups log"
+ynh_setup_source --dest_dir="$install_dir/discourse" --full_replace --keep="plugins_old public/uploads public/backups log"
+
+install_prebuilt_assets
 
 # Restore all non-core plugins
 for plugin_dir in "$install_dir/discourse/plugins_old"/*; do
@@ -117,6 +130,13 @@ for plugin_dir in "$install_dir/discourse/plugins_old"/*; do
 done
 
 ynh_safe_rm "$install_dir/discourse/plugins_old"
+
+for plugin_dir in "$install_dir/discourse/plugins"/*; do
+    if [ -d "$plugin_dir/.git" ]; then
+        ynh_exec_as_app git -C "$plugin_dir" pull --quiet --no-rebase \
+            || ynh_print_warn "Could not update the $(basename "$plugin_dir") plugin, keeping its current version"
+    fi
+done
 
 # Install LDAP plugin
 ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/ldap" --full_replace --keep="config/settings.yml"
@@ -140,8 +160,9 @@ chown -R "$app:www-data" "$install_dir"
 #=================================================
 ynh_script_progression "Updating $app's config file..."
 
-ynh_config_add --template="discourse_defaults.conf" --destination="$install_dir/discourse/config/discourse.conf"
-ynh_config_add --template="secrets.yml" --destination="$install_dir/discourse/config/secrets.yml"
+ynh_config_add --template="discourse.env" --destination="$discourse_env_file"
+chmod 400 "$discourse_env_file"
+chown "$app:$app" "$discourse_env_file"
 ynh_config_add --template="settings.yml" --destination="$install_dir/discourse/plugins/ldap/config/settings.yml"
 
 # Disable svgo worker
@@ -161,38 +182,22 @@ unicorn_config_file="$install_dir/discourse/config/pitchfork.conf.rb"
 ynh_backup_if_checksum_is_different "$unicorn_config_file"
 ynh_store_file_checksum "$unicorn_config_file"
 
-# On ARM architecture, replace bundled libpsl by system native libpsl
-# because the provided binary isn't compatible
-if dpkg --print-architecture | grep -q "arm"; then
-    (
-        cd "$install_dir/discourse/vendor/bundle/ruby"/*/"gems/mini_suffix-*/vendor"
-        rm libpsl.so
-        ln -s "$(ldconfig -p | grep libpsl | awk 'END {print $NF}')" libpsl.so
-    )
-fi
-
 pushd "$install_dir/discourse"
     # Install bundler, a gems installer
     gem install bundler --conservative -v $(awk '/BUNDLED WITH/ { getline; gsub(/ /,""); print $0 }' $install_dir/discourse/Gemfile.lock)
     # Install without documentation
     echo "gem: --no-ri --no-rdoc" | ynh_exec_as_app tee "$install_dir/discourse/.gemrc" >/dev/null
 
-    # Specific actions on ARM architecture
-    if dpkg --print-architecture | grep -q "arm"; then
-        # Define the platform specifically to retrieve binaries
-        # for libv8 because it currently doesn't compile on ARM devices
-        _exec_as_app_with_ruby_node bundle config specific_platform arm-linux
-    fi
-
+    _exec_as_app_with_ruby_node bundle config unset specific_platform
     # Install dependencies
     _exec_as_app_with_ruby_node bundle config set --local path "$install_dir/discourse/vendor/bundle"
     _exec_as_app_with_ruby_node bundle config set --local without test development
     _exec_as_app_with_ruby_node bundle install --jobs 2
+    _exec_as_app_with_ruby_node LOAD_PLUGINS=0 RAILS_ENV=production bundle exec rake plugin:pull_compatible_all \
+        || ynh_print_warn "Could not check out plugin versions compatible with this Discourse release"
 popd
 
 pushd "$install_dir/discourse"
-    ynh_hide_warnings npm install --location=global terser
-    ynh_hide_warnings npm install --location=global uglify-js
     ynh_hide_warnings npm install --location=global pnpm@10 --force
     ynh_hide_warnings _exec_as_app_with_ruby_node pnpm install --frozen-lockfile
 popd
@@ -204,6 +209,12 @@ ynh_script_progression "Preparing the database..."
 
 pushd "$install_dir/discourse"
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake db:migrate
+    ynh_psql_db_shell <<< "INSERT INTO site_settings (name, data_type, value, created_at, updated_at)
+        SELECT 'notification_email', 14, '$mail_sender', NOW(), NOW()
+        WHERE NOT EXISTS (SELECT 1 FROM site_settings WHERE name = 'notification_email');"
+    if ! ynh_psql_db_shell <<< "SELECT value FROM site_settings WHERE name = 'notification_email';" | awk '{$1=$1};1' | grep -qxF "$mail_sender"; then
+        ynh_print_warn "Discourse's notification_email setting is not $mail_sender, so the mail server will refuse its emails. Set it back to $mail_sender in the Discourse admin."
+    fi
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake themes:update
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production DISCOURSE_DOWNLOAD_PRE_BUILT_ASSETS=0 bundle exec rake assets:precompile
 popd

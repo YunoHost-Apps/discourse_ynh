@@ -24,30 +24,29 @@ ynh_config_change_url_nginx
 #=================================================
 ynh_script_progression "Updating a config file..."
 
-discourse_config_file="$install_dir/discourse/config/discourse.conf"
-
 old_relative_url_root="${old_path%/}"
 new_relative_url_root="${new_path%/}"
+old_mail_sender="${mail_user:-$app}@${mail_domain:-$old_domain}"
+new_mail_sender="${mail_user:-$app}@${mail_domain:-$new_domain}"
 
-# Configure hostname
-ynh_replace --match="hostname = .*" --replace="hostname = \"$new_domain\"" --file="$discourse_config_file"
-ynh_replace --match="relative_url_root = .*" --replace="relative_url_root = ${new_path%/}" --file="$discourse_config_file"
-ynh_replace --match="smtp_domain = .*" --replace="smtp_domain = $new_domain" --file="$discourse_config_file"
+ynh_replace --match="^DISCOURSE_HOSTNAME=.*" --replace="DISCOURSE_HOSTNAME=$new_domain" --file="$discourse_env_file"
+ynh_replace --match="^DISCOURSE_RELATIVE_URL_ROOT=.*" --replace="DISCOURSE_RELATIVE_URL_ROOT=$new_relative_url_root" --file="$discourse_env_file"
+ynh_replace --match="^DISCOURSE_SMTP_DOMAIN=.*" --replace="DISCOURSE_SMTP_DOMAIN=$new_domain" --file="$discourse_env_file"
 
-# Calculate and store the config file checksum
-ynh_store_file_checksum "$discourse_config_file"
+ynh_store_file_checksum "$discourse_env_file"
 
 # Change URL setting
 ynh_psql_db_shell \
     <<< "UPDATE site_settings SET value = replace(value, '$old_relative_url_root/images/', '$new_relative_url_root/images/');
-UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';"
+UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';
+UPDATE site_settings SET value = '$new_mail_sender' WHERE name='notification_email' AND value = '$old_mail_sender';"
 
 pushd "$install_dir/discourse"
     # Remap URLs in forum posts
     _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec script/discourse remap "$old_relative_url_root/uploads" "$new_relative_url_root/uploads" <<< "YES
     # "
     # Regenerate assets
-    ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bin/rake assets:precompile
+    ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production DISCOURSE_DOWNLOAD_PRE_BUILT_ASSETS=0 bin/rake assets:precompile
 
     # Regenerate all forum posts
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bin/rake posts:rebake

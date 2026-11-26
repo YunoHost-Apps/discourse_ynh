@@ -1,0 +1,32 @@
+# Keeps the prebuilt_assets source in step with the main source on the autoupdate bot's branches.
+name: Update prebuilt assets
+
+on:
+  push:
+    branches:
+      - "ci-auto-update-*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Point prebuilt_assets at the main source's release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/update_prebuilt_assets.sh
+
+      - name: Commit the manifest if it changed
+        run: |
+          if git diff --quiet manifest.toml; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update prebuilt assets source" manifest.toml
+          git push

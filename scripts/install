@@ -13,6 +13,7 @@ fi
 #=================================================
 
 relative_url_root=${path%/}
+mail_sender="${mail_user:-$app}@${mail_domain:-$domain}"
 
 # Create a random password
 admin_pwd=$(ynh_string_random)
@@ -21,8 +22,7 @@ admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 redis_db=$(ynh_redis_get_free_db)
 ynh_app_setting_set --key=redis_db --value="$redis_db"
 
-# Set a secret value
-secret="$(ynh_string_random)"
+secret="$(ynh_string_random --length=128 --filter='0-9a-f')"
 ynh_app_setting_set --key=secret --value="$secret"
 
 # We assume for the moment that ARM devices are only dual core, so
@@ -63,6 +63,8 @@ ynh_script_progression "Setting up source files..."
 # Download, check integrity, uncompress and patch the source from app.src
 ynh_setup_source --dest_dir="$install_dir/discourse"
 
+install_prebuilt_assets
+
 # Install LDAP plugin
 ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/ldap"
 
@@ -85,8 +87,9 @@ chown -R "$app:www-data" "$install_dir"
 #=================================================
 ynh_script_progression "Adding $app's configuration file..."
 
-ynh_config_add --template="discourse_defaults.conf" --destination="$install_dir/discourse/config/discourse.conf"
-ynh_config_add --template="secrets.yml" --destination="$install_dir/discourse/config/secrets.yml"
+ynh_config_add --template="discourse.env" --destination="$discourse_env_file"
+chmod 400 "$discourse_env_file"
+chown "$app:$app" "$discourse_env_file"
 ynh_config_add --template="settings.yml" --destination="$install_dir/discourse/plugins/ldap/config/settings.yml"
 
 # Disable svgo worker
@@ -101,28 +104,11 @@ discourse_ruby_install
 
 ynh_script_progression "Setting up Unicorn..."
 
-# On ARM architecture, replace bundled libpsl by system native libpsl
-# because the provided binary isn't compatible
-if dpkg --print-architecture | grep -q "arm"; then
-    (
-        cd "$install_dir/discourse/vendor/bundle/ruby"/*/"gems/mini_suffix-*/vendor"
-        rm libpsl.so
-        ln -s "$(ldconfig -p | grep libpsl | awk 'END {print $NF}')" libpsl.so
-    )
-fi
-
 pushd "$install_dir/discourse"
     # Install bundler, a gems installer
     gem install bundler --conservative -v $(awk '/BUNDLED WITH/ { getline; gsub(/ /,""); print $0 }' $install_dir/discourse/Gemfile.lock)
     # Install without documentation
     echo "gem: --no-ri --no-rdoc" | ynh_exec_as_app tee "$install_dir/discourse/.gemrc" >/dev/null
-
-    # Specific actions on ARM architecture
-    if dpkg --print-architecture | grep -q "arm"; then
-        # Define the platform specifically to retrieve binaries
-        # for libv8 because it currently doesn't compile on ARM devices
-        _exec_as_app_with_ruby_node bundle config specific_platform arm-linux
-    fi
 
     # Install dependencies
     _exec_as_app_with_ruby_node bundle config set --local path "$install_dir/discourse/vendor/bundle"

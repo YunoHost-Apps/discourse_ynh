@@ -7,7 +7,7 @@ name = "Discourse"
 description.en = "Discussion platform"
 description.fr = "Plateforme de discussion"
 
-version = "2026.10.2~ynh1"
+version = "2026.11.0~ynh1"
 
 maintainers = ["JimboJoe"]
 
@@ -49,10 +49,15 @@ ram.runtime = "1G"
 [resources]
     [resources.sources]
     [resources.sources.main]
-    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.10.2.tar.gz"
-    sha256 = "0f4eb094bc35d1ddaf37cca9c96cb025c7f8402021fb77cb8a68dc0e5875a529"
+    url = "https://github.com/discourse/discourse/archive/refs/tags/v2026.11.0.tar.gz"
+    sha256 = "9ca74f8f45a6a84f119050c4cb2e860da1d612acd2b65639b880f4f857bc72aa"
 
     autoupdate.strategy = "latest_github_tag"
+
+    [resources.sources.prebuilt_assets]
+    url = "https://github.com/discourse/discourse-assets/releases/download/v2026.11.0-d452f325/production.tar.gz"
+    sha256 = "05928323fa16d67f5b88ebe2ed517e0aa021a615bdfb07b4e13f3d9fa3719986"
+    in_subdir = false
 
     [resources.sources.ldap-auth]
     url = "https://github.com/jonmbake/discourse-ldap-auth/archive/9776c1d021696e5bfdb8857093b8434063bc6ae1.tar.gz"
@@ -84,6 +89,7 @@ ram.runtime = "1G"
     autoupdate.asset.arm64 = "^oxipng-.*-aarch64-unknown-linux-gnu\\.tar\\.gz$"
 
     [resources.system_user]
+    allow_email = true
 
     [resources.apt]
     packages = [
@@ -94,6 +100,7 @@ ram.runtime = "1G"
         "gcc",
         "make",
         "gifsicle",
+        "git",
         "jhead",
         "jpegoptim",
         "libapr1-dev",

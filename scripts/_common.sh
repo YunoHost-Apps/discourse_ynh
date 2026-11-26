@@ -6,7 +6,7 @@
 
 libjemalloc="$(ldconfig -p | grep libjemalloc | awk 'END {print $NF}')"
 
-discourse_ruby_version="3.4"
+discourse_ruby_version="4.0"
 
 # Builds the Ruby version Discourse needs with the helpers, since the ruby resource of YunoHost 12 cannot change versions
 discourse_ruby_install() {
@@ -26,8 +26,12 @@ discourse_ruby_load() {
     _ynh_load_ruby_in_path_and_other_tweaks
 }
 
+discourse_env_file="$install_dir/discourse.env"
+
+# Runs a command as the app user with Ruby, Node and the DISCOURSE_* settings loaded
 _exec_as_app_with_ruby_node() {
-    ynh_exec_as_app env PATH="$path_with_nodejs:$path_with_ruby:$PATH" "$@"
+    ynh_exec_as_app env PATH="$path_with_nodejs:$path_with_ruby:$PATH" \
+        bash -c 'set -a; source "$0"; set +a; exec env "$@"' "$discourse_env_file" "$@"
 }
 
 # Returns true if a swap partition is enabled, false otherwise
@@ -51,8 +55,7 @@ is_memory_available() {
     [ $(($freemem+$freeswap)) -gt $needed_memory ]
 }
 
-# Checks discourse install memory requirements
-# terminates installation if requirements not met
+# Warns when swap, swappiness or available memory are below what Discourse needs
 check_memory_requirements() {
     if ! is_swap_present ; then
         ynh_print_warn "You must have a swap partition in order to install and use this application"
@@ -62,16 +65,13 @@ check_memory_requirements() {
         ynh_print_warn "You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
     fi
 }
-# Checks discourse upgrade memory requirements
-# Less requirements as the software is already installed and running
-# terminates upgrade if requirements not met
-check_memory_requirements_upgrade() {
-    if ! is_memory_available 400000 ; then
-        ynh_die "You must have a minimum of 400Mb available memory (RAM+swap) for the upgrade"
-    fi
-}
 
 tools_prefix="$install_dir/dependencies"
+
+# Returns true if the argument is a secret_key_base Discourse accepts: 128 lowercase hex characters
+is_valid_secret_key_base() {
+    [[ "$1" =~ ^[0-9a-f]{128}$ ]]
+}
 
 install_imagemagick() {
     ynh_setup_source --source_id="imagemagickv7" --dest_dir="$tools_prefix"
@@ -82,6 +82,17 @@ install_oxipng() {
     mkdir -p "$tools_prefix/bin"
     mv "$install_dir/oxipng_source/oxipng" "$tools_prefix/bin/oxipng"
     ynh_safe_rm "$install_dir/oxipng_source"
+}
+
+# Puts Discourse's pre-built frontend in place so assets:precompile can skip the JS build
+install_prebuilt_assets() {
+    local assets_dir="$install_dir/prebuilt_assets"
+    ynh_setup_source --source_id="prebuilt_assets" --dest_dir="$assets_dir" --full_replace
+    ynh_safe_rm "$install_dir/discourse/frontend/discourse/dist"
+    ynh_safe_rm "$install_dir/discourse/app/assets/generated"
+    mv "$assets_dir/core" "$install_dir/discourse/frontend/discourse/dist"
+    mv "$assets_dir/plugins" "$install_dir/discourse/app/assets/generated"
+    ynh_safe_rm "$assets_dir"
 }
 
 ynh_maintenance_mode_ON () {

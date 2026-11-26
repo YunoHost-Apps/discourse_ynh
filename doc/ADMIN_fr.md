@@ -21,7 +21,7 @@ Utilisez le panneau d'administration de votre Discourse pour configurer cette ap
 
 * Vous devez créer un utilisateur Yunohost dédié pour Discourse dont la boîte aux lettres sera utilisée par l'application Discourse. Vous pouvez le faire avec `yunohost user create response`, par exemple. Vous devez vous assurer que l'adresse e-mail est configurée pour être sur votre domaine Discourse.
 
-* Vous devez ensuite configurer votre fichier Discourse `__INSTALL_DIR__/discourse/config/discourse.conf` avec les valeurs de configuration SMTP correctes. Veuillez consulter [ce commentaire](https://github.com/YunoHost-Apps/discourse_ynh/issues/2#issuecomment-409510325) pour une explication des valeurs à modifier. Attention, lors de la mise à jour de l'application, vous devrez réappliquer cette configuration.
+* L'envoi des e-mails ne demande aucune configuration : Discourse passe par le serveur mail de YunoHost avec l'adresse `__APP__@__DOMAIN__`. Gardez cette adresse dans le réglage `notification_email`, car le serveur mail refuse les autres expéditeurs pour cette application.
 
 * Vous devez activer la configuration Pop3 pour Dovecot. Voir [ce fil](https://forum.yunohost.org/t/how-to-enable-pop3-in-yunohost/1662/2) pour savoir comment procéder. Vous pouvez valider votre configuration avec `systemctl restart dovecot && dovecot -n`. N'oubliez pas d'ouvrir les ports dont vous avez besoin ('995' est la valeur par défaut). Vous pouvez valider cela avec `nmap -p 995 yunohostdomain.org`.
 
@@ -35,13 +35,16 @@ Si vous utilisez l'interface utilisateur d'administration de YunoHost pour confi
 
 Par exemple, votre utilisateur a l'adresse e-mail "foo@myyunohostdomain.org" et tout le courrier est transféré à "foo@theirexternalmail.com". Discourse reçoit des réponses de `foo@theirexternalmail.com` mais ne peut pas comprendre comment les envoyer au compte utilisateur avec `foo@myyunohostdomain.org` configuré.
 
-Leur travail est en cours pour permettre [plusieurs adresses e-mail pour un utilisateur](https://meta.discourse.org/t/additional-email-address-per-user-account-support/59847) dans le développement de discours mais dans la version majeure actuelle (2.3 au 06-08-2019), il n'y a pas d'interface Web pour cette fonctionnalité. Il est possible de le configurer via l'interface de ligne de commande mais c'est **expérimental** et vous ne devriez pas entreprendre ce travail à moins de prendre le temps de comprendre ce que vous allez faire.
+Pour corriger cela, vous pouvez ajouter manuellement une adresse e-mail secondaire dans le profil de l'utilisateur. Un correctif permet aussi d'utiliser comme adresse principale la première adresse de transfert, si elle existe : dans `Discourse > Plugins > LDAP`, remplacez la valeur du réglage `ldap_email` par `maildrop` au lieu de `email`.
+
+Une autre solution consiste à utiliser les hooks utilisateur de YunoHost pour créer automatiquement les adresses secondaires.
 
 Voici comment configurer une adresse e-mail secondaire pour un compte utilisateur :
 
 ```bash
-cd /var/www/discourse
-RAILS_ENV=production /opt/rbenv/versions/2.7.1/bin/bundle exec rails c
+cd /var/www/discourse/discourse
+discourse_run() { sudo -u discourse env PATH="/opt/rbenv/versions/discourse/bin:$PATH" RAILS_ENV=production bash -c 'set -a; source ../discourse.env; set +a; exec "$@"' _ "$@"; }
+discourse_run bin/rails c
 UserEmail.create!(user: User.find_by_username("foo"), email: "foo@theirexternalmail.com")
 ```
 
@@ -66,7 +69,9 @@ Lors de la désactivation de la connexion locale et d'autres services d'authenti
 
 ```bash
 cd /var/www/discourse/discourse
-sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved (for example)
-sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
+discourse_run() { sudo -u discourse env PATH="/opt/rbenv/versions/discourse/bin:$PATH" RAILS_ENV=production bash -c 'set -a; source ../discourse.env; set +a; exec "$@"' _ "$@"; }
+discourse_run bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved
+discourse_run bin/rake --trace db:migrate
+discourse_run bin/rake --trace assets:precompile
 systemctl restart discourse
 ```

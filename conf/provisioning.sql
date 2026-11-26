@@ -1,6 +1,7 @@
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('title', 1, 'YunoHost Forum', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('site_description', 1, 'YunoHost Forum', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('contact_email', 14, '__ADMIN_MAIL__', 'NOW()', 'NOW()');
+INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('notification_email', 14, '__MAIL_SENDER__', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('contact_url', 1, '__DOMAIN____PATH__', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('site_contact_username', 15, '__ADMIN__', 'NOW()', 'NOW()');
 INSERT INTO site_settings (name, data_type, value, created_at, updated_at) VALUES ('logo_url', 1, '__RELATIVE_URL_ROOT__/images/d-logo-sketch.png', 'NOW()', 'NOW()');

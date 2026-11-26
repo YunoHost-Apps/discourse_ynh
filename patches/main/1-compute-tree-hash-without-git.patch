@@ -1,7 +1,14 @@
-diff --git a/script/assemble_ember_build.rb b/script/assemble_ember_build.rb
 --- a/script/assemble_ember_build.rb
 +++ b/script/assemble_ember_build.rb
-@@ -38,20 +38,9 @@
+@@ -5,6 +5,7 @@
+ require "bundler/setup"
+ require "fileutils"
+ require "tempfile"
++require "tmpdir"
+ require "open3"
+ require "json"
+ require "time"
+@@ -38,18 +39,10 @@
  # Returns a git tree-hash representing the current state of Discourse core JS source paths.
  # Only files in JS_SOURCE_PATHS are included in the tree hash.
  def core_tree_hash
@@ -15,13 +22,11 @@ diff --git a/script/assemble_ember_build.rb b/script/assemble_ember_build.rb
 -
 -    # Remove all files from the index, then add only JS_SOURCE_PATHS
 -    system(env, "git", "rm", "-r", "--cached", ".", "--quiet", exception: true)
--    system(env, "git", "add", *JS_SOURCE_PATHS, exception: true)
++  Dir.mktmpdir do |git_dir|
++    env = { "GIT_DIR" => git_dir, "GIT_WORK_TREE" => Dir.pwd }
++    system(env, "git", "init", "--quiet", exception: true)
+     system(env, "git", "add", *JS_SOURCE_PATHS, exception: true)
 -
--    capture(env, "git", "write-tree").strip
--  end
-+  # As YunoHost does not use git, the default command will fail. Discourse only need the value to write it in app/assets/javascripts/discourse/BUILD_INFO.json.
-+  # It could be watsever, so we use a fixed string.
-+  "12345678987654321"
+     capture(env, "git", "write-tree").strip
+   end
  end
- 
- def resolved_ember_env
