@@ -21,7 +21,7 @@ Utilisez le panneau d'administration de votre Discourse pour configurer cette ap
 
 * Vous devez créer un utilisateur Yunohost dédié pour Discourse dont la boîte aux lettres sera utilisée par l'application Discourse. Vous pouvez le faire avec `yunohost user create response`, par exemple. Vous devez vous assurer que l'adresse e-mail est configurée pour être sur votre domaine Discourse.
 
-* Vous devez ensuite définir les valeurs SMTP correctes sous forme de variables `DISCOURSE_SMTP_*` (par exemple `DISCOURSE_SMTP_USER_NAME`) dans `__INSTALL_DIR__/discourse.env`, puis redémarrer le service `discourse`. Veuillez consulter [ce commentaire](https://github.com/YunoHost-Apps/discourse_ynh/issues/2#issuecomment-409510325) pour une explication des valeurs à modifier. Attention, lors de la mise à jour de l'application, vous devrez réappliquer cette configuration.
+* L'envoi des e-mails ne demande aucune configuration : Discourse passe par le serveur mail de YunoHost avec l'adresse `__APP__@__DOMAIN__`. Gardez cette adresse dans le réglage `notification_email`, car le serveur mail refuse les autres expéditeurs pour cette application.
 
 * Vous devez activer la configuration Pop3 pour Dovecot. Voir [ce fil](https://forum.yunohost.org/t/how-to-enable-pop3-in-yunohost/1662/2) pour savoir comment procéder. Vous pouvez valider votre configuration avec `systemctl restart dovecot && dovecot -n`. N'oubliez pas d'ouvrir les ports dont vous avez besoin ('995' est la valeur par défaut). Vous pouvez valider cela avec `nmap -p 995 yunohostdomain.org`.
 

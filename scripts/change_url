@@ -26,6 +26,8 @@ ynh_script_progression "Updating a config file..."
 
 old_relative_url_root="${old_path%/}"
 new_relative_url_root="${new_path%/}"
+old_mail_sender="${mail_user:-$app}@${mail_domain:-$old_domain}"
+new_mail_sender="${mail_user:-$app}@${mail_domain:-$new_domain}"
 
 ynh_replace --match="^DISCOURSE_HOSTNAME=.*" --replace="DISCOURSE_HOSTNAME=$new_domain" --file="$discourse_env_file"
 ynh_replace --match="^DISCOURSE_RELATIVE_URL_ROOT=.*" --replace="DISCOURSE_RELATIVE_URL_ROOT=$new_relative_url_root" --file="$discourse_env_file"
@@ -36,7 +38,8 @@ ynh_store_file_checksum "$discourse_env_file"
 # Change URL setting
 ynh_psql_db_shell \
     <<< "UPDATE site_settings SET value = replace(value, '$old_relative_url_root/images/', '$new_relative_url_root/images/');
-UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';"
+UPDATE site_settings SET value = '${new_path}' WHERE name='long_polling_base_url';
+UPDATE site_settings SET value = '$new_mail_sender' WHERE name='notification_email' AND value = '$old_mail_sender';"
 
 pushd "$install_dir/discourse"
     # Remap URLs in forum posts

@@ -13,6 +13,7 @@ fi
 #=================================================
 
 relative_url_root=${path%/}
+mail_sender="${mail_user:-$app}@${mail_domain:-$domain}"
 
 # Create a random password
 admin_pwd=$(ynh_string_random)

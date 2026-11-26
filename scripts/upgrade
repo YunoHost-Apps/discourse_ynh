@@ -13,6 +13,7 @@ fi
 #=================================================
 
 relative_url_root=${path%/}
+mail_sender="${mail_user:-$app}@${mail_domain:-$domain}"
 admin_mail=$(ynh_user_get_info --username=$admin --key=mail)
 
 #=================================================
@@ -197,6 +198,12 @@ ynh_script_progression "Preparing the database..."
 
 pushd "$install_dir/discourse"
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake db:migrate
+    ynh_psql_db_shell <<< "INSERT INTO site_settings (name, data_type, value, created_at, updated_at)
+        SELECT 'notification_email', 14, '$mail_sender', NOW(), NOW()
+        WHERE NOT EXISTS (SELECT 1 FROM site_settings WHERE name = 'notification_email');"
+    if ! ynh_psql_db_shell <<< "SELECT value FROM site_settings WHERE name = 'notification_email';" | awk '{$1=$1};1' | grep -qxF "$mail_sender"; then
+        ynh_print_warn "Discourse's notification_email setting is not $mail_sender, so the mail server will refuse its emails. Set it back to $mail_sender in the Discourse admin."
+    fi
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production bundle exec rake themes:update
     ynh_hide_warnings _exec_as_app_with_ruby_node RAILS_ENV=production DISCOURSE_DOWNLOAD_PRE_BUILT_ASSETS=0 bundle exec rake assets:precompile
 popd
