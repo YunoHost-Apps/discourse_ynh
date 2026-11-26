@@ -9,6 +9,7 @@ After=postgresql.service
 User=__APP__
 Group=__APP__
 WorkingDirectory=__INSTALL_DIR__/discourse
+EnvironmentFile=__INSTALL_DIR__/discourse.env
 Environment=__ADDITIONAL_ENV__
 Environment=RAILS_ENV=production
 Environment=UNICORN_SIDEKIQS=1

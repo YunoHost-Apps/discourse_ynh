@@ -55,6 +55,11 @@ if [ ! -d "$install_dir/discourse" ] && [ -f "$install_dir/config/application.rb
     ynh_config_remove_logrotate
 fi
 
+if [ -f "$install_dir/discourse/config/discourse.conf" ]; then
+    ynh_delete_file_checksum "$install_dir/discourse/config/discourse.conf"
+    ynh_safe_rm "$install_dir/discourse/config/discourse.conf"
+fi
+
 ynh_safe_rm "$install_dir/discourse/public/forum/uploads"
 ynh_safe_rm "$install_dir/discourse/public/forum/backups"
 
@@ -106,7 +111,7 @@ for obsolete_plugin in lazy-yt discourse-calendar discourse-hcaptcha voice; do
 done
 
 # Download, check integrity, uncompress and patch the source from app.src
-ynh_setup_source --dest_dir="$install_dir/discourse" --full_replace --keep="config/discourse.conf plugins_old public/uploads public/backups log"
+ynh_setup_source --dest_dir="$install_dir/discourse" --full_replace --keep="plugins_old public/uploads public/backups log"
 
 # Restore all non-core plugins
 for plugin_dir in "$install_dir/discourse/plugins_old"/*; do
@@ -140,7 +145,9 @@ chown -R "$app:www-data" "$install_dir"
 #=================================================
 ynh_script_progression "Updating $app's config file..."
 
-ynh_config_add --template="discourse_defaults.conf" --destination="$install_dir/discourse/config/discourse.conf"
+ynh_config_add --template="discourse.env" --destination="$discourse_env_file"
+chmod 400 "$discourse_env_file"
+chown "$app:$app" "$discourse_env_file"
 ynh_config_add --template="secrets.yml" --destination="$install_dir/discourse/config/secrets.yml"
 ynh_config_add --template="settings.yml" --destination="$install_dir/discourse/plugins/ldap/config/settings.yml"
 

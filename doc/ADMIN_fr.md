@@ -21,7 +21,7 @@ Utilisez le panneau d'administration de votre Discourse pour configurer cette ap
 
 * Vous devez créer un utilisateur Yunohost dédié pour Discourse dont la boîte aux lettres sera utilisée par l'application Discourse. Vous pouvez le faire avec `yunohost user create response`, par exemple. Vous devez vous assurer que l'adresse e-mail est configurée pour être sur votre domaine Discourse.
 
-* Vous devez ensuite configurer votre fichier Discourse `__INSTALL_DIR__/discourse/config/discourse.conf` avec les valeurs de configuration SMTP correctes. Veuillez consulter [ce commentaire](https://github.com/YunoHost-Apps/discourse_ynh/issues/2#issuecomment-409510325) pour une explication des valeurs à modifier. Attention, lors de la mise à jour de l'application, vous devrez réappliquer cette configuration.
+* Vous devez ensuite définir les valeurs SMTP correctes sous forme de variables `DISCOURSE_SMTP_*` (par exemple `DISCOURSE_SMTP_USER_NAME`) dans `__INSTALL_DIR__/discourse.env`, puis redémarrer le service `discourse`. Veuillez consulter [ce commentaire](https://github.com/YunoHost-Apps/discourse_ynh/issues/2#issuecomment-409510325) pour une explication des valeurs à modifier. Attention, lors de la mise à jour de l'application, vous devrez réappliquer cette configuration.
 
 * Vous devez activer la configuration Pop3 pour Dovecot. Voir [ce fil](https://forum.yunohost.org/t/how-to-enable-pop3-in-yunohost/1662/2) pour savoir comment procéder. Vous pouvez valider votre configuration avec `systemctl restart dovecot && dovecot -n`. N'oubliez pas d'ouvrir les ports dont vous avez besoin ('995' est la valeur par défaut). Vous pouvez valider cela avec `nmap -p 995 yunohostdomain.org`.
 
@@ -40,8 +40,9 @@ Leur travail est en cours pour permettre [plusieurs adresses e-mail pour un util
 Voici comment configurer une adresse e-mail secondaire pour un compte utilisateur :
 
 ```bash
-cd /var/www/discourse
-RAILS_ENV=production /opt/rbenv/versions/2.7.1/bin/bundle exec rails c
+cd /var/www/discourse/discourse
+discourse_run() { sudo -u discourse env PATH="/opt/rbenv/versions/discourse/bin:$PATH" RAILS_ENV=production bash -c 'set -a; source ../discourse.env; set +a; exec "$@"' _ "$@"; }
+discourse_run bin/rails c
 UserEmail.create!(user: User.find_by_username("foo"), email: "foo@theirexternalmail.com")
 ```
 
@@ -66,7 +67,8 @@ Lors de la désactivation de la connexion locale et d'autres services d'authenti
 
 ```bash
 cd /var/www/discourse/discourse
-sudo -i -u discourse RAILS_ENV=production bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved (for example)
-sudo -i -u discourse RAILS_ENV=production bin/rake --trace assets:precompile
+discourse_run() { sudo -u discourse env PATH="/opt/rbenv/versions/discourse/bin:$PATH" RAILS_ENV=production bash -c 'set -a; source ../discourse.env; set +a; exec "$@"' _ "$@"; }
+discourse_run bin/rake --trace plugin:install repo=https://github.com/discourse/discourse-solved
+discourse_run bin/rake --trace assets:precompile
 systemctl restart discourse
 ```
