@@ -55,8 +55,7 @@ is_memory_available() {
     [ $(($freemem+$freeswap)) -gt $needed_memory ]
 }
 
-# Checks discourse install memory requirements
-# terminates installation if requirements not met
+# Warns when swap, swappiness or available memory are below what Discourse needs
 check_memory_requirements() {
     if ! is_swap_present ; then
         ynh_print_warn "You must have a swap partition in order to install and use this application"
@@ -64,14 +63,6 @@ check_memory_requirements() {
         ynh_print_warn "Your swappiness must be higher than 10; please see https://en.wikipedia.org/wiki/Swappiness"
     elif ! is_memory_available 1000000 ; then
         ynh_print_warn "You must have a minimum of 1Gb available memory (RAM+swap) for the installation"
-    fi
-}
-# Checks discourse upgrade memory requirements
-# Less requirements as the software is already installed and running
-# terminates upgrade if requirements not met
-check_memory_requirements_upgrade() {
-    if ! is_memory_available 400000 ; then
-        ynh_die "You must have a minimum of 400Mb available memory (RAM+swap) for the upgrade"
     fi
 }
 

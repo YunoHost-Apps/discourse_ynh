@@ -35,7 +35,9 @@ Si vous utilisez l'interface utilisateur d'administration de YunoHost pour confi
 
 Par exemple, votre utilisateur a l'adresse e-mail "foo@myyunohostdomain.org" et tout le courrier est transféré à "foo@theirexternalmail.com". Discourse reçoit des réponses de `foo@theirexternalmail.com` mais ne peut pas comprendre comment les envoyer au compte utilisateur avec `foo@myyunohostdomain.org` configuré.
 
-Leur travail est en cours pour permettre [plusieurs adresses e-mail pour un utilisateur](https://meta.discourse.org/t/additional-email-address-per-user-account-support/59847) dans le développement de discours mais dans la version majeure actuelle (2.3 au 06-08-2019), il n'y a pas d'interface Web pour cette fonctionnalité. Il est possible de le configurer via l'interface de ligne de commande mais c'est **expérimental** et vous ne devriez pas entreprendre ce travail à moins de prendre le temps de comprendre ce que vous allez faire.
+Pour corriger cela, vous pouvez ajouter manuellement une adresse e-mail secondaire dans le profil de l'utilisateur. Un correctif permet aussi d'utiliser comme adresse principale la première adresse de transfert, si elle existe : dans `Discourse > Plugins > LDAP`, remplacez la valeur du réglage `ldap_email` par `maildrop` au lieu de `email`.
+
+Une autre solution consiste à utiliser les hooks utilisateur de YunoHost pour créer automatiquement les adresses secondaires.
 
 Voici comment configurer une adresse e-mail secondaire pour un compte utilisateur :
 

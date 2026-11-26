@@ -131,6 +131,13 @@ done
 
 ynh_safe_rm "$install_dir/discourse/plugins_old"
 
+for plugin_dir in "$install_dir/discourse/plugins"/*; do
+    if [ -d "$plugin_dir/.git" ]; then
+        ynh_exec_as_app git -C "$plugin_dir" pull --quiet --no-rebase \
+            || ynh_print_warn "Could not update the $(basename "$plugin_dir") plugin, keeping its current version"
+    fi
+done
+
 # Install LDAP plugin
 ynh_setup_source --source_id=ldap-auth --dest_dir="$install_dir/discourse/plugins/ldap" --full_replace --keep="config/settings.yml"
 
@@ -186,11 +193,11 @@ pushd "$install_dir/discourse"
     _exec_as_app_with_ruby_node bundle config set --local path "$install_dir/discourse/vendor/bundle"
     _exec_as_app_with_ruby_node bundle config set --local without test development
     _exec_as_app_with_ruby_node bundle install --jobs 2
+    _exec_as_app_with_ruby_node LOAD_PLUGINS=0 RAILS_ENV=production bundle exec rake plugin:pull_compatible_all \
+        || ynh_print_warn "Could not check out plugin versions compatible with this Discourse release"
 popd
 
 pushd "$install_dir/discourse"
-    ynh_hide_warnings npm install --location=global terser
-    ynh_hide_warnings npm install --location=global uglify-js
     ynh_hide_warnings npm install --location=global pnpm@10 --force
     ynh_hide_warnings _exec_as_app_with_ruby_node pnpm install --frozen-lockfile
 popd
